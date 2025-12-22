@@ -39,31 +39,19 @@ const MyComponent = () => {
 
 ---
 
-## TipTap 에디터
+## Lexical 에디터
 
-### 관련 문서
-- **상세 가이드**: `TIPTAP.md` 파일 참조
-- **컴포넌트 경로**: `components/editor/rich-text-editor.tsx`
+### 컴포넌트 경로
+- `components/editor/rich-text-editor.tsx`
+- 읽기 전용 렌더: `components/editor/rich-text-viewer.tsx`
 
-### 핵심 주의사항
-1. **SSR 설정**: Next.js에서 반드시 `immediatelyRender: false` 설정
-2. **툴바 포커스**: `onMouseDown={(e) => e.preventDefault()}` 사용
-3. **명령 체이닝**: `editor.chain().focus().toggleBold().run()` 패턴 사용
-4. **이미지 업로드**: Base64 사용 금지, 외부 스토리지 URL 사용
+### 저장 형식
+- 게시글/상품 내용은 **Lexical JSON 문자열**로 저장합니다.
+- 필요 시 `contentMarkdown`에 Markdown 문자열을 함께 저장합니다.
 
-### 빠른 참조
-```tsx
-// 툴바 버튼 클릭 시
-onClick={() => {
-    editor?.chain().focus().run();
-    editor?.chain().toggleBold().run();
-}}
-onMouseDown={(e) => e.preventDefault()}
-
-// 활성 상태 확인
-editor.isActive('bold')
-editor.isActive('heading', { level: 1 })
-```
+### 이미지 업로드
+- `/api/upload`로 업로드 후 반환된 URL을 `ImageNode`로 삽입합니다.
+- Base64 사용 금지, 외부 스토리지/정적 서빙 URL 사용
 
 ---
 

@@ -24,7 +24,8 @@ model User {
 model Product {
   id        String   @id @default(cuid())
   title     String
-  content   String // HTML/Markdown content
+  content   String // Lexical JSON
+  contentMarkdown String?
   category  String // CASINO, NIGHTLIFE, GOLF, HOTEL, ETC
   imageUrl  String?
   price     String?
@@ -36,7 +37,8 @@ model Product {
 model Post {
   id        String    @id @default(cuid())
   title     String
-  content   String
+  content   String // Lexical JSON
+  contentMarkdown String?
   type      String    // FREE, REVIEW
   authorId  String
   author    User      @relation(fields: [authorId], references: [id])

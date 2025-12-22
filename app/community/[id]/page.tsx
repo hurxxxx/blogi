@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { ArrowLeft, Trash2, Edit, MessageCircle } from "lucide-react";
+import { RichTextViewer } from "@/components/editor/rich-text-viewer";
 import { useSession } from "next-auth/react";
 
 interface Post {
@@ -177,10 +178,9 @@ export default function PostDetailPage() {
                 <span>조회수: {post.viewCount}</span>
             </div>
 
-            <div
-                className="prose max-w-none prose-lg mb-12 min-h-[200px] [&_img]:max-w-full [&_img]:rounded-lg"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+            <div className="mb-12">
+                <RichTextViewer content={post.content} />
+            </div>
 
             {/* Comments Section */}
             <div className="bg-white/80 p-6 rounded-2xl shadow-[0_18px_50px_-32px_rgba(15,23,42,0.35)]">

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { sanitizeHtmlContent } from "@/lib/sanitize-html";
 
 // GET: List all posts
 export async function GET(req: NextRequest) {
@@ -17,12 +16,7 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: "desc" },
     });
 
-    const sanitized = posts.map((post) => ({
-        ...post,
-        content: sanitizeHtmlContent(post.content),
-    }));
-
-    return NextResponse.json(sanitized);
+    return NextResponse.json(posts);
 }
 
 // POST: Create a new post
@@ -33,18 +27,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, content, type } = body;
+    const { title, content, contentMarkdown, type } = body;
 
     if (!title || !content || !type) {
         return NextResponse.json({ error: "모든 필드를 입력해주세요" }, { status: 400 });
     }
 
-    const sanitizedContent = sanitizeHtmlContent(content);
-
     const post = await prisma.post.create({
         data: {
             title,
-            content: sanitizedContent,
+            content,
+            contentMarkdown: typeof contentMarkdown === "string" && contentMarkdown.trim()
+                ? contentMarkdown.trim()
+                : null,
             type,
             authorId: session.user.id,
         },

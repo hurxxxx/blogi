@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { sanitizeHtmlContent } from "@/lib/sanitize-html";
 
 // GET: List products
 export async function GET(req: NextRequest) {
@@ -13,12 +12,7 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: "desc" },
     });
 
-    const sanitized = products.map((product) => ({
-        ...product,
-        content: sanitizeHtmlContent(product.content),
-    }));
-
-    return NextResponse.json(sanitized);
+    return NextResponse.json(products);
 }
 
 // POST: Create a new product (Admin only)
@@ -29,18 +23,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, content, category, price, imageUrl } = body;
+    const { title, content, contentMarkdown, category, price, imageUrl } = body;
 
     if (!title || !content || !category) {
         return NextResponse.json({ error: "필수 항목을 입력해주세요" }, { status: 400 });
     }
 
-    const sanitizedContent = sanitizeHtmlContent(content);
-
     const product = await prisma.product.create({
         data: {
             title,
-            content: sanitizedContent,
+            content,
+            contentMarkdown: typeof contentMarkdown === "string" && contentMarkdown.trim()
+                ? contentMarkdown.trim()
+                : null,
             category,
             price: price || null,
             imageUrl: imageUrl || null,

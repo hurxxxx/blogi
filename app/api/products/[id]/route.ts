@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { sanitizeHtmlContent } from "@/lib/sanitize-html";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -20,7 +19,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
         ...product,
-        content: sanitizeHtmlContent(product.content),
+        content: product.content,
     });
 }
 
@@ -33,24 +32,35 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const body = await req.json();
-    const { title, content, category, price, imageUrl, isVisible } = body;
+    const { title, content, contentMarkdown, category, price, imageUrl, isVisible } = body;
 
     if (!title || !content || !category) {
         return NextResponse.json({ error: "필수 항목을 입력해주세요" }, { status: 400 });
     }
 
-    const sanitizedContent = sanitizeHtmlContent(content);
+    const updateData: {
+        title: string;
+        content: string;
+        contentMarkdown?: string | null;
+        category: string;
+        price?: string | null;
+        imageUrl?: string | null;
+        isVisible: boolean;
+    } = {
+        title,
+        content,
+        category,
+        price: price || null,
+        imageUrl: imageUrl || null,
+        isVisible: typeof isVisible === "boolean" ? isVisible : true,
+    };
+    if (typeof contentMarkdown === "string") {
+        updateData.contentMarkdown = contentMarkdown.trim() || null;
+    }
 
     const updated = await prisma.product.update({
         where: { id },
-        data: {
-            title,
-            content: sanitizedContent,
-            category,
-            price: price || null,
-            imageUrl: imageUrl || null,
-            isVisible: typeof isVisible === "boolean" ? isVisible : true,
-        },
+        data: updateData,
     });
 
     return NextResponse.json(updated);

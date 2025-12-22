@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
+import { lexicalJsonToPlainText } from "@/lib/lexical";
 
 export default function EditPage() {
     const { id } = useParams<{ id: string }>();
@@ -23,6 +24,7 @@ export default function EditPage() {
     const { data: session, status } = useSession();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
+    const [contentMarkdown, setContentMarkdown] = useState("");
     const [type, setType] = useState("FREE");
     const [authorId, setAuthorId] = useState("");
     const [loading, setLoading] = useState(true);
@@ -37,6 +39,7 @@ export default function EditPage() {
                 const data = await res.json();
                 setTitle(data.title);
                 setContent(data.content);
+                setContentMarkdown(data.contentMarkdown ?? "");
                 setType(data.type);
                 setAuthorId(data.authorId);
             } else {
@@ -84,8 +87,7 @@ export default function EditPage() {
         e.preventDefault();
         setError("");
 
-        // Strip HTML tags to check if content is empty
-        const textContent = content.replace(/<[^>]*>/g, "").trim();
+        const textContent = lexicalJsonToPlainText(content);
         if (!title.trim() || !textContent) {
             setError("제목과 내용을 모두 입력해주세요.");
             return;
@@ -96,7 +98,7 @@ export default function EditPage() {
             const res = await fetch(`/api/posts/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, content, type }),
+                body: JSON.stringify({ title, content, contentMarkdown, type }),
             });
 
             if (res.ok) {
@@ -153,6 +155,7 @@ export default function EditPage() {
                     <RichTextEditor
                         content={content}
                         onChange={setContent}
+                        onMarkdownChange={setContentMarkdown}
                         placeholder="내용을 입력하세요..."
                     />
                 </div>

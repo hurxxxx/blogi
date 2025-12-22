@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
         const file = formData.get("file") as File | null;
+        const rawScope = (formData.get("scope") as string | null) || "misc";
+        const safeScope = rawScope.toLowerCase().replace(/[^a-z0-9_-]/g, "") || "misc";
 
         if (!file) {
             return NextResponse.json({ error: "파일이 없습니다" }, { status: 400 });
@@ -36,11 +38,16 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Create uploads directory if it doesn't exist
-        const uploadsDir =
+        // Create scoped date directory if it doesn't exist
+        const uploadsRoot =
             process.env.UPLOADS_DIR || path.join(process.cwd(), "public", "uploads");
-        if (!existsSync(uploadsDir)) {
-            await mkdir(uploadsDir, { recursive: true });
+        const now = new Date();
+        const yyyy = String(now.getFullYear());
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const scopedDir = path.join(uploadsRoot, safeScope, yyyy, mm, dd);
+        if (!existsSync(scopedDir)) {
+            await mkdir(scopedDir, { recursive: true });
         }
 
         // Generate unique filename
@@ -52,12 +59,12 @@ export async function POST(req: NextRequest) {
         // Save file
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const filePath = path.join(uploadsDir, filename);
+        const filePath = path.join(scopedDir, filename);
         await writeFile(filePath, buffer);
 
         // Return URL
         const baseUrl = (process.env.UPLOADS_URL || "/uploads").replace(/\/+$/, "");
-        const url = `${baseUrl}/${filename}`;
+        const url = `${baseUrl}/${safeScope}/${yyyy}/${mm}/${dd}/${filename}`;
         return NextResponse.json({ url }, { status: 201 });
     } catch (error) {
         console.error("Upload error:", error);

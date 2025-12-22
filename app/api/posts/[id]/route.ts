@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { sanitizeHtmlContent } from "@/lib/sanitize-html";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -42,7 +41,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
         ...post,
         viewCount: shouldIncrement ? post.viewCount + 1 : post.viewCount,
-        content: sanitizeHtmlContent(post.content),
+        content: post.content,
         authorId: post.author.id,
         comments: post.comments.map((c) => ({
             ...c,
@@ -73,12 +72,20 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 
     const body = await req.json();
-    const { title, content, type } = body;
+    const { title, content, contentMarkdown, type } = body;
 
-    const sanitizedContent = sanitizeHtmlContent(content);
+    const updateData: { title?: string; content?: string; contentMarkdown?: string | null; type?: string } = {
+        title,
+        content,
+        type,
+    };
+    if (typeof contentMarkdown === "string") {
+        updateData.contentMarkdown = contentMarkdown.trim() || null;
+    }
+
     const updated = await prisma.post.update({
         where: { id },
-        data: { title, content: sanitizedContent, type },
+        data: updateData,
     });
 
     return NextResponse.json(updated);

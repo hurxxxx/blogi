@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
+import { lexicalJsonToPlainText } from "@/lib/lexical";
 
 const categories = [
     { value: "CASINO", label: "카지노" },
@@ -26,14 +28,16 @@ export default function NewProductPage() {
     const [price, setPrice] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [content, setContent] = useState("");
+    const [contentMarkdown, setContentMarkdown] = useState("");
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [error, setError] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
-        if (!title.trim() || !category || !content.replace(/<[^>]*>/g, "").trim()) {
+        if (!title.trim() || !category || !lexicalJsonToPlainText(content)) {
             setError("제목, 카테고리, 내용을 모두 입력해주세요.");
             return;
         }
@@ -43,7 +47,7 @@ export default function NewProductPage() {
             const res = await fetch("/api/products", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, category, price, imageUrl, content }),
+                body: JSON.stringify({ title, category, price, imageUrl, content, contentMarkdown }),
             });
 
             if (res.ok) {
@@ -56,6 +60,37 @@ export default function NewProductPage() {
             setError("서버 오류가 발생했습니다.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        setError("");
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("scope", "products");
+
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setImageUrl(data.url);
+            } else {
+                const data = await res.json().catch(() => ({}));
+                setError(data.error || "이미지 업로드에 실패했습니다.");
+            }
+        } catch {
+            setError("이미지 업로드 중 오류가 발생했습니다.");
+        } finally {
+            setUploading(false);
+            e.target.value = "";
         }
     };
 
@@ -116,22 +151,41 @@ export default function NewProductPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="imageUrl">대표 이미지 URL (선택)</Label>
+                            <Label htmlFor="image">대표 이미지 업로드 (선택)</Label>
                             <Input
-                                id="imageUrl"
-                                value={imageUrl}
-                                onChange={(e) => setImageUrl(e.target.value)}
-                                placeholder="https://example.com/image.jpg"
-                                disabled={loading}
+                                id="image"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                disabled={loading || uploading}
                             />
+                            {uploading && (
+                                <p className="text-xs text-gray-500">업로드 중...</p>
+                            )}
                         </div>
                     </div>
+
+                    {imageUrl && (
+                        <div className="space-y-2">
+                            <Label>대표 이미지 미리보기</Label>
+                            <div className="relative w-full max-w-md aspect-[4/3] rounded-xl overflow-hidden border border-black/5 bg-gray-50">
+                                <Image
+                                    src={imageUrl}
+                                    alt="대표 이미지"
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <Label>상품 설명</Label>
                         <RichTextEditor
                             content={content}
                             onChange={setContent}
+                            onMarkdownChange={setContentMarkdown}
                             placeholder="상품에 대한 상세 설명을 입력하세요..."
                         />
                     </div>

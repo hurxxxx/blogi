@@ -79,6 +79,20 @@ location /uploads/ {
 - 이미지 업로드 후 반환된 URL(`/uploads/...`)이 정상 접근되는지 확인
 - 서버 재시작 후에도 파일이 유지되는지 확인
 
+### 업로드 경로 규칙
+
+업로드 파일은 스코프와 날짜로 분류됩니다.
+
+```
+/uploads/{scope}/YYYY/MM/DD/{filename}
+```
+
+예:
+```
+/uploads/products/2025/12/22/1700000000-abc123.jpg
+/uploads/posts/2025/12/22/1700000000-xyz789.webp
+```
+
 ## 5) 운영 체크리스트 (NFS 업로드)
 
 - NFS 마운트 경로가 부팅 시 자동 마운트되는지 확인 (`/etc/fstab`)

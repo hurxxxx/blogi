@@ -16,12 +16,14 @@ import {
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
+import { lexicalJsonToPlainText } from "@/lib/lexical";
 
 export default function WritePage() {
     const router = useRouter();
     const { data: session, status } = useSession();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
+    const [contentMarkdown, setContentMarkdown] = useState("");
     const [type, setType] = useState("FREE");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -54,8 +56,7 @@ export default function WritePage() {
         e.preventDefault();
         setError("");
 
-        // Strip HTML tags to check if content is empty
-        const textContent = content.replace(/<[^>]*>/g, "").trim();
+        const textContent = lexicalJsonToPlainText(content);
         if (!title.trim() || !textContent) {
             setError("제목과 내용을 모두 입력해주세요.");
             return;
@@ -66,7 +67,7 @@ export default function WritePage() {
             const res = await fetch("/api/posts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, content, type }),
+                body: JSON.stringify({ title, content, contentMarkdown, type }),
             });
 
             if (res.ok) {
@@ -124,6 +125,7 @@ export default function WritePage() {
                     <RichTextEditor
                         content={content}
                         onChange={setContent}
+                        onMarkdownChange={setContentMarkdown}
                         placeholder="내용을 입력하세요..."
                     />
                 </div>

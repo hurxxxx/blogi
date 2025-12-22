@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/products/product-card";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 interface CategoryPageProps {
     params: Promise<{
@@ -18,7 +20,11 @@ const normalizeCategory = (slug: string) => {
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
     const { category: categorySlug } = await params;
+    const session = await auth();
     const dbCategory = normalizeCategory(categorySlug);
+    if (dbCategory === "VIP_TRIP" && !session) {
+        redirect(`/login?callbackUrl=${encodeURIComponent(`/products/${categorySlug}`)}`);
+    }
 
     const products = await prisma.product.findMany({
         where: {

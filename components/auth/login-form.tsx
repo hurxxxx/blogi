@@ -4,7 +4,7 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 import { LoginSchema } from "@/schemas";
@@ -25,6 +25,10 @@ export const LoginForm = () => {
     const { showToast } = useToast();
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const rawCallbackUrl = searchParams.get("callbackUrl");
+    const callbackUrl =
+        rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : "/";
 
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
@@ -52,7 +56,7 @@ export const LoginForm = () => {
                 }
             } else {
                 showToast("로그인 성공!", "success");
-                router.push("/");
+                router.push(callbackUrl);
                 router.refresh();
             }
         });

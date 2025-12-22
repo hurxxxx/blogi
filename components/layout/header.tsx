@@ -25,6 +25,7 @@ const routes = [
     {
         href: "/products/vip-trip",
         label: "VIP 여행",
+        requiresAuth: true,
     },
     {
         href: "/products/tip",
@@ -50,6 +51,8 @@ export const Header = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const closeSidebar = () => setIsSidebarOpen(false);
+    const getRouteHref = (href: string, requiresAuth?: boolean) =>
+        !session && requiresAuth ? `/login?callbackUrl=${encodeURIComponent(href)}` : href;
 
     return (
         <>
@@ -134,20 +137,24 @@ export const Header = () => {
 
                     <div className="hidden md:block pb-5">
                         <nav className="flex items-center gap-2 overflow-x-auto pb-1">
-                            {routes.map((route) => (
+                            {routes.map((route) => {
+                                const isActive =
+                                    pathname === route.href || pathname?.startsWith(route.href + "/");
+                                return (
                                 <Link
                                     key={route.href}
-                                    href={route.href}
+                                    href={getRouteHref(route.href, route.requiresAuth)}
                                     className={cn(
                                         "px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/5 transition-all whitespace-nowrap",
-                                        pathname === route.href || pathname?.startsWith(route.href + "/")
+                                        isActive
                                             ? "bg-white text-[#0b1320] border-white/30 shadow-[0_12px_30px_-20px_rgba(15,23,42,0.6)]"
                                             : "text-white/80 hover:text-white hover:border-white/20"
                                     )}
                                 >
                                     {route.label}
                                 </Link>
-                            ))}
+                            );
+                            })}
                         </nav>
                     </div>
                 </div>
@@ -199,21 +206,25 @@ export const Header = () => {
                 </div>
 
                 <nav className="py-2">
-                    {routes.map((route) => (
+                    {routes.map((route) => {
+                        const isActive =
+                            pathname === route.href || pathname?.startsWith(route.href + "/");
+                        return (
                         <Link
                             key={route.href}
-                            href={route.href}
+                            href={getRouteHref(route.href, route.requiresAuth)}
                             onClick={closeSidebar}
                             className={cn(
                                 "block px-6 py-3 text-sm font-semibold transition-colors",
-                                pathname === route.href || pathname?.startsWith(route.href + "/")
+                                isActive
                                     ? "text-white bg-white/10 border-l-4 border-white/70"
                                     : "text-white/70 hover:text-white hover:bg-white/5"
                             )}
                         >
                             {route.label}
                         </Link>
-                    ))}
+                        );
+                    })}
                 </nav>
 
                 <div className="border-t border-white/10 p-4">

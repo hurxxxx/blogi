@@ -59,3 +59,7 @@ const MyComponent = () => {
 
 ### 설치/운영 메모
 - 설치 관련 메모 사항은 `docs/install.md`에 작성합니다.
+
+
+## Prisma Studio
+ - http://localhost:5556/

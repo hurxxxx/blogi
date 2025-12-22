@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
+import { auth } from "@/auth";
 
 // Mock data for categories matching the reference
 const categories = [
@@ -60,11 +61,15 @@ const categories = [
 ];
 
 export default async function Home() {
+  const session = await auth();
   const latestPosts = await prisma.post.findMany({
     orderBy: { createdAt: "desc" },
     take: 3,
     include: { author: { select: { name: true } } },
   });
+
+  const resolveCategoryHref = (href: string) =>
+    session ? href : `/login?callbackUrl=${encodeURIComponent(href)}`;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -97,8 +102,13 @@ export default async function Home() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-5">
-              {categories.map((category) => (
-                <Link key={category.label} href={category.href} className="group">
+              {categories.map((category) => {
+                const href =
+                  category.href === "/products/vip-trip" && !session
+                    ? resolveCategoryHref(category.href)
+                    : category.href;
+                return (
+                <Link key={category.label} href={href} className="group">
                   <Card className="overflow-hidden border-none bg-white/90 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]">
                     <div className="relative h-[140px] sm:h-[180px]">
                       <Image
@@ -123,7 +133,8 @@ export default async function Home() {
                     </CardContent>
                   </Card>
                 </Link>
-              ))}
+              );
+              })}
             </div>
           </div>
         </div>

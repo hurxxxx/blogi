@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { RichTextViewer } from "@/components/editor/rich-text-viewer";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { auth } from "@/auth";
 
 interface ProductDetailPageProps {
     params: Promise<{
@@ -12,7 +16,11 @@ interface ProductDetailPageProps {
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-    const { id } = await params;
+    const { id, category } = await params;
+    const session = await auth();
+    if (category === "vip-trip" && !session) {
+        redirect(`/login?callbackUrl=${encodeURIComponent(`/products/${category}/${id}`)}`);
+    }
 
     const product = await prisma.product.findUnique({
         where: {
@@ -24,8 +32,19 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         notFound();
     }
 
+    if (product.category === "VIP_TRIP" && !session) {
+        redirect(`/login?callbackUrl=${encodeURIComponent(`/products/${category}/${id}`)}`);
+    }
+
     return (
         <div className="container mx-auto px-4 py-10 max-w-5xl">
+            <Button variant="ghost" className="mb-6 -ml-2" asChild>
+                <Link href={`/products/${category}`}>
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    목록으로
+                </Link>
+            </Button>
+
             {/* Breadcrumb / Category */}
             <div className="mb-4">
                 <Badge variant="outline" className="text-sm uppercase">

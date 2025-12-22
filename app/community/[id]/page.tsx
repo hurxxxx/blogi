@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +38,7 @@ export default function PostDetailPage() {
     const [loading, setLoading] = useState(true);
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const hasIncrementedView = useRef(false);
 
     const isAuthor = session?.user?.id === post?.authorId;
     const isAdmin = session?.user?.role === "ADMIN";
@@ -45,16 +46,20 @@ export default function PostDetailPage() {
 
     useEffect(() => {
         if (params.id) {
-            fetchPost();
+            fetchPost(!hasIncrementedView.current);
         }
     }, [params.id]);
 
-    const fetchPost = async () => {
+    const fetchPost = async (incrementView = false) => {
         try {
-            const res = await fetch(`/api/posts/${params.id}`);
+            const viewParam = incrementView ? "?view=1" : "";
+            const res = await fetch(`/api/posts/${params.id}${viewParam}`);
             if (res.ok) {
                 const data = await res.json();
                 setPost(data);
+                if (incrementView) {
+                    hasIncrementedView.current = true;
+                }
             } else {
                 router.push("/community");
             }
@@ -94,7 +99,7 @@ export default function PostDetailPage() {
             });
             if (res.ok) {
                 setComment("");
-                fetchPost();
+                fetchPost(false);
             }
         } catch (error) {
             console.error(error);
@@ -111,7 +116,7 @@ export default function PostDetailPage() {
                 method: "DELETE",
             });
             if (res.ok) {
-                fetchPost();
+                fetchPost(false);
             }
         } catch (error) {
             console.error(error);

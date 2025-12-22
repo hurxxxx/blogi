@@ -21,7 +21,8 @@ export default async function AdminUsersPage() {
         <div>
             <h1 className="text-2xl font-bold mb-6">User Management</h1>
             <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="w-full">
+                <div className="overflow-x-auto">
+                    <table className="w-full min-w-[720px]">
                     <thead>
                         <tr className="bg-gray-50 text-left">
                             <th className="p-4">Name</th>
@@ -55,7 +56,8 @@ export default async function AdminUsersPage() {
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
         </div>
     );

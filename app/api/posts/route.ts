@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { sanitizeHtmlContent } from "@/lib/sanitize-html";
 
 // GET: List all posts
 export async function GET(req: NextRequest) {
@@ -16,7 +17,12 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(posts);
+    const sanitized = posts.map((post) => ({
+        ...post,
+        content: sanitizeHtmlContent(post.content),
+    }));
+
+    return NextResponse.json(sanitized);
 }
 
 // POST: Create a new post
@@ -33,10 +39,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "모든 필드를 입력해주세요" }, { status: 400 });
     }
 
+    const sanitizedContent = sanitizeHtmlContent(content);
+
     const post = await prisma.post.create({
         data: {
             title,
-            content,
+            content: sanitizedContent,
             type,
             authorId: session.user.id,
         },

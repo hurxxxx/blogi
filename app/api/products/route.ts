@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { sanitizeHtmlContent } from "@/lib/sanitize-html";
 
 // GET: List products
 export async function GET(req: NextRequest) {
@@ -12,7 +13,12 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(products);
+    const sanitized = products.map((product) => ({
+        ...product,
+        content: sanitizeHtmlContent(product.content),
+    }));
+
+    return NextResponse.json(sanitized);
 }
 
 // POST: Create a new product (Admin only)
@@ -29,10 +35,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "필수 항목을 입력해주세요" }, { status: 400 });
     }
 
+    const sanitizedContent = sanitizeHtmlContent(content);
+
     const product = await prisma.product.create({
         data: {
             title,
-            content,
+            content: sanitizedContent,
             category,
             price: price || null,
             imageUrl: imageUrl || null,

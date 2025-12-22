@@ -43,7 +43,9 @@ export const LoginForm = () => {
             });
 
             if (result?.error) {
-                if (result.error === "CredentialsSignin") {
+                if (result.error === "PENDING_APPROVAL") {
+                    showToast("관리자 승인 대기 중입니다. 승인 후 로그인이 가능합니다.", "info");
+                } else if (result.error === "CredentialsSignin") {
                     showToast("이메일 또는 비밀번호가 올바르지 않습니다.", "error");
                 } else {
                     showToast(result.error, "error");

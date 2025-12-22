@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { sanitizeHtmlContent } from "@/lib/sanitize-html";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -9,6 +10,9 @@ interface RouteParams {
 // GET: Get a single post
 export async function GET(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
+    const { searchParams } = new URL(req.url);
+    const shouldIncrement =
+        searchParams.get("view") === "1" || searchParams.get("view") === "true";
 
     const post = await prisma.post.findUnique({
         where: { id },
@@ -27,14 +31,18 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
     }
 
-    // Increment view count
-    await prisma.post.update({
-        where: { id },
-        data: { viewCount: { increment: 1 } },
-    });
+    if (shouldIncrement) {
+        // Increment view count
+        await prisma.post.update({
+            where: { id },
+            data: { viewCount: { increment: 1 } },
+        });
+    }
 
     return NextResponse.json({
         ...post,
+        viewCount: shouldIncrement ? post.viewCount + 1 : post.viewCount,
+        content: sanitizeHtmlContent(post.content),
         authorId: post.author.id,
         comments: post.comments.map((c) => ({
             ...c,
@@ -67,9 +75,10 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     const body = await req.json();
     const { title, content, type } = body;
 
+    const sanitizedContent = sanitizeHtmlContent(content);
     const updated = await prisma.post.update({
         where: { id },
-        data: { title, content, type },
+        data: { title, content: sanitizedContent, type },
     });
 
     return NextResponse.json(updated);

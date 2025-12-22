@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { sanitizeHtmlContent } from "@/lib/sanitize-html";
 
 interface ProductDetailPageProps {
     params: {
@@ -20,6 +21,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     if (!product) {
         notFound();
     }
+
+    const safeContent = sanitizeHtmlContent(product.content);
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -48,7 +51,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             {/* Content (Rich Text) */}
             <div
                 className="prose max-w-none prose-lg"
-                dangerouslySetInnerHTML={{ __html: product.content }}
+                dangerouslySetInnerHTML={{ __html: safeContent }}
             />
         </div>
     );

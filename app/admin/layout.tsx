@@ -1,7 +1,6 @@
 import { auth } from "@/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
 
 export default async function AdminLayout({
     children,
@@ -15,10 +14,10 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="flex min-h-screen">
-            <div className="w-64 bg-gray-900 text-white p-6">
-                <h2 className="text-xl font-bold mb-8">Admin Dashboard</h2>
-                <nav className="space-y-4">
+        <div className="flex min-h-screen flex-col md:flex-row">
+            <div className="w-full md:w-64 bg-gray-900 text-white p-6">
+                <h2 className="text-xl font-bold mb-6 md:mb-8">Admin Dashboard</h2>
+                <nav className="flex flex-wrap gap-2 md:block md:space-y-4">
                     <Link href="/admin" className="block p-2 hover:bg-gray-800 rounded">
                         Overview
                     </Link>
@@ -28,12 +27,12 @@ export default async function AdminLayout({
                     <Link href="/admin/products" className="block p-2 hover:bg-gray-800 rounded">
                         Products
                     </Link>
-                    <Link href="/" className="block p-2 text-gray-400 hover:text-white mt-8">
+                    <Link href="/" className="block p-2 text-gray-400 hover:text-white md:mt-8">
                         Back to Site
                     </Link>
                 </nav>
             </div>
-            <div className="flex-1 p-8 bg-gray-100 overflow-y-auto">
+            <div className="flex-1 p-4 md:p-8 bg-gray-100 overflow-y-auto">
                 {children}
             </div>
         </div>

@@ -10,7 +10,7 @@ import { Underline } from "@tiptap/extension-underline";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import { Highlight } from "@tiptap/extension-highlight";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -96,6 +96,14 @@ export function RichTextEditor({
         },
         immediatelyRender: false,
     });
+
+    useEffect(() => {
+        if (!editor) return;
+        const current = editor.getHTML();
+        if (content !== current) {
+            editor.commands.setContent(content, false);
+        }
+    }, [content, editor]);
 
     const addImage = useCallback(async (file: File) => {
         if (!editor) return;

@@ -56,13 +56,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     const passwordsMatch = await bcrypt.compare(password, user.password);
                     if (passwordsMatch) {
-                        if (!user.isApproved) return null;
+                        if (!user.isApproved) {
+                            throw new Error("PENDING_APPROVAL");
+                        }
                         return user;
                     }
 
                 }
 
-                console.log("Invalid credentials");
                 return null;
             },
         }),

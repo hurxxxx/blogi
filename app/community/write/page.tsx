@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { RichTextEditor } from "@/components/editor/rich-text-editor";
 
 export default function WritePage() {
     const router = useRouter();
@@ -28,7 +28,7 @@ export default function WritePage() {
 
     if (status === "loading") {
         return (
-            <div className="container mx-auto px-4 py-8 max-w-2xl">
+            <div className="container mx-auto px-4 py-8 max-w-4xl">
                 <div className="animate-pulse space-y-4">
                     <div className="h-8 bg-gray-200 rounded w-1/4"></div>
                     <div className="h-12 bg-gray-200 rounded"></div>
@@ -40,7 +40,7 @@ export default function WritePage() {
 
     if (!session) {
         return (
-            <div className="container mx-auto px-4 py-8 max-w-2xl text-center">
+            <div className="container mx-auto px-4 py-8 max-w-4xl text-center">
                 <h1 className="text-2xl font-bold mb-4">로그인이 필요합니다</h1>
                 <p className="text-gray-500 mb-6">글을 작성하려면 로그인해주세요.</p>
                 <Button asChild>
@@ -54,7 +54,9 @@ export default function WritePage() {
         e.preventDefault();
         setError("");
 
-        if (!title.trim() || !content.trim()) {
+        // Strip HTML tags to check if content is empty
+        const textContent = content.replace(/<[^>]*>/g, "").trim();
+        if (!title.trim() || !textContent) {
             setError("제목과 내용을 모두 입력해주세요.");
             return;
         }
@@ -82,7 +84,7 @@ export default function WritePage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
             <Button variant="ghost" className="mb-6" asChild>
                 <Link href="/community">
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -96,7 +98,7 @@ export default function WritePage() {
                 <div className="space-y-2">
                     <Label htmlFor="type">게시판</Label>
                     <Select value={type} onValueChange={setType}>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-48">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -118,14 +120,11 @@ export default function WritePage() {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="content">내용</Label>
-                    <Textarea
-                        id="content"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        placeholder="내용을 입력하세요"
-                        rows={15}
-                        disabled={loading}
+                    <Label>내용</Label>
+                    <RichTextEditor
+                        content={content}
+                        onChange={setContent}
+                        placeholder="내용을 입력하세요..."
                     />
                 </div>
 

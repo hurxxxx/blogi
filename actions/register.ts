@@ -22,7 +22,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     });
 
     if (existingUser) {
-        return { error: "Email already in use!" };
+        return { error: "이미 사용 중인 이메일입니다." };
     }
 
     await prisma.user.create({
@@ -33,5 +33,5 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         },
     });
 
-    return { success: "User created!" };
+    return { success: "회원가입이 완료되었습니다. 관리자 승인 후 로그인이 가능합니다." };
 };

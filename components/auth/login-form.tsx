@@ -3,7 +3,9 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 import { LoginSchema } from "@/schemas";
 import { Input } from "@/components/ui/input";
@@ -17,12 +19,12 @@ import {
 } from "@/components/ui/form";
 import { CardWrapper } from "@/components/auth/card-wrapper";
 import { Button } from "@/components/ui/button";
-import { login } from "@/actions/login";
+import { useToast } from "@/components/ui/toast";
 
 export const LoginForm = () => {
-    const [error, setError] = useState<string | undefined>("");
-    const [success, setSuccess] = useState<string | undefined>("");
+    const { showToast } = useToast();
     const [isPending, startTransition] = useTransition();
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
@@ -33,25 +35,31 @@ export const LoginForm = () => {
     });
 
     const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-        setError("");
-        setSuccess("");
+        startTransition(async () => {
+            const result = await signIn("credentials", {
+                email: values.email,
+                password: values.password,
+                redirect: false,
+            });
 
-        startTransition(() => {
-            login(values)
-                .then((data) => {
-                    if (data?.error) {
-                        form.reset();
-                        setError(data.error);
-                    }
-                    // Redirect is handled by the server action or router
-                });
+            if (result?.error) {
+                if (result.error === "CredentialsSignin") {
+                    showToast("이메일 또는 비밀번호가 올바르지 않습니다.", "error");
+                } else {
+                    showToast(result.error, "error");
+                }
+            } else {
+                showToast("로그인 성공!", "success");
+                router.push("/");
+                router.refresh();
+            }
         });
     };
 
     return (
         <CardWrapper
-            headerLabel="Welcome back"
-            backButtonLabel="Don't have an account?"
+            headerLabel="로그인"
+            backButtonLabel="계정이 없으신가요?"
             backButtonHref="/register"
         >
             <Form {...form}>
@@ -65,12 +73,12 @@ export const LoginForm = () => {
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                    <FormLabel>이메일</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             disabled={isPending}
-                                            placeholder="john.doe@example.com"
+                                            placeholder="example@email.com"
                                             type="email"
                                         />
                                     </FormControl>
@@ -83,7 +91,7 @@ export const LoginForm = () => {
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Password</FormLabel>
+                                    <FormLabel>비밀번호</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
@@ -97,17 +105,12 @@ export const LoginForm = () => {
                             )}
                         />
                     </div>
-                    {error && (
-                        <div className="bg-destructive/15 p-3 rounded-md flex items-center gap-x-2 text-sm text-destructive">
-                            <p>{error}</p>
-                        </div>
-                    )}
                     <Button
                         disabled={isPending}
                         type="submit"
                         className="w-full"
                     >
-                        Login
+                        로그인
                     </Button>
                 </form>
             </Form>

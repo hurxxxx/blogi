@@ -3,7 +3,7 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 
 import { RegisterSchema } from "@/schemas";
 import { Input } from "@/components/ui/input";
@@ -18,10 +18,10 @@ import {
 import { CardWrapper } from "@/components/auth/card-wrapper";
 import { Button } from "@/components/ui/button";
 import { register } from "@/actions/register";
+import { useToast } from "@/components/ui/toast";
 
 export const RegisterForm = () => {
-    const [error, setError] = useState<string | undefined>("");
-    const [success, setSuccess] = useState<string | undefined>("");
+    const { showToast } = useToast();
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<z.infer<typeof RegisterSchema>>({
@@ -35,14 +35,16 @@ export const RegisterForm = () => {
     });
 
     const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
-        setError("");
-        setSuccess("");
-
         startTransition(() => {
             register(values)
                 .then((data) => {
-                    setError(data.error);
-                    setSuccess(data.success);
+                    if (data.error) {
+                        showToast(data.error, "error");
+                    }
+                    if (data.success) {
+                        showToast(data.success, "success");
+                        form.reset();
+                    }
                 });
         });
     };
@@ -131,16 +133,6 @@ export const RegisterForm = () => {
                             )}
                         />
                     </div>
-                    {error && (
-                        <div className="bg-destructive/15 p-3 rounded-md flex items-center gap-x-2 text-sm text-destructive">
-                            <p>{error}</p>
-                        </div>
-                    )}
-                    {success && (
-                        <div className="bg-emerald-500/15 p-3 rounded-md flex items-center gap-x-2 text-sm text-emerald-500">
-                            <p>{success}</p>
-                        </div>
-                    )}
                     <Button
                         disabled={isPending}
                         type="submit"

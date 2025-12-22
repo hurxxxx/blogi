@@ -171,9 +171,10 @@ export default function PostDetailPage() {
                 <span>조회수: {post.viewCount}</span>
             </div>
 
-            <div className="prose max-w-none prose-lg mb-12 whitespace-pre-wrap min-h-[200px]">
-                {post.content}
-            </div>
+            <div
+                className="prose max-w-none prose-lg mb-12 min-h-[200px] [&_img]:max-w-full [&_img]:rounded-lg"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+            />
 
             {/* Comments Section */}
             <div className="bg-gray-50 p-6 rounded-lg">

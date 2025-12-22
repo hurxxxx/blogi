@@ -26,11 +26,11 @@ export const CardWrapper = ({
     showSocial
 }: CardWrapperProps) => {
     return (
-        <Card className="w-[400px] shadow-md">
+        <Card className="w-full max-w-[400px] mx-4 shadow-md">
             <CardHeader>
                 <div className="w-full flex flex-col gap-y-4 items-center justify-center">
-                    <h1 className={cn("text-3xl font-semibold")}>
-                        🇻🇳 VIP Tour
+                    <h1 className={cn("text-2xl sm:text-3xl font-semibold")}>
+                        다낭VIP투어
                     </h1>
                     <p className="text-muted-foreground text-sm">
                         {headerLabel}

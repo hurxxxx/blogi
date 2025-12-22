@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { format } from "date-fns";
 
 // Mock data for categories matching the reference
 const categories = [
@@ -57,7 +59,13 @@ const categories = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const latestPosts = await prisma.post.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 3,
+    include: { author: { select: { name: true } } },
+  });
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -137,32 +145,33 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Recent Posts / Products Section (Mock) */}
+      {/* Recent Posts */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-10 text-center">최신 여행 정보</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { image: "/images/post_danang1.jpg", title: "베트남 다낭 3박 4일 추천 코스", date: "2024.12.20" },
-              { image: "/images/post_danang2.jpg", title: "호이안 야경 투어 완벽 가이드", date: "2024.12.18" },
-              { image: "/images/post_danang3.jpg", title: "바나힐 당일치기 여행 꿀팁", date: "2024.12.15" },
-            ].map((post, i) => (
-              <Card key={i} className="hover:shadow-lg transition cursor-pointer overflow-hidden">
-                <div className="h-48 relative">
-                  <Image
-                    src={post.image}
-                    alt={post.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="font-bold text-lg mb-2">{post.title}</h3>
-                  <p className="text-gray-500 text-sm">{post.date} | 작성자: 다낭VIP투어</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {latestPosts.length === 0 ? (
+            <div className="text-center py-16 bg-gray-50 rounded-lg">
+              <p className="text-gray-500 text-lg">아직 게시물이 없습니다.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {latestPosts.map((post) => (
+                <Link key={post.id} href={`/community/${post.id}`}>
+                  <Card className="hover:shadow-lg transition cursor-pointer overflow-hidden h-full">
+                    <div className="h-36 sm:h-40 bg-gradient-to-br from-slate-100 via-white to-cyan-100 flex items-center justify-center text-slate-500 text-sm">
+                      최신 게시글
+                    </div>
+                    <CardContent className="p-5">
+                      <h3 className="font-bold text-lg mb-2 line-clamp-2">{post.title}</h3>
+                      <p className="text-gray-500 text-sm">
+                        {format(post.createdAt, "yyyy.MM.dd")} | 작성자: {post.author.name || "Anonymous"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

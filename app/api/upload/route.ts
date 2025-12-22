@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
         }
 
         // Create uploads directory if it doesn't exist
-        const uploadsDir = path.join(process.cwd(), "public", "uploads");
+        const uploadsDir =
+            process.env.UPLOADS_DIR || path.join(process.cwd(), "public", "uploads");
         if (!existsSync(uploadsDir)) {
             await mkdir(uploadsDir, { recursive: true });
         }
@@ -55,7 +56,8 @@ export async function POST(req: NextRequest) {
         await writeFile(filePath, buffer);
 
         // Return URL
-        const url = `/uploads/${filename}`;
+        const baseUrl = (process.env.UPLOADS_URL || "/uploads").replace(/\/+$/, "");
+        const url = `${baseUrl}/${filename}`;
         return NextResponse.json({ url }, { status: 201 });
     } catch (error) {
         console.error("Upload error:", error);

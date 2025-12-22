@@ -76,7 +76,7 @@ export default function WritePage() {
                 const data = await res.json();
                 setError(data.error || "글 작성에 실패했습니다.");
             }
-        } catch (err) {
+        } catch {
             setError("서버 오류가 발생했습니다.");
         } finally {
             setLoading(false);

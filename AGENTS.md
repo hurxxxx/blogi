@@ -64,3 +64,10 @@ onMouseDown={(e) => e.preventDefault()}
 editor.isActive('bold')
 editor.isActive('heading', { level: 1 })
 ```
+
+---
+
+## 문서화 규칙
+
+### 설치/운영 메모
+- 설치 관련 메모 사항은 `docs/install.md`에 작성합니다.

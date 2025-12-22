@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ interface Comment {
 }
 
 export default function PostDetailPage() {
-    const params = useParams();
+    const { id } = useParams<{ id: string }>();
     const router = useRouter();
     const { data: session } = useSession();
     const [post, setPost] = useState<Post | null>(null);
@@ -44,16 +44,11 @@ export default function PostDetailPage() {
     const isAdmin = session?.user?.role === "ADMIN";
     const canEdit = isAuthor || isAdmin;
 
-    useEffect(() => {
-        if (params.id) {
-            fetchPost(!hasIncrementedView.current);
-        }
-    }, [params.id]);
-
-    const fetchPost = async (incrementView = false) => {
+    const fetchPost = useCallback(async (incrementView = false) => {
+        if (!id) return;
         try {
             const viewParam = incrementView ? "?view=1" : "";
-            const res = await fetch(`/api/posts/${params.id}${viewParam}`);
+            const res = await fetch(`/api/posts/${id}${viewParam}`);
             if (res.ok) {
                 const data = await res.json();
                 setPost(data);
@@ -69,13 +64,19 @@ export default function PostDetailPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, router]);
+
+    useEffect(() => {
+        if (id) {
+            fetchPost(!hasIncrementedView.current);
+        }
+    }, [id, fetchPost]);
 
     const handleDelete = async () => {
         if (!confirm("정말 삭제하시겠습니까?")) return;
 
         try {
-            const res = await fetch(`/api/posts/${params.id}`, {
+            const res = await fetch(`/api/posts/${id}`, {
                 method: "DELETE",
             });
             if (res.ok) {
@@ -92,7 +93,7 @@ export default function PostDetailPage() {
 
         setSubmitting(true);
         try {
-            const res = await fetch(`/api/posts/${params.id}/comments`, {
+            const res = await fetch(`/api/posts/${id}/comments`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ content: comment }),

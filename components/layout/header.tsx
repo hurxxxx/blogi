@@ -79,13 +79,19 @@ export const Header = () => {
                 </Link>
 
                 {/* Search Bar */}
-                <div className="hidden md:flex relative w-[400px]">
+                <form
+                    action="/search"
+                    method="get"
+                    className="hidden md:flex relative w-[400px]"
+                >
                     <Input
+                        name="q"
+                        type="search"
                         className="w-full pl-4 pr-10 bg-white text-black rounded-full"
                         placeholder="검색..."
                     />
                     <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                </div>
+                </form>
 
                 {/* Auth Buttons / User Menu - Desktop */}
                 <div className="hidden md:flex items-center gap-x-4 text-sm">
@@ -185,13 +191,15 @@ export const Header = () => {
 
             {/* Mobile Search Bar */}
             <div className="p-4 border-b border-white/10">
-                <div className="relative">
+                <form action="/search" method="get" className="relative">
                     <Input
+                        name="q"
+                        type="search"
                         className="w-full pl-4 pr-10 bg-white text-black rounded-full"
                         placeholder="검색..."
                     />
                     <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                </div>
+                </form>
             </div>
 
             {/* Mobile Navigation */}

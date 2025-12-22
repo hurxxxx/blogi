@@ -1,6 +1,7 @@
 "use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Image } from "@tiptap/extension-image";
 import { Link } from "@tiptap/extension-link";
@@ -39,6 +40,40 @@ import {
 import { cn } from "@/lib/utils";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+
+interface ToolbarButtonProps {
+    editor?: Editor;
+    onClick: () => void;
+    isActive?: boolean;
+    children: React.ReactNode;
+    title: string;
+}
+
+const ToolbarButton = ({
+    editor,
+    onClick,
+    isActive,
+    children,
+    title,
+}: ToolbarButtonProps) => (
+    <button
+        type="button"
+        onClick={() => {
+            if (editor) {
+                editor.chain().focus().run();
+            }
+            onClick();
+        }}
+        onMouseDown={(e) => e.preventDefault()}
+        title={title}
+        className={cn(
+            "p-2 rounded hover:bg-gray-100 transition-colors",
+            isActive && "bg-gray-200 text-blue-600"
+        )}
+    >
+        {children}
+    </button>
+);
 
 interface RichTextEditorProps {
     content: string;
@@ -123,7 +158,7 @@ export function RichTextEditor({
             } else {
                 showToast("이미지 업로드에 실패했습니다.", "error");
             }
-        } catch (error) {
+        } catch {
             showToast("이미지 업로드 중 오류가 발생했습니다.", "error");
         }
     }, [editor, showToast]);
@@ -174,43 +209,15 @@ export function RichTextEditor({
         );
     }
 
-    const ToolbarButton = ({
-        onClick,
-        isActive,
-        children,
-        title,
-    }: {
-        onClick: () => void;
-        isActive?: boolean;
-        children: React.ReactNode;
-        title: string;
-    }) => (
-        <button
-            type="button"
-            onClick={() => {
-                editor?.chain().focus().run();
-                onClick();
-            }}
-            onMouseDown={(e) => e.preventDefault()}
-            title={title}
-            className={cn(
-                "p-2 rounded hover:bg-gray-100 transition-colors",
-                isActive && "bg-gray-200 text-blue-600"
-            )}
-        >
-            {children}
-        </button>
-    );
-
     return (
         <div className={cn("border rounded-lg overflow-hidden bg-white", className)}>
             {/* Toolbar */}
             <div className="border-b p-2 flex flex-wrap gap-1 bg-gray-50">
                 {/* Undo/Redo */}
-                <ToolbarButton onClick={() => editor.chain().undo().run()} title="실행 취소">
+                <ToolbarButton editor={editor} onClick={() => editor.chain().undo().run()} title="실행 취소">
                     <Undo className="w-4 h-4" />
                 </ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().redo().run()} title="다시 실행">
+                <ToolbarButton editor={editor} onClick={() => editor.chain().redo().run()} title="다시 실행">
                     <Redo className="w-4 h-4" />
                 </ToolbarButton>
 
@@ -218,6 +225,7 @@ export function RichTextEditor({
 
                 {/* Headings */}
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleHeading({ level: 1 }).run()}
                     isActive={editor.isActive("heading", { level: 1 })}
                     title="제목 1"
@@ -225,6 +233,7 @@ export function RichTextEditor({
                     <Heading1 className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleHeading({ level: 2 }).run()}
                     isActive={editor.isActive("heading", { level: 2 })}
                     title="제목 2"
@@ -232,6 +241,7 @@ export function RichTextEditor({
                     <Heading2 className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleHeading({ level: 3 }).run()}
                     isActive={editor.isActive("heading", { level: 3 })}
                     title="제목 3"
@@ -243,6 +253,7 @@ export function RichTextEditor({
 
                 {/* Text Formatting */}
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleBold().run()}
                     isActive={editor.isActive("bold")}
                     title="굵게"
@@ -250,6 +261,7 @@ export function RichTextEditor({
                     <Bold className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleItalic().run()}
                     isActive={editor.isActive("italic")}
                     title="기울임"
@@ -257,6 +269,7 @@ export function RichTextEditor({
                     <Italic className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleUnderline().run()}
                     isActive={editor.isActive("underline")}
                     title="밑줄"
@@ -264,6 +277,7 @@ export function RichTextEditor({
                     <UnderlineIcon className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleStrike().run()}
                     isActive={editor.isActive("strike")}
                     title="취소선"
@@ -271,6 +285,7 @@ export function RichTextEditor({
                     <Strikethrough className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleHighlight({ color: "#fef08a" }).run()}
                     isActive={editor.isActive("highlight")}
                     title="하이라이트"
@@ -278,6 +293,7 @@ export function RichTextEditor({
                     <Highlighter className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleCode().run()}
                     isActive={editor.isActive("code")}
                     title="인라인 코드"
@@ -289,6 +305,7 @@ export function RichTextEditor({
 
                 {/* Alignment */}
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().setTextAlign("left").run()}
                     isActive={editor.isActive({ textAlign: "left" })}
                     title="왼쪽 정렬"
@@ -296,6 +313,7 @@ export function RichTextEditor({
                     <AlignLeft className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().setTextAlign("center").run()}
                     isActive={editor.isActive({ textAlign: "center" })}
                     title="가운데 정렬"
@@ -303,6 +321,7 @@ export function RichTextEditor({
                     <AlignCenter className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().setTextAlign("right").run()}
                     isActive={editor.isActive({ textAlign: "right" })}
                     title="오른쪽 정렬"
@@ -314,6 +333,7 @@ export function RichTextEditor({
 
                 {/* Lists */}
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleBulletList().run()}
                     isActive={editor.isActive("bulletList")}
                     title="글머리 기호"
@@ -321,6 +341,7 @@ export function RichTextEditor({
                     <List className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleOrderedList().run()}
                     isActive={editor.isActive("orderedList")}
                     title="번호 목록"
@@ -328,6 +349,7 @@ export function RichTextEditor({
                     <ListOrdered className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
+                    editor={editor}
                     onClick={() => editor.chain().toggleBlockquote().run()}
                     isActive={editor.isActive("blockquote")}
                     title="인용"
@@ -340,11 +362,12 @@ export function RichTextEditor({
                 {/* Link */}
                 <div className="relative">
                     {editor.isActive("link") ? (
-                        <ToolbarButton onClick={removeLink} isActive={true} title="링크 제거">
+                        <ToolbarButton editor={editor} onClick={removeLink} isActive={true} title="링크 제거">
                             <Unlink className="w-4 h-4" />
                         </ToolbarButton>
                     ) : (
                         <ToolbarButton
+                            editor={editor}
                             onClick={() => setShowLinkInput(!showLinkInput)}
                             isActive={showLinkInput}
                             title="링크 추가"
@@ -370,7 +393,7 @@ export function RichTextEditor({
                 </div>
 
                 {/* Image */}
-                <ToolbarButton onClick={handleImageUpload} title="이미지 추가">
+                <ToolbarButton editor={editor} onClick={handleImageUpload} title="이미지 추가">
                     <ImageIcon className="w-4 h-4" />
                 </ToolbarButton>
                 <input
@@ -384,6 +407,7 @@ export function RichTextEditor({
                 {/* Emoji */}
                 <div className="relative">
                     <ToolbarButton
+                        editor={editor}
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                         isActive={showEmojiPicker}
                         title="이모지"

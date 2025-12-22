@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 
 export default function EditPage() {
-    const params = useParams();
+    const { id } = useParams<{ id: string }>();
     const router = useRouter();
     const { data: session, status } = useSession();
     const [title, setTitle] = useState("");
@@ -29,15 +29,10 @@ export default function EditPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        if (params.id) {
-            fetchPost();
-        }
-    }, [params.id]);
-
-    const fetchPost = async () => {
+    const fetchPost = useCallback(async () => {
+        if (!id) return;
         try {
-            const res = await fetch(`/api/posts/${params.id}`);
+            const res = await fetch(`/api/posts/${id}`);
             if (res.ok) {
                 const data = await res.json();
                 setTitle(data.title);
@@ -47,12 +42,18 @@ export default function EditPage() {
             } else {
                 router.push("/community");
             }
-        } catch (error) {
+        } catch {
             router.push("/community");
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, router]);
+
+    useEffect(() => {
+        if (id) {
+            fetchPost();
+        }
+    }, [id, fetchPost]);
 
     if (status === "loading" || loading) {
         return (
@@ -92,7 +93,7 @@ export default function EditPage() {
 
         setSaving(true);
         try {
-            const res = await fetch(`/api/posts/${params.id}`, {
+            const res = await fetch(`/api/posts/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ title, content, type }),
@@ -104,7 +105,7 @@ export default function EditPage() {
                 const data = await res.json();
                 setError(data.error || "수정에 실패했습니다.");
             }
-        } catch (err) {
+        } catch {
             setError("서버 오류가 발생했습니다.");
         } finally {
             setSaving(false);
@@ -114,7 +115,7 @@ export default function EditPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
             <Button variant="ghost" className="mb-6" asChild>
-                <Link href={`/community/${params.id}`}>
+                <Link href={`/community/${id}`}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     돌아가기
                 </Link>
@@ -164,7 +165,7 @@ export default function EditPage() {
 
                 <div className="flex justify-end gap-2">
                     <Button type="button" variant="outline" asChild>
-                        <Link href={`/community/${params.id}`}>취소</Link>
+                        <Link href={`/community/${id}`}>취소</Link>
                     </Button>
                     <Button type="submit" disabled={saving}>
                         {saving ? "저장 중..." : "저장"}

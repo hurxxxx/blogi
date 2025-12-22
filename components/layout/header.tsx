@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
+import { Search, LogOut, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useSession, signOut } from "next-auth/react";
 
 const routes = [
     {
@@ -44,6 +44,7 @@ const routes = [
 
 export const Header = () => {
     const pathname = usePathname();
+    const { data: session } = useSession();
 
     return (
         <div className="w-full bg-[#0a192f] text-white">
@@ -62,19 +63,42 @@ export const Header = () => {
                 <div className="hidden md:flex relative w-[400px]">
                     <Input
                         className="w-full pl-4 pr-10 bg-white text-black rounded-full"
-                        placeholder="Search..."
+                        placeholder="검색..."
                     />
                     <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
 
                 {/* Auth Buttons / User Menu */}
                 <div className="flex items-center gap-x-4 text-sm">
-                    <Link href="/login" className="hover:text-sky-400 transition">
-                        로그인
-                    </Link>
-                    <Link href="/register" className="hover:text-sky-400 transition">
-                        회원가입
-                    </Link>
+                    {session ? (
+                        <>
+                            <span className="text-gray-300">
+                                {session.user?.name || session.user?.email}님
+                            </span>
+                            {session.user?.role === "ADMIN" && (
+                                <Link href="/admin" className="hover:text-sky-400 transition flex items-center gap-1">
+                                    <Settings className="w-4 h-4" />
+                                    관리자
+                                </Link>
+                            )}
+                            <button
+                                onClick={() => signOut({ callbackUrl: "/" })}
+                                className="hover:text-sky-400 transition flex items-center gap-1"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                로그아웃
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link href="/login" className="hover:text-sky-400 transition">
+                                로그인
+                            </Link>
+                            <Link href="/register" className="hover:text-sky-400 transition">
+                                회원가입
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -88,7 +112,9 @@ export const Header = () => {
                                 href={route.href}
                                 className={cn(
                                     "px-4 py-4 text-sm font-medium transition-colors hover:text-sky-400 whitespace-nowrap",
-                                    pathname === route.href ? "text-sky-400 border-b-2 border-sky-400" : "text-white"
+                                    pathname === route.href || pathname?.startsWith(route.href + "/")
+                                        ? "text-sky-400 border-b-2 border-sky-400"
+                                        : "text-white"
                                 )}
                             >
                                 {route.label}

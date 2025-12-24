@@ -25,7 +25,6 @@ const routes = [
     {
         href: "/products/vip-trip",
         label: "VIP 여행",
-        requiresAuth: true,
     },
     {
         href: "/products/tip",

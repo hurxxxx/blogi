@@ -6,9 +6,23 @@ import { auth } from "@/auth";
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
+    const session = await auth();
+    const isAdmin = session?.user?.role === "ADMIN";
+
+    if (category === "VIP_TRIP" && !session) {
+        return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
+    }
 
     const products = await prisma.product.findMany({
-        where: category ? { category, isVisible: true } : { isVisible: true },
+        where: category
+            ? {
+                category,
+                isVisible: isAdmin ? undefined : true,
+            }
+            : {
+                isVisible: isAdmin ? undefined : true,
+                ...(session ? {} : { category: { not: "VIP_TRIP" } }),
+            },
         orderBy: { createdAt: "desc" },
     });
 

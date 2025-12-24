@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { revalidatePath } from "next/cache";
+import { ConfirmForm } from "@/components/admin/confirm-form";
 
 async function approveUser(formData: FormData) {
     "use server";
@@ -39,10 +40,13 @@ export default async function AdminUsersPage() {
                                     <span className="text-yellow-600 font-bold text-sm">Pending</span>
                                 )}
                                 {!user.isApproved && (
-                                    <form action={approveUser}>
-                                        <input type="hidden" name="userId" value={user.id} />
+                                    <ConfirmForm
+                                        action={approveUser}
+                                        message="이 사용자를 승인하시겠습니까?"
+                                        hiddenFields={{ userId: user.id }}
+                                    >
                                         <Button size="sm">Approve</Button>
-                                    </form>
+                                    </ConfirmForm>
                                 )}
                             </div>
                         </div>
@@ -77,10 +81,13 @@ export default async function AdminUsersPage() {
                                     </td>
                                     <td className="p-4">
                                         {!user.isApproved && (
-                                            <form action={approveUser}>
-                                                <input type="hidden" name="userId" value={user.id} />
+                                            <ConfirmForm
+                                                action={approveUser}
+                                                message="이 사용자를 승인하시겠습니까?"
+                                                hiddenFields={{ userId: user.id }}
+                                            >
                                                 <Button size="sm">Approve</Button>
-                                            </form>
+                                            </ConfirmForm>
                                         )}
                                     </td>
                                 </tr>

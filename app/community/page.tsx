@@ -40,7 +40,7 @@ async function PostList({ type }: { type: string }) {
                                 )}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="pb-4 text-sm text-gray-500 flex justify-between items-center">
+                        <CardContent className="pb-4 text-sm text-gray-500 flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-center">
                             <span>{post.author.name || "Anonymous"}</span>
                             <span>{format(post.createdAt, "yyyy.MM.dd")}</span>
                         </CardContent>

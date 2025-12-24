@@ -3,6 +3,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductCard } from "@/components/products/product-card";
+import { auth } from "@/auth";
 
 interface SearchPageProps {
     searchParams: {
@@ -12,6 +13,7 @@ interface SearchPageProps {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
     const query = (searchParams.q || "").trim();
+    const session = await auth();
 
     if (!query) {
         return (
@@ -39,6 +41,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         prisma.product.findMany({
             where: {
                 isVisible: true,
+                ...(session ? {} : { category: { not: "VIP_TRIP" } }),
                 OR: [
                     { title: { contains: query, mode: "insensitive" } },
                     { category: { contains: query, mode: "insensitive" } },
@@ -76,7 +79,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                             )}
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="pb-4 text-sm text-gray-500 flex justify-between items-center">
+                                    <CardContent className="pb-4 text-sm text-gray-500 flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-center">
                                         <span>{post.author.name || "Anonymous"}</span>
                                         <span>{format(post.createdAt, "yyyy.MM.dd")}</span>
                                     </CardContent>

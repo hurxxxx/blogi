@@ -68,9 +68,6 @@ export default async function Home() {
     include: { author: { select: { name: true } } },
   });
 
-  const resolveCategoryHref = (href: string) =>
-    session ? href : `/login?callbackUrl=${encodeURIComponent(href)}`;
-
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -101,14 +98,9 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-5">
-              {categories.map((category) => {
-                const href =
-                  category.href === "/products/vip-trip" && !session
-                    ? resolveCategoryHref(category.href)
-                    : category.href;
-                return (
-                <Link key={category.label} href={href} className="group">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
+              {categories.map((category) => (
+                <Link key={category.label} href={category.href} className="group">
                   <Card className="overflow-hidden border-none bg-white/90 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]">
                     <div className="relative h-[140px] sm:h-[180px]">
                       <Image
@@ -133,8 +125,7 @@ export default async function Home() {
                     </CardContent>
                   </Card>
                 </Link>
-              );
-              })}
+              ))}
             </div>
           </div>
         </div>

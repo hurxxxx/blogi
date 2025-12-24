@@ -9,12 +9,22 @@ interface RouteParams {
 // GET: Product detail
 export async function GET(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
+    const session = await auth();
+    const isAdmin = session?.user?.role === "ADMIN";
     const product = await prisma.product.findUnique({
         where: { id },
     });
 
     if (!product) {
         return NextResponse.json({ error: "상품을 찾을 수 없습니다" }, { status: 404 });
+    }
+
+    if (!product.isVisible && !isAdmin) {
+        return NextResponse.json({ error: "상품을 찾을 수 없습니다" }, { status: 404 });
+    }
+
+    if (product.category === "VIP_TRIP" && !session) {
+        return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
     return NextResponse.json({

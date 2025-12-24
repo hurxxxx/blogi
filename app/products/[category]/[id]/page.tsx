@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RichTextViewer } from "@/components/editor/rich-text-viewer";
@@ -18,9 +18,6 @@ interface ProductDetailPageProps {
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
     const { id, category } = await params;
     const session = await auth();
-    if (category === "vip-trip" && !session) {
-        redirect(`/login?callbackUrl=${encodeURIComponent(`/products/${category}/${id}`)}`);
-    }
 
     const product = await prisma.product.findUnique({
         where: {
@@ -32,8 +29,12 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         notFound();
     }
 
-    if (product.category === "VIP_TRIP" && !session) {
-        redirect(`/login?callbackUrl=${encodeURIComponent(`/products/${category}/${id}`)}`);
+    const isVipProduct = product.category === "VIP_TRIP";
+    const isAdmin = session?.user?.role === "ADMIN";
+    const canViewVip = !isVipProduct || Boolean(session);
+
+    if (!product.isVisible && !isAdmin) {
+        notFound();
     }
 
     return (
@@ -60,7 +61,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             {/* Meta */}
             <div className="flex flex-wrap items-center text-gray-500 text-sm mb-8 border-b pb-4 gap-2">
                 <span>{format(product.createdAt, "yyyy.MM.dd")}</span>
-                {product.price && (
+                {product.price && canViewVip && (
                     <span className="ml-auto font-bold text-lg text-sky-600">
                         {product.price}
                     </span>
@@ -68,7 +69,20 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
 
             {/* Content (Rich Text) */}
-            <RichTextViewer content={product.content} />
+            {canViewVip ? (
+                <RichTextViewer content={product.content} />
+            ) : (
+                <div className="rounded-2xl border border-black/5 bg-white/80 px-6 py-10 text-center shadow-[0_18px_50px_-32px_rgba(15,23,42,0.35)]">
+                    <p className="text-gray-500 text-base mb-6">
+                        VIP 여행 상품 상세는 로그인 후 확인할 수 있습니다.
+                    </p>
+                    <Button asChild>
+                        <Link href={`/login?callbackUrl=${encodeURIComponent(`/products/${category}/${id}`)}`}>
+                            로그인하기
+                        </Link>
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }

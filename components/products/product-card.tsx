@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { categoryToSlug } from "@/lib/categories";
 
 interface ProductCardProps {
     id: string;
@@ -21,8 +22,9 @@ export const ProductCard = ({
     price,
     createdAt
 }: ProductCardProps) => {
+    const slug = categoryToSlug(category);
     return (
-        <Link href={`/products/${category}/${id}`}>
+        <Link href={`/products/${slug}/${id}`}>
             <Card className="h-full overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <div className="aspect-[4/3] relative bg-gradient-to-br from-slate-100 via-white to-amber-50">
                     {imageUrl ? (

@@ -5,8 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-
 import { LoginSchema } from "@/schemas";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,6 +18,7 @@ import {
 import { CardWrapper } from "@/components/auth/card-wrapper";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { login } from "@/actions/login";
 
 export const LoginForm = () => {
     const { showToast } = useToast();
@@ -40,25 +39,19 @@ export const LoginForm = () => {
 
     const onSubmit = (values: z.infer<typeof LoginSchema>) => {
         startTransition(async () => {
-            const result = await signIn("credentials", {
-                email: values.email,
-                password: values.password,
-                redirect: false,
-            });
-
+            const result = await login(values, callbackUrl);
             if (result?.error) {
-                if (result.error === "PENDING_APPROVAL") {
-                    showToast("관리자 승인 대기 중입니다. 승인 후 로그인이 가능합니다.", "info");
-                } else if (result.error === "CredentialsSignin") {
-                    showToast("이메일 또는 비밀번호가 올바르지 않습니다.", "error");
+                if (result.code === "PENDING_APPROVAL") {
+                    showToast(result.error, "info");
                 } else {
                     showToast(result.error, "error");
                 }
-            } else {
-                showToast("로그인 성공!", "success");
-                router.push(callbackUrl);
-                router.refresh();
+                return;
             }
+
+            showToast(result?.success ?? "로그인 성공!", "success");
+            router.push(result?.redirectTo ?? callbackUrl);
+            router.refresh();
         });
     };
 

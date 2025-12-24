@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
+import { ConfirmForm } from "@/components/admin/confirm-form";
 
 async function toggleVisibility(formData: FormData) {
     "use server";
@@ -63,23 +64,27 @@ export default async function AdminProductsPage() {
                                 <Button size="sm" variant="outline" asChild>
                                     <Link href={`/admin/products/${product.id}/edit`}>Edit</Link>
                                 </Button>
-                                <form action={toggleVisibility}>
-                                    <input type="hidden" name="productId" value={product.id} />
-                                    <input
-                                        type="hidden"
-                                        name="nextVisible"
-                                        value={(!product.isVisible).toString()}
-                                    />
+                                <ConfirmForm
+                                    action={toggleVisibility}
+                                    message={`상품을 ${product.isVisible ? "숨김" : "노출"} 처리할까요?`}
+                                    hiddenFields={{
+                                        productId: product.id,
+                                        nextVisible: (!product.isVisible).toString(),
+                                    }}
+                                >
                                     <Button size="sm" variant="secondary">
                                         {product.isVisible ? "Hide" : "Show"}
                                     </Button>
-                                </form>
-                                <form action={deleteProduct}>
-                                    <input type="hidden" name="productId" value={product.id} />
+                                </ConfirmForm>
+                                <ConfirmForm
+                                    action={deleteProduct}
+                                    message="상품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+                                    hiddenFields={{ productId: product.id }}
+                                >
                                     <Button size="sm" variant="destructive">
                                         Delete
                                     </Button>
-                                </form>
+                                </ConfirmForm>
                             </div>
                         </div>
                     ))}
@@ -111,23 +116,27 @@ export default async function AdminProductsPage() {
                                                 Edit
                                             </Link>
                                         </Button>
-                                        <form action={toggleVisibility}>
-                                            <input type="hidden" name="productId" value={product.id} />
-                                            <input
-                                                type="hidden"
-                                                name="nextVisible"
-                                                value={(!product.isVisible).toString()}
-                                            />
+                                        <ConfirmForm
+                                            action={toggleVisibility}
+                                            message={`상품을 ${product.isVisible ? "숨김" : "노출"} 처리할까요?`}
+                                            hiddenFields={{
+                                                productId: product.id,
+                                                nextVisible: (!product.isVisible).toString(),
+                                            }}
+                                        >
                                             <Button size="sm" variant="secondary">
                                                 {product.isVisible ? "Hide" : "Show"}
                                             </Button>
-                                        </form>
-                                        <form action={deleteProduct}>
-                                            <input type="hidden" name="productId" value={product.id} />
+                                        </ConfirmForm>
+                                        <ConfirmForm
+                                            action={deleteProduct}
+                                            message="상품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+                                            hiddenFields={{ productId: product.id }}
+                                        >
                                             <Button size="sm" variant="destructive">
                                                 Delete
                                             </Button>
-                                        </form>
+                                        </ConfirmForm>
                                     </div>
                                 </td>
                             </tr>

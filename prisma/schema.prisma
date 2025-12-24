@@ -58,3 +58,52 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Menu {
+  id        String     @id @default(cuid())
+  key       String     @unique
+  name      String
+  items     MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id           String   @id @default(cuid())
+  menuId       String
+  menu         Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  label        String
+  href         String
+  order        Int      @default(0)
+  isVisible    Boolean  @default(true)
+  isExternal   Boolean  @default(false)
+  openInNew    Boolean  @default(false)
+  requiresAuth Boolean  @default(false)
+  badgeText    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([menuId, order])
+}
+
+model SiteSettings {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  siteName        String?
+  siteLogoUrl     String?
+  footerEnabled   Boolean  @default(true)
+  copyrightText   String?
+  showCopyright   Boolean  @default(true)
+  termsContent    String?
+  termsContentMarkdown String?
+  privacyContent  String?
+  privacyContentMarkdown String?
+  showTerms       Boolean  @default(true)
+  showPrivacy     Boolean  @default(true)
+  businessLines   Json?
+  showBusinessInfo Boolean @default(true)
+  socialLinks     Json?
+  showSocials     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

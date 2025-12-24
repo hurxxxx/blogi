@@ -33,7 +33,7 @@ export const login = async (
             return { error: "이메일 또는 비밀번호가 올바르지 않습니다." };
         }
 
-        if (!user.isApproved) {
+        if (!user.isApproved && user.role !== "ADMIN") {
             return { error: "관리자 승인 대기 중입니다. 승인 후 로그인이 가능합니다.", code: "PENDING_APPROVAL" };
         }
 

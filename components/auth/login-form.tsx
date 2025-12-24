@@ -50,8 +50,8 @@ export const LoginForm = () => {
             }
 
             showToast(result?.success ?? "로그인 성공!", "success");
-            router.push(result?.redirectTo ?? callbackUrl);
-            router.refresh();
+            const nextUrl = result?.redirectTo ?? callbackUrl;
+            window.location.href = nextUrl;
         });
     };
 

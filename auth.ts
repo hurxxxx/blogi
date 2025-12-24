@@ -56,7 +56,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     const passwordsMatch = await bcrypt.compare(password, user.password);
                     if (passwordsMatch) {
-                        if (!user.isApproved) {
+                        if (!user.isApproved && user.role !== "ADMIN") {
                             throw new Error("PENDING_APPROVAL");
                         }
                         return user;

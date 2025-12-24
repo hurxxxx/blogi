@@ -27,6 +27,15 @@ export default async function AdminLayout({
                     <Link href="/admin/products" className="block p-2 hover:bg-gray-800 rounded">
                         Products
                     </Link>
+                    <Link href="/admin/menus" className="block p-2 hover:bg-gray-800 rounded">
+                        Menus
+                    </Link>
+                    <Link href="/admin/site-settings" className="block p-2 hover:bg-gray-800 rounded">
+                        Site Settings
+                    </Link>
+                    <Link href="/admin/footer" className="block p-2 hover:bg-gray-800 rounded">
+                        Footer
+                    </Link>
                     <Link href="/" className="block p-2 text-gray-400 hover:text-white md:mt-8">
                         Back to Site
                     </Link>

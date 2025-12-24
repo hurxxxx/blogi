@@ -10,6 +10,7 @@
 - `AUTH_SECRET`: NextAuth 시크릿 키
 - `UPLOADS_DIR`: 업로드 파일 저장 경로
 - `UPLOADS_URL`: 업로드 파일 접근 URL 프리픽스
+- `SITE_URL`: 사이트 기본 URL (sitemap/RSS/OG용)
 
 ## 2) 개발 환경 (로컬)
 
@@ -56,6 +57,7 @@ DATABASE_URL="postgresql://danang_vip_user:<PASSWORD>@localhost:5432/danang_vip?
 AUTH_SECRET="<운영용 시크릿 키>"
 UPLOADS_DIR="/mnt/storage1/data/danang_vip"
 UPLOADS_URL="/uploads"
+SITE_URL="https://example.com"
 ```
 
 ### Nginx 정적 서빙 설정

@@ -29,7 +29,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const [posts, products] = await Promise.all([
         prisma.post.findMany({
             where: {
-                title: { contains: query, mode: "insensitive" },
+                OR: [
+                    { title: { contains: query, mode: "insensitive" } },
+                    { contentMarkdown: { contains: query, mode: "insensitive" } },
+                ],
             },
             include: {
                 author: { select: { name: true } },

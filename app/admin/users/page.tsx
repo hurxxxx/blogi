@@ -1,16 +1,29 @@
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { revalidatePath } from "next/cache";
-import { ConfirmForm } from "@/components/admin/confirm-form";
+import { ConfirmForm, type ConfirmActionState } from "@/components/admin/confirm-form";
+import { auth } from "@/auth";
 
-async function approveUser(formData: FormData) {
+async function approveUser(_: ConfirmActionState, formData: FormData): Promise<ConfirmActionState> {
     "use server";
-    const userId = formData.get("userId") as string;
-    await prisma.user.update({
-        where: { id: userId },
-        data: { isApproved: true },
-    });
-    revalidatePath("/admin/users");
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== "ADMIN") {
+            return { error: "관리자 권한이 필요합니다." };
+        }
+        const userId = formData.get("userId") as string;
+        if (!userId) {
+            return { error: "유효하지 않은 사용자입니다." };
+        }
+        await prisma.user.update({
+            where: { id: userId },
+            data: { isApproved: true },
+        });
+        revalidatePath("/admin/users");
+        return { success: true };
+    } catch {
+        return { error: "승인 처리 중 오류가 발생했습니다." };
+    }
 }
 
 export default async function AdminUsersPage() {

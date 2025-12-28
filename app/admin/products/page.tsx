@@ -3,30 +3,55 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
-import { ConfirmForm } from "@/components/admin/confirm-form";
+import { ConfirmForm, type ConfirmActionState } from "@/components/admin/confirm-form";
+import { auth } from "@/auth";
 
-async function toggleVisibility(formData: FormData) {
+async function toggleVisibility(_: ConfirmActionState, formData: FormData): Promise<ConfirmActionState> {
     "use server";
-    const productId = formData.get("productId") as string;
-    const nextVisible = formData.get("nextVisible") === "true";
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== "ADMIN") {
+            return { error: "관리자 권한이 필요합니다." };
+        }
+        const productId = formData.get("productId") as string;
+        const nextVisible = formData.get("nextVisible") === "true";
+        if (!productId) {
+            return { error: "유효하지 않은 상품입니다." };
+        }
 
-    await prisma.product.update({
-        where: { id: productId },
-        data: { isVisible: nextVisible },
-    });
+        await prisma.product.update({
+            where: { id: productId },
+            data: { isVisible: nextVisible },
+        });
 
-    revalidatePath("/admin/products");
+        revalidatePath("/admin/products");
+        return { success: true };
+    } catch {
+        return { error: "노출 상태 변경 중 오류가 발생했습니다." };
+    }
 }
 
-async function deleteProduct(formData: FormData) {
+async function deleteProduct(_: ConfirmActionState, formData: FormData): Promise<ConfirmActionState> {
     "use server";
-    const productId = formData.get("productId") as string;
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== "ADMIN") {
+            return { error: "관리자 권한이 필요합니다." };
+        }
+        const productId = formData.get("productId") as string;
+        if (!productId) {
+            return { error: "유효하지 않은 상품입니다." };
+        }
 
-    await prisma.product.delete({
-        where: { id: productId },
-    });
+        await prisma.product.delete({
+            where: { id: productId },
+        });
 
-    revalidatePath("/admin/products");
+        revalidatePath("/admin/products");
+        return { success: true };
+    } catch {
+        return { error: "삭제 처리 중 오류가 발생했습니다." };
+    }
 }
 
 export default async function AdminProductsPage() {

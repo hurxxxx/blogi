@@ -6,6 +6,9 @@ import { auth } from "@/auth";
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
+    const session = await auth();
+    const sessionUserId = session?.user?.id || null;
+    const isAdmin = session?.user?.role === "ADMIN";
 
     const posts = await prisma.post.findMany({
         where: type ? { type } : undefined,
@@ -16,7 +19,17 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(posts);
+    const safePosts = posts.map((post) => {
+        const isOwner = sessionUserId && post.authorId === sessionUserId;
+        const canViewSecret = !post.isSecret || isAdmin || isOwner;
+        return {
+            ...post,
+            content: canViewSecret ? post.content : null,
+            contentMarkdown: canViewSecret ? post.contentMarkdown : null,
+        };
+    });
+
+    return NextResponse.json(safePosts);
 }
 
 // POST: Create a new post

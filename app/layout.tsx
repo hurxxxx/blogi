@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { AuthProvider } from "@/components/providers/session-provider";
 import { ToastProvider } from "@/components/ui/toast";
 
@@ -43,6 +44,7 @@ export default function RootLayout({
             <main className="flex-1 bg-transparent">
               {children}
             </main>
+            <ScrollToTop />
             <Footer />
           </ToastProvider>
         </AuthProvider>

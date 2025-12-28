@@ -13,6 +13,15 @@ export async function POST(_: Request, { params }: RouteParams) {
     }
 
     const { id } = await params;
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post) {
+        return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
+    }
+    const isAuthor = post.authorId === session.user.id;
+    const isAdmin = session.user.role === "ADMIN";
+    if (post.isSecret && !isAuthor && !isAdmin) {
+        return NextResponse.json({ error: "비밀글입니다" }, { status: 403 });
+    }
 
     const result = await prisma.$transaction(async (tx) => {
         const existing = await tx.postLike.findUnique({

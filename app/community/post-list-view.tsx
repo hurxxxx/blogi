@@ -35,10 +35,13 @@ export function PostListView({
   emptyMessage = "게시물이 없습니다.",
 }: PostListViewProps) {
   const [items, setItems] = useState(posts);
+  const [lockedPost, setLockedPost] = useState<PostListItem | null>(null);
   const { showToast } = useToast();
 
   const canEdit = (authorId: string) =>
     Boolean(sessionUserId && (sessionUserId === authorId || sessionRole === "ADMIN"));
+
+  const canOpen = (post: PostListItem) => !post.isSecret || canEdit(post.authorId);
 
   const handleDelete = async (postId: string) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
@@ -65,6 +68,42 @@ export function PostListView({
 
   return (
     <div className="space-y-6">
+      {lockedPost && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          onClick={() => setLockedPost(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-[0_30px_60px_-40px_rgba(15,23,42,0.6)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground">
+              <Lock className="h-4 w-4" />
+              Private
+            </div>
+            <h3 className="mt-3 text-lg font-semibold">이 글은 비밀글입니다.</h3>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              작성자 또는 관리자만 내용을 확인할 수 있습니다. 권한이 있다면 로그인 후 다시
+              시도해주세요.
+            </p>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              {!sessionUserId && (
+                <Button asChild variant="outline" className="sm:order-1">
+                  <Link href="/login">로그인하기</Link>
+                </Button>
+              )}
+              <Button
+                type="button"
+                onClick={() => setLockedPost(null)}
+                className="sm:order-2"
+              >
+                닫기
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile/Tablet Cards */}
       <div className="space-y-4 md:hidden">
         {sortedItems.map((post) => (
@@ -74,10 +113,21 @@ export function PostListView({
                 <Link
                   href={`/community/${post.id}`}
                   className="block text-base font-semibold text-foreground hover:text-sky-700"
+                  onClick={(event) => {
+                    if (!canOpen(post)) {
+                      event.preventDefault();
+                      setLockedPost(post);
+                    }
+                  }}
                 >
                   <span className="inline-flex items-center gap-1">
                     {post.isPinned && <Pin className="w-4 h-4 text-amber-500" />}
-                    {post.isSecret && <Lock className="w-4 h-4 text-gray-400" />}
+                    {post.isSecret && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-50 to-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 shadow-[0_8px_18px_-12px_rgba(251,191,36,0.6)]">
+                        <Lock className="w-3 h-3" />
+                        비밀글
+                      </span>
+                    )}
                     {post.title}
                   </span>
                 </Link>
@@ -151,9 +201,20 @@ export function PostListView({
                     <Link
                       href={`/community/${post.id}`}
                       className="font-medium text-foreground hover:text-sky-700"
+                      onClick={(event) => {
+                        if (!canOpen(post)) {
+                          event.preventDefault();
+                          setLockedPost(post);
+                        }
+                      }}
                     >
                       <span className="inline-flex items-center gap-1">
-                        {post.isSecret && <Lock className="w-4 h-4 text-gray-400" />}
+                        {post.isSecret && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-50 to-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 shadow-[0_8px_18px_-12px_rgba(251,191,36,0.6)]">
+                            <Lock className="w-3 h-3" />
+                            비밀글
+                          </span>
+                        )}
                         {post.title}
                       </span>
                     </Link>

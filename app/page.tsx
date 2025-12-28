@@ -1,67 +1,96 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MapPinned, ShieldCheck, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
-import { auth } from "@/auth";
 
-// Mock data for categories matching the reference
 const categories = [
   {
-    label: "Casino",
-    subLabel: "카지노",
+    label: "카지노",
+    en: "Casino",
     href: "/products/casino",
-    image: "/images/casino_bg.jpg", // Placeholder
-    description: "최고의 시설과 서비스를 자랑하는 카지노",
+    image: "/images/stock-pexels/casino-guide-03.jpg",
+    description: "시설·게임·에티켓까지 한 번에 정리한 카지노 가이드.",
   },
   {
-    label: "Night Life",
-    subLabel: "다낭 유흥",
+    label: "다낭 유흥",
+    en: "Nightlife",
     href: "/products/nightlife",
-    image: "/images/nightlife_bg.jpg",
-    description: "화려한 다낭의 밤을 즐기세요",
+    image: "/images/stock-pexels/nightlife-sky36-01.jpg",
+    description: "바, 라운지, 루프탑까지 세련된 밤 코스.",
   },
   {
-    label: "Promotion",
-    subLabel: "프로모션",
+    label: "프로모션",
+    en: "Promotion",
     href: "/products/promotion",
-    image: "/images/promotion_bg.jpg",
-    description: "다양한 혜택과 이벤트를 확인하세요",
+    image: "/images/stock-pexels/promo-hoian-sunset-01.jpg",
+    description: "숙박+투어+픽업을 묶은 프리미엄 패키지.",
   },
   {
-    label: "VIP Trip",
-    subLabel: "VIP 여행",
+    label: "VIP 여행",
+    en: "VIP Trip",
     href: "/products/vip-trip",
-    image: "/images/viptrip_bg.jpg",
-    description: "특별한 당신을 위한 VIP 케어 서비스",
+    image: "/images/stock-pexels/promo-couple-night-01.jpg",
+    description: "프라이빗 이동, 예약, 코스까지 원스톱.",
   },
   {
-    label: "Travel TIP",
-    subLabel: "여행 TIP",
+    label: "여행 TIP",
+    en: "Travel TIP",
     href: "/products/tip",
-    image: "/images/tip_bg.jpg",
-    description: "알아두면 쓸데많은 다낭 여행 꿀팁",
+    image: "/images/stock-pexels/tip-itinerary-01.jpg",
+    description: "처음 가도 실수 없는 다낭 실전 팁.",
   },
   {
-    label: "Hotel & Pool Villa",
-    subLabel: "호텔 & 풀빌라",
+    label: "호텔 & 풀빌라",
+    en: "Hotel & Villa",
     href: "/products/hotel-villa",
-    image: "/images/hotel_bg.jpg",
-    description: "엄선된 최고의 숙소를 최저가로",
+    image: "/images/stock-pexels/hotel-intercontinental-01.jpg",
+    description: "바다 전망과 프라이빗 풀, 감각적인 스테이.",
   },
   {
-    label: "Golf & Leisure",
-    subLabel: "골프 & 레저",
+    label: "골프 & 레저",
+    en: "Golf & Leisure",
     href: "/products/golf",
-    image: "/images/golf_bg.jpg",
-    description: "환상적인 코스에서의 라운딩",
+    image: "/images/stock-pexels/golf-hoiana-01.jpg",
+    description: "휴식과 라운딩을 동시에 즐기는 셀렉션.",
+  },
+];
+
+const pillars = [
+  {
+    title: "프라이빗 큐레이션",
+    description: "하루 동선부터 분위기까지 개인 취향에 맞게 설계합니다.",
+    icon: Sparkles,
+  },
+  {
+    title: "안전한 이동",
+    description: "검증된 기사와 차량으로 늦은 시간에도 안심하세요.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "로컬 연결",
+    description: "핫플·리저브·투어까지 현지 네트워크로 빠르게.",
+    icon: MapPinned,
+  },
+];
+
+const signatureRoutes = [
+  {
+    title: "도착 + 체크인",
+    detail: "공항 픽업과 웰컴 라운지, 호텔 체크인까지 한 번에.",
+  },
+  {
+    title: "나이트 & 라운지",
+    detail: "분위기 좋은 루프탑과 프라이빗 라운지를 매칭합니다.",
+  },
+  {
+    title: "골프 & 휴식",
+    detail: "오전 라운딩, 오후 스파, 저녁 미식으로 마무리.",
   },
 ];
 
 export default async function Home() {
-  const session = await auth();
   const latestPosts = await prisma.post.findMany({
     orderBy: { createdAt: "desc" },
     take: 3,
@@ -69,129 +98,235 @@ export default async function Home() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-16 sm:py-24">
-        <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_10%_0%,rgba(14,165,166,0.25),transparent_60%),radial-gradient(700px_420px_at_90%_10%,rgba(255,107,87,0.22),transparent_60%)]" />
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
-            <div className="text-left">
+    <div className="flex flex-col">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-[#f6f1e8]">
+        <div className="absolute inset-0 bg-[radial-gradient(1000px_520px_at_85%_0%,rgba(94,234,212,0.18),transparent_60%),radial-gradient(700px_520px_at_10%_10%,rgba(251,146,60,0.16),transparent_60%)]" />
+        <div className="container mx-auto px-4 relative z-10 py-16 sm:py-20">
+          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-center">
+            <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-white/70 px-4 py-1 text-[10px] uppercase tracking-[0.3em] text-foreground/70">
-                Danang curated
+                Danang VIP Concierge
               </div>
-              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl mt-5 leading-[1.05] text-foreground">
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl mt-6 leading-[1.05]">
                 다낭의 밤과 낮을
                 <br />
-                가장 감각적으로 안내합니다.
+                감각적으로 큐레이션합니다.
               </h1>
-              <p className="text-base sm:text-lg text-muted-foreground mt-5 max-w-xl">
-                카지노, 유흥, 호텔, 골프까지 가장 세련된 여정으로 구성된 다낭 VIP 투어. 지금 가장
-                트렌디한 코스를 확인하세요.
+              <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-xl">
+                여행 루트, 숙소, 라운지까지 한 번에 설계하는 프리미엄 가이드. 모바일에서도
+                깔끔하게 보이도록 필요한 정보만 담았습니다.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href="/products/promotion">프로모션 보기</Link>
+                  <Link href="/products/promotion">이번달 프로모션</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/community">실시간 후기</Link>
+                  <Link href="/community">후기 보기</Link>
                 </Button>
+              </div>
+              <div className="mt-8 grid grid-cols-3 gap-3 text-xs text-muted-foreground">
+                <div className="rounded-2xl border border-black/5 bg-white/80 px-3 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.2em]">Clients</p>
+                  <p className="text-lg font-semibold text-foreground">1,200+</p>
+                </div>
+                <div className="rounded-2xl border border-black/5 bg-white/80 px-3 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.2em]">Programs</p>
+                  <p className="text-lg font-semibold text-foreground">80+</p>
+                </div>
+                <div className="rounded-2xl border border-black/5 bg-white/80 px-3 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.2em]">Support</p>
+                  <p className="text-lg font-semibold text-foreground">24/7</p>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
-              {categories.map((category) => (
-                <Link key={category.label} href={category.href} className="group">
-                  <Card className="overflow-hidden border-none bg-white/90 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]">
-                    <div className="relative h-[140px] sm:h-[180px]">
-                      <Image
-                        src={category.image}
-                        alt={category.label}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" />
-                      <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <div className="text-xs uppercase tracking-[0.25em] text-white/70">
-                          {category.subLabel}
-                        </div>
-                        <h3 className="font-display text-lg">{category.label}</h3>
-                      </div>
-                    </div>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {category.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+            <div className="relative">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="relative h-[240px] sm:h-[320px] rounded-3xl overflow-hidden shadow-[0_30px_60px_-40px_rgba(15,23,42,0.45)]">
+                  <Image
+                    src="/images/stock-pexels/hotel-pullman-01.jpg"
+                    alt="다낭 럭셔리 호텔"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                  />
+                </div>
+                <div className="relative h-[200px] sm:h-[280px] rounded-3xl overflow-hidden self-end shadow-[0_25px_50px_-35px_rgba(15,23,42,0.45)]">
+                  <Image
+                    src="/images/stock-pexels/nightlife-waterfront-01.jpg"
+                    alt="다낭 나이트 라이프"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                  />
+                </div>
+              </div>
+              <div className="absolute -bottom-6 left-4 sm:left-10 rounded-2xl border border-black/5 bg-white/90 px-4 py-3 text-sm shadow-[0_20px_45px_-30px_rgba(15,23,42,0.45)]">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Signature</p>
+                <p className="font-semibold">Night &amp; Resort Curated</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Intro Section */}
-      <section className="py-20">
+      {/* Pillars */}
+      <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-[1fr_1.1fr] items-center gap-10">
-            <div className="order-2 md:order-1">
-              <h2 className="font-display text-3xl sm:text-4xl mb-5 text-foreground">
-                다낭의 밤을 한층 더 세련되게
-              </h2>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                프라이빗 라운지, 감각적인 바, 안전한 이동까지 모두 세팅합니다. 여행의 피로는 줄이고,
-                경험의 밀도는 높였습니다.
-              </p>
-              <Button asChild>
-                <Link href="/products/nightlife">
-                  큐레이션 보기 <ArrowRight className="ml-2 w-4 h-4" />
-                </Link>
-              </Button>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {pillars.map((pillar) => {
+              const Icon = pillar.icon;
+              return (
+                <div
+                  key={pillar.title}
+                  className="rounded-3xl border border-black/5 bg-white/90 p-5 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.35)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-foreground text-background p-2">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <h3 className="font-semibold text-base">{pillar.title}</h3>
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                    {pillar.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Curated index</p>
+              <h2 className="font-display text-3xl sm:text-4xl">카테고리별 큐레이션</h2>
             </div>
-            <div className="order-1 md:order-2 h-[260px] sm:h-[320px] relative rounded-2xl overflow-hidden shadow-[0_30px_60px_-40px_rgba(15,23,42,0.35)]">
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+            {categories.map((category) => (
+              <Link
+                key={category.label}
+                href={category.href}
+                className="min-w-[240px] max-w-[260px] w-[75vw] sm:w-auto sm:min-w-[220px] snap-start group"
+              >
+                <div className="rounded-3xl border border-black/5 bg-white/90 overflow-hidden shadow-[0_20px_45px_-35px_rgba(15,23,42,0.4)]">
+                  <div className="relative h-[150px]">
+                    <Image
+                      src={category.image}
+                      alt={category.label}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 70vw, 240px"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" />
+                    <div className="absolute bottom-3 left-4 text-white">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-white/70">
+                        {category.en}
+                      </p>
+                      <h3 className="font-display text-lg">{category.label}</h3>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {category.description}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Signature Route */}
+      <section className="py-14 sm:py-20 bg-white/70">
+        <div className="container mx-auto px-4">
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] items-center">
+            <div className="relative h-[260px] sm:h-[320px] rounded-3xl overflow-hidden shadow-[0_30px_60px_-40px_rgba(15,23,42,0.45)]">
               <Image
-                src="/images/intro_nightlife.jpg"
-                alt="다낭 유흥"
+                src="/images/stock-pexels/promo-workation-01.jpg"
+                alt="다낭 시그니처 코스"
                 fill
                 className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 45vw"
               />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Signature route</p>
+              <h2 className="font-display text-3xl sm:text-4xl mt-3">하루 완성형 일정</h2>
+              <p className="mt-4 text-muted-foreground leading-relaxed">
+                다낭 VIP 투어는 동선 낭비 없이, 이동과 분위기를 세팅합니다. 모바일에서 보기 쉬운
+                카드형 구성으로 핵심만 빠르게 확인할 수 있습니다.
+              </p>
+              <ol className="mt-6 space-y-4">
+                {signatureRoutes.map((route, index) => (
+                  <li
+                    key={route.title}
+                    className="rounded-2xl border border-black/5 bg-white/90 px-4 py-3"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">
+                        0{index + 1}
+                      </span>
+                      <div>
+                        <p className="font-semibold">{route.title}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{route.detail}</p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Recent Posts */}
-      <section className="py-20">
+      {/* Latest Posts */}
+      <section className="py-14 sm:py-20">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Latest updates</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Journal</p>
               <h2 className="font-display text-3xl sm:text-4xl">최신 여행 정보</h2>
             </div>
             <Button variant="outline" asChild>
-              <Link href="/community">더 보기</Link>
+              <Link href="/community">
+                더 보기 <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
           {latestPosts.length === 0 ? (
-            <div className="text-center py-16 bg-gray-50 rounded-lg">
-              <p className="text-gray-500 text-lg">아직 게시물이 없습니다.</p>
+            <div className="rounded-3xl border border-dashed border-black/10 bg-white/80 py-12 text-center text-muted-foreground">
+              아직 게시물이 없습니다.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid gap-4 md:grid-cols-3">
               {latestPosts.map((post) => (
-                <Link key={post.id} href={`/community/${post.id}`}>
-                  <Card className="hover:shadow-lg transition cursor-pointer overflow-hidden h-full">
-                    <div className="h-36 sm:h-40 bg-gradient-to-br from-slate-100 via-white to-amber-50 flex items-center justify-center text-slate-500 text-sm uppercase tracking-[0.2em]">
-                      Latest
-                    </div>
-                    <CardContent className="p-5">
-                      <h3 className="font-display text-lg mb-2 line-clamp-2">{post.title}</h3>
-                      <p className="text-muted-foreground text-sm">
-                        {format(post.createdAt, "yyyy.MM.dd")} | 작성자: {post.author.name || "Anonymous"}
-                      </p>
-                    </CardContent>
-                  </Card>
+                <Link
+                  key={post.id}
+                  href={`/community/${post.id}`}
+                  className="group rounded-3xl border border-black/5 bg-white/90 p-5 shadow-[0_20px_45px_-35px_rgba(15,23,42,0.35)] transition hover:-translate-y-1"
+                >
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    <span>Story</span>
+                    <span className="text-[11px]">{format(post.createdAt, "yyyy.MM.dd")}</span>
+                  </div>
+                  <h3 className="mt-3 font-display text-lg leading-snug line-clamp-2 text-foreground">
+                    {post.title}
+                  </h3>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {post.author.name || "Anonymous"}
+                  </p>
+                  <div className="mt-5 inline-flex items-center gap-2 text-sm text-foreground">
+                    읽어보기
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </div>
                 </Link>
               ))}
             </div>

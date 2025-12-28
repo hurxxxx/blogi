@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
-import { useFormState } from "react-dom";
+import { useActionState, useCallback, useEffect, useRef } from "react";
 import { useToast } from "@/components/ui/toast";
 
 export interface ConfirmActionState {
@@ -18,7 +17,7 @@ interface ConfirmFormProps {
 
 export const ConfirmForm = ({ action, message, hiddenFields, children }: ConfirmFormProps) => {
   const { showToast } = useToast();
-  const [state, formAction] = useFormState(action, { error: null, success: false });
+  const [state, formAction] = useActionState(action, { error: null, success: false });
   const hasMounted = useRef(false);
 
   useEffect(() => {

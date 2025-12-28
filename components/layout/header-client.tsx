@@ -47,10 +47,10 @@ export const HeaderClient = ({ menuItems, siteName, siteLogoUrl }: HeaderClientP
             : "text-white/70 hover:text-white hover:bg-white/5"
         )
       : cn(
-          "px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/5 transition-all whitespace-nowrap",
+          "px-3 py-2 text-sm font-medium transition-all whitespace-nowrap",
           isActive
-            ? "bg-white text-[#0b1320] border-white/30 shadow-[0_12px_30px_-20px_rgba(15,23,42,0.6)]"
-            : "text-white/80 hover:text-white hover:border-white/20"
+            ? "text-white"
+            : "text-white/70 hover:text-white"
         );
 
     const content = (

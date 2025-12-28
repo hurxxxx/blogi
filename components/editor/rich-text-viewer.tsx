@@ -46,6 +46,9 @@ const CodeHighlightingPlugin = () => {
 };
 
 export function RichTextViewer({ content, className }: RichTextViewerProps) {
+  const defaultClassName =
+    "blog-content min-h-[220px] rounded-3xl border border-black/5 bg-white/90 px-5 sm:px-8 py-6 sm:py-8 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.45)]";
+  const contentClassName = className ? `${defaultClassName} ${className}` : defaultClassName;
   const initialConfig = {
     namespace: "danang-viewer",
     theme: lexicalTheme,
@@ -77,8 +80,7 @@ export function RichTextViewer({ content, className }: RichTextViewerProps) {
         contentEditable={
           <ContentEditable
             className={
-              className ||
-              "min-h-[200px] rounded-2xl border border-black/5 bg-white/80 px-4 py-4 text-base leading-relaxed shadow-[0_18px_50px_-32px_rgba(15,23,42,0.35)]"
+              contentClassName
             }
           />
         }

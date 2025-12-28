@@ -17,6 +17,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { lexicalJsonToPlainText } from "@/lib/lexical";
+import { useToast } from "@/components/ui/toast";
 
 export default function EditPage() {
     const { id } = useParams<{ id: string }>();
@@ -27,9 +28,16 @@ export default function EditPage() {
     const [contentMarkdown, setContentMarkdown] = useState("");
     const [type, setType] = useState("FREE");
     const [authorId, setAuthorId] = useState("");
+    const [isSecret, setIsSecret] = useState(false);
+    const [isPinned, setIsPinned] = useState(false);
+    const [attachments, setAttachments] = useState<
+        { url: string; name?: string | null; type?: string | null; size?: number | null }[]
+    >([]);
+    const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const { showToast } = useToast();
 
     const fetchPost = useCallback(async () => {
         if (!id) return;
@@ -42,6 +50,9 @@ export default function EditPage() {
                 setContentMarkdown(data.contentMarkdown ?? "");
                 setType(data.type);
                 setAuthorId(data.authorId);
+                setIsSecret(Boolean(data.isSecret));
+                setIsPinned(Boolean(data.isPinned));
+                setAttachments(Array.isArray(data.attachments) ? data.attachments : []);
             } else {
                 router.push("/community");
             }
@@ -98,7 +109,15 @@ export default function EditPage() {
             const res = await fetch(`/api/posts/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, content, contentMarkdown, type }),
+                body: JSON.stringify({
+                    title,
+                    content,
+                    contentMarkdown,
+                    type,
+                    isSecret,
+                    isPinned,
+                    attachments,
+                }),
             });
 
             if (res.ok) {
@@ -112,6 +131,46 @@ export default function EditPage() {
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleAttachmentChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+
+        setUploading(true);
+        setError("");
+        try {
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("scope", "posts");
+
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    setAttachments((prev) => [
+                        ...prev,
+                        { url: data.url, name: file.name, type: file.type, size: file.size },
+                    ]);
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    showToast(data.error || "이미지 업로드에 실패했습니다.", "error");
+                }
+            }
+        } catch {
+            showToast("이미지 업로드 중 오류가 발생했습니다.", "error");
+        } finally {
+            setUploading(false);
+            e.target.value = "";
+        }
+    };
+
+    const handleRemoveAttachment = (url: string) => {
+        setAttachments((prev) => prev.filter((item) => item.url !== url));
     };
 
     return (
@@ -139,6 +198,29 @@ export default function EditPage() {
                     </Select>
                 </div>
 
+                <div className="flex flex-wrap gap-4">
+                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                        <input
+                            type="checkbox"
+                            className="h-4 w-4"
+                            checked={isSecret}
+                            onChange={(e) => setIsSecret(e.target.checked)}
+                        />
+                        비밀글로 설정
+                    </label>
+                    {session?.user?.role === "ADMIN" && (
+                        <label className="flex items-center gap-2 text-sm text-gray-600">
+                            <input
+                                type="checkbox"
+                                className="h-4 w-4"
+                                checked={isPinned}
+                                onChange={(e) => setIsPinned(e.target.checked)}
+                            />
+                            상단 고정
+                        </label>
+                    )}
+                </div>
+
                 <div className="space-y-2">
                     <Label htmlFor="title">제목</Label>
                     <Input
@@ -158,6 +240,35 @@ export default function EditPage() {
                         onMarkdownChange={setContentMarkdown}
                         placeholder="내용을 입력하세요..."
                     />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="attachments">첨부 이미지</Label>
+                    <Input
+                        id="attachments"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleAttachmentChange}
+                        disabled={saving || uploading}
+                    />
+                    {uploading && <p className="text-xs text-gray-500">업로드 중...</p>}
+                    {attachments.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {attachments.map((file) => (
+                                <div key={file.url} className="relative overflow-hidden rounded-lg border">
+                                    <img src={file.url} alt={file.name || "첨부"} className="h-24 w-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveAttachment(file.url)}
+                                        className="absolute top-1 right-1 rounded bg-white/80 px-2 py-0.5 text-xs"
+                                    >
+                                        삭제
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {error && (

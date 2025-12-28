@@ -19,6 +19,8 @@ model User {
   updatedAt DateTime  @updatedAt
   posts     Post[]
   comments  Comment[]
+  postLikes  PostLike[]
+  postScraps PostScrap[]
 }
 
 model Product {
@@ -27,6 +29,10 @@ model Product {
   content   String // Lexical JSON
   contentMarkdown String?
   category  String // CASINO, NIGHTLIFE, GOLF, HOTEL, ETC
+  categoryId String?
+  categoryRef Category? @relation(fields: [categoryId], references: [id])
+  contentType String @default("RICH")
+  htmlContent String?
   imageUrl  String?
   price     String?
   isVisible Boolean  @default(true)
@@ -44,8 +50,48 @@ model Post {
   author    User      @relation(fields: [authorId], references: [id])
   comments  Comment[]
   viewCount Int       @default(0)
+  isPinned  Boolean   @default(false)
+  isSecret  Boolean   @default(false)
+  likeCount Int       @default(0)
+  scrapCount Int      @default(0)
+  attachments PostAttachment[]
+  likes     PostLike[]
+  scraps    PostScrap[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model PostAttachment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  url       String
+  name      String?
+  type      String?
+  size      Int?
+  createdAt DateTime @default(now())
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model PostScrap {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
 }
 
 model Comment {
@@ -80,6 +126,8 @@ model MenuItem {
   openInNew    Boolean  @default(false)
   requiresAuth Boolean  @default(false)
   badgeText    String?
+  linkType     String   @default("custom")
+  linkedId     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -106,4 +154,27 @@ model SiteSettings {
   showSocials     Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  order       Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  products    Product[]
+}
+
+model Board {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  order       Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

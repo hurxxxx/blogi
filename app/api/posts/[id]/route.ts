@@ -8,6 +8,7 @@ interface RouteParams {
 
 // GET: Get a single post
 export async function GET(req: NextRequest, { params }: RouteParams) {
+    const session = await auth();
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const shouldIncrement =
@@ -23,12 +24,30 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
                 },
                 orderBy: { createdAt: "asc" },
             },
+            attachments: true,
         },
     });
 
     if (!post) {
         return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
     }
+
+    const isAuthor = session?.user?.id === post.authorId;
+    const isAdmin = session?.user?.role === "ADMIN";
+    if (post.isSecret && !isAuthor && !isAdmin) {
+        return NextResponse.json({ error: "비밀글입니다", isSecret: true }, { status: 403 });
+    }
+
+    const liked = session?.user?.id
+        ? await prisma.postLike.findUnique({
+            where: { postId_userId: { postId: id, userId: session.user.id } },
+        })
+        : null;
+    const scrapped = session?.user?.id
+        ? await prisma.postScrap.findUnique({
+            where: { postId_userId: { postId: id, userId: session.user.id } },
+        })
+        : null;
 
     if (shouldIncrement) {
         // Increment view count
@@ -43,6 +62,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         viewCount: shouldIncrement ? post.viewCount + 1 : post.viewCount,
         content: post.content,
         authorId: post.author.id,
+        liked: Boolean(liked),
+        scrapped: Boolean(scrapped),
         comments: post.comments.map((c) => ({
             ...c,
             authorId: c.author.id,
@@ -72,20 +93,52 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 
     const body = await req.json();
-    const { title, content, contentMarkdown, type } = body;
+    const { title, content, contentMarkdown, type, isSecret, isPinned, attachments } = body;
 
-    const updateData: { title?: string; content?: string; contentMarkdown?: string | null; type?: string } = {
+    const updateData: {
+        title?: string;
+        content?: string;
+        contentMarkdown?: string | null;
+        type?: string;
+        isSecret?: boolean;
+        isPinned?: boolean;
+    } = {
         title,
         content,
         type,
     };
+    if (typeof isSecret === "boolean") {
+        updateData.isSecret = isSecret;
+    }
+    if (typeof isPinned === "boolean") {
+        updateData.isPinned = isAdmin ? isPinned : post.isPinned;
+    }
     if (typeof contentMarkdown === "string") {
         updateData.contentMarkdown = contentMarkdown.trim() || null;
     }
+    const updated = await prisma.$transaction(async (tx) => {
+        const updatedPost = await tx.post.update({
+            where: { id },
+            data: updateData,
+        });
 
-    const updated = await prisma.post.update({
-        where: { id },
-        data: updateData,
+        if (Array.isArray(attachments)) {
+            await tx.postAttachment.deleteMany({ where: { postId: id } });
+            const attachmentData = attachments
+                .filter((item) => typeof item?.url === "string" && item.url.trim())
+                .map((item) => ({
+                    postId: id,
+                    url: item.url.trim(),
+                    name: typeof item.name === "string" ? item.name.trim() || null : null,
+                    type: typeof item.type === "string" ? item.type.trim() || null : null,
+                    size: typeof item.size === "number" ? item.size : null,
+                }));
+            if (attachmentData.length) {
+                await tx.postAttachment.createMany({ data: attachmentData });
+            }
+        }
+
+        return updatedPost;
     });
 
     return NextResponse.json(updated);

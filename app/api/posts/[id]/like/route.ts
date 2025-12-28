@@ -1,0 +1,42 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+
+interface RouteParams {
+    params: Promise<{ id: string }>;
+}
+
+export async function POST(_: Request, { params }: RouteParams) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const result = await prisma.$transaction(async (tx) => {
+        const existing = await tx.postLike.findUnique({
+            where: { postId_userId: { postId: id, userId: session.user.id } },
+        });
+
+        if (existing) {
+            await tx.postLike.delete({ where: { id: existing.id } });
+            const updated = await tx.post.update({
+                where: { id },
+                data: { likeCount: { decrement: 1 } },
+            });
+            return { liked: false, likeCount: updated.likeCount };
+        }
+
+        await tx.postLike.create({
+            data: { postId: id, userId: session.user.id },
+        });
+        const updated = await tx.post.update({
+            where: { id },
+            data: { likeCount: { increment: 1 } },
+        });
+        return { liked: true, likeCount: updated.likeCount };
+    });
+
+    return NextResponse.json(result);
+}

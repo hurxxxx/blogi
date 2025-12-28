@@ -45,3 +45,4 @@ next-env.d.ts
 init.sql
 *.db
 /public/uploads
+/public/images/stock-*

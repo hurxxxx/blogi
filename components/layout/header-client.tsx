@@ -84,11 +84,11 @@ export const HeaderClient = ({ menuItems, siteName, siteLogoUrl }: HeaderClientP
 
   return (
     <>
-      <header className="relative w-full overflow-hidden bg-[#0b1320] text-white">
+      <header className="relative w-full overflow-hidden bg-[#0b1320] text-white hidden md:block">
         <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_20%_-10%,rgba(14,165,166,0.35),transparent_60%),radial-gradient(700px_420px_at_80%_0%,rgba(255,107,87,0.35),transparent_65%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,10,20,0.85)_0%,rgba(11,19,32,0.6)_45%,rgba(12,28,42,0.9)_100%)]" />
         <div className="container mx-auto px-4 relative">
-          <div className="flex items-center justify-between gap-3 py-4">
+          <div className="flex items-center justify-between gap-3 py-3">
             <button
               className="md:hidden p-2 rounded-full border border-white/10 bg-white/10 hover:bg-white/20 transition"
               onClick={() => setIsSidebarOpen(true)}
@@ -101,9 +101,9 @@ export const HeaderClient = ({ menuItems, siteName, siteLogoUrl }: HeaderClientP
               <Image
                 src={siteLogoUrl}
                 alt={`${siteName} 로고`}
-                width={160}
-                height={54}
-                className="h-10 w-auto"
+                width={280}
+                height={96}
+                className="h-14 w-auto"
                 priority
                 unoptimized
               />
@@ -168,27 +168,35 @@ export const HeaderClient = ({ menuItems, siteName, siteLogoUrl }: HeaderClientP
         </div>
       </header>
 
+      {/* Floating hamburger button for mobile */}
+      <button
+        className="md:hidden fixed top-4 left-4 z-50 p-3 rounded-full bg-[#0b1320]/90 text-white shadow-lg backdrop-blur-sm border border-white/10 hover:bg-[#0b1320] transition"
+        onClick={() => setIsSidebarOpen(true)}
+        aria-label="메뉴 열기"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
       {isSidebarOpen && (
-        <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={closeSidebar} />
+        <div className="md:hidden fixed inset-0 bg-black/60 z-50" onClick={closeSidebar} />
       )}
 
       <div
         className={cn(
-          "md:hidden fixed top-0 left-0 h-full w-72 bg-[#0b1320] text-white z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto",
+          "md:hidden fixed top-0 left-0 h-full w-72 bg-[#0b1320] text-white z-[60] transform transition-transform duration-300 ease-in-out overflow-y-auto",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <Link href="/" className="flex items-center gap-x-2" onClick={closeSidebar}>
+          <Link href="/" className="flex items-center" onClick={closeSidebar}>
             <Image
               src={siteLogoUrl}
               alt={`${siteName} 로고`}
-              width={140}
-              height={48}
-              className="h-10 w-auto"
+              width={240}
+              height={82}
+              className="h-12 w-auto"
               unoptimized
             />
-            <span className="font-display text-lg">{siteName}</span>
           </Link>
           <button
             className="p-2 rounded-full border border-white/10 bg-white/10 hover:bg-white/20 transition"

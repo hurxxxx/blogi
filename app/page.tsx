@@ -91,11 +91,17 @@ const signatureRoutes = [
 ];
 
 export default async function Home() {
-  const latestPosts = await prisma.post.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 3,
-    include: { author: { select: { name: true } } },
-  });
+  const [latestPosts, siteSettings] = await Promise.all([
+    prisma.post.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      include: { author: { select: { name: true } } },
+    }),
+    prisma.siteSettings.findUnique({ where: { key: "default" } }),
+  ]);
+
+  const siteName = siteSettings?.siteName || "다낭VIP투어";
+  const siteLogoUrl = siteSettings?.siteLogoUrl || "/logo.png";
 
   return (
     <div className="flex flex-col">
@@ -103,6 +109,30 @@ export default async function Home() {
       <section className="relative overflow-hidden bg-[#f6f1e8]">
         <div className="absolute inset-0 bg-[radial-gradient(1000px_520px_at_85%_0%,rgba(94,234,212,0.18),transparent_60%),radial-gradient(700px_520px_at_10%_10%,rgba(251,146,60,0.16),transparent_60%)]" />
         <div className="container mx-auto px-4 relative z-10 py-16 sm:py-20">
+          {/* Mobile: Elegant brand bar */}
+          <div className="md:hidden -mx-4 mb-12">
+            <div className="bg-gradient-to-r from-[#1a2332] via-[#0f1824] to-[#1a2332] py-5 px-6 flex items-center justify-center gap-5 shadow-lg">
+              <Image
+                src={siteLogoUrl}
+                alt={`${siteName} 로고`}
+                width={140}
+                height={48}
+                className="h-12 w-auto"
+                priority
+                unoptimized
+              />
+              <div className="h-8 w-px bg-white/20" />
+              <div>
+                <p className="font-display text-lg text-white tracking-wide">{siteName}</p>
+                <p className="text-[9px] uppercase tracking-[0.25em] text-white/50">Premium Travel Concierge</p>
+              </div>
+            </div>
+          </div>
+          {/* Desktop: Site name only */}
+          <div className="hidden md:block text-center mb-10">
+            <h2 className="font-display text-3xl tracking-tight text-foreground/90">{siteName}</h2>
+            <div className="mt-2 mx-auto w-12 h-0.5 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
+          </div>
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-white/70 px-4 py-1 text-[10px] uppercase tracking-[0.3em] text-foreground/70">

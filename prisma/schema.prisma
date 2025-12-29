@@ -7,6 +7,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum MenuLinkType {
+  category
+  community
+  external
+}
+
 model User {
   id         String      @id @default(cuid())
   email      String      @unique
@@ -126,7 +132,7 @@ model MenuItem {
   badgeText    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  linkType     String   @default("category")
+  linkType     MenuLinkType @default(category)
   linkedCategoryId String?
   menu         Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
   boards       Board[]

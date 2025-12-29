@@ -33,6 +33,11 @@ const resolveLinkType = (value?: string, href?: string) => {
   return "category";
 };
 
+const isManualHrefValid = (href?: string) => {
+  if (!href) return false;
+  return href.startsWith("http") || href.startsWith("/");
+};
+
 const SLUG_PATTERN = /^[a-z0-9-]+$/;
 
 const validateSlug = (slug: string): { valid: boolean; error?: string } => {
@@ -108,8 +113,11 @@ export async function POST(req: NextRequest) {
 
     // 외부 링크 처리
     if (linkType === "external") {
-      if (!data.href?.startsWith("http")) {
-        return NextResponse.json({ error: "외부 링크는 http:// 또는 https://로 시작해야 합니다" }, { status: 400 });
+      if (!isManualHrefValid(data.href)) {
+        return NextResponse.json(
+          { error: "링크 주소는 http://, https:// 또는 / 로 시작해야 합니다" },
+          { status: 400 }
+        );
       }
       href = data.href;
       linkedCategoryId = null;
@@ -147,11 +155,6 @@ export async function POST(req: NextRequest) {
       if (!slug) {
         return NextResponse.json({ error: "카테고리 주소가 필요합니다" }, { status: 400 });
       }
-      // 카테고리 slug 중복 체크
-      const existingCategory = await prisma.category.findUnique({ where: { slug } });
-      if (existingCategory) {
-        return NextResponse.json({ error: "이미 존재하는 카테고리 슬러그입니다" }, { status: 400 });
-      }
       href = `/products/${slug}`;
       const category = await prisma.category.upsert({
         where: { slug },
@@ -168,6 +171,12 @@ export async function POST(req: NextRequest) {
         },
       });
       linkedCategoryId = category.id;
+      const duplicate = await prisma.menuItem.findFirst({
+        where: { menuId: menu.id, linkType: "category", href },
+      });
+      if (duplicate) {
+        return NextResponse.json({ error: "이미 존재하는 카테고리 메뉴입니다" }, { status: 400 });
+      }
     }
     const item = await prisma.menuItem.create({
       data: {
@@ -219,8 +228,11 @@ export async function POST(req: NextRequest) {
 
     // 외부 링크인 경우 href 업데이트 허용
     if (linkType === "external") {
-      if (data.href && !data.href.startsWith("http")) {
-        return NextResponse.json({ error: "외부 링크는 http:// 또는 https://로 시작해야 합니다" }, { status: 400 });
+      if (data.href && !isManualHrefValid(data.href)) {
+        return NextResponse.json(
+          { error: "링크 주소는 http://, https:// 또는 / 로 시작해야 합니다" },
+          { status: 400 }
+        );
       }
       href = data.href ?? existing.href;
     } else if (linkType === "community") {

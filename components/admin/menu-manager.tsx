@@ -152,8 +152,8 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
 
     // 외부 링크 타입 처리
     if (payload.linkType === "external") {
-      if (!payload.href?.startsWith("http")) {
-        showToast("외부 링크는 http:// 또는 https://로 시작해야 합니다.", "error");
+      if (!(payload.href?.startsWith("http") || payload.href?.startsWith("/"))) {
+        showToast("링크 주소는 http://, https:// 또는 / 로 시작해야 합니다.", "error");
         return;
       }
       const resolvedPayload = { ...payload, isExternal: true };
@@ -441,7 +441,7 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                             handleFieldChange(menu.key, item.id ?? "", "href", event.target.value)
                           }
                           className="h-8 text-xs"
-                          placeholder="https://example.com"
+                          placeholder="https://example.com 또는 /terms"
                         />
                       </div>
                     )}

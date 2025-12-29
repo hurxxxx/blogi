@@ -38,6 +38,40 @@ const seedMenuItems = async (menuId: string, items: typeof DEFAULT_MAIN_MENU) =>
   }
 };
 
+const ensureCategoryMenuItems = async (menuId: string) => {
+  const count = await prisma.menuItem.count({
+    where: { menuId, linkType: "category" },
+  });
+  if (count > 0) return;
+
+  const categories = await prisma.category.findMany({
+    orderBy: { order: "asc" },
+  });
+  if (categories.length === 0) return;
+
+  const existingOrders = await prisma.menuItem.findMany({
+    where: { menuId },
+    select: { order: true },
+  });
+  const maxOrder = existingOrders.reduce((acc, item) => Math.max(acc, item.order), 0);
+
+  await prisma.menuItem.createMany({
+    data: categories.map((category, index) => ({
+      menuId,
+      label: category.name,
+      href: `/products/${category.slug}`,
+      order: category.order > 0 ? category.order : maxOrder + index + 1,
+      isVisible: category.isVisible,
+      isExternal: false,
+      openInNew: false,
+      requiresAuth: category.slug === "vip-trip",
+      badgeText: null,
+      linkType: "category",
+      linkedCategoryId: category.id,
+    })),
+  });
+};
+
 export default async function AdminMenusPage() {
   const [mainMenu, siteSettings] = await Promise.all([
     prisma.menu.upsert({
@@ -53,6 +87,7 @@ export default async function AdminMenusPage() {
   if (mainCount === 0) {
     await seedMenuItems(mainMenu.id, DEFAULT_MAIN_MENU);
   }
+  await ensureCategoryMenuItems(mainMenu.id);
 
   const rawMainItems = await prisma.menuItem.findMany({
     where: { menuId: mainMenu.id },

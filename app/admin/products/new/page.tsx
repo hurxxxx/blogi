@@ -20,7 +20,7 @@ type CategoryOption = {
 export default function NewProductPage() {
     const router = useRouter();
     const [title, setTitle] = useState("");
-    const [category, setCategory] = useState("");
+    const [categoryId, setCategoryId] = useState("");
     const [categories, setCategories] = useState<CategoryOption[]>([]);
     const [categoryLoading, setCategoryLoading] = useState(true);
     const [price, setPrice] = useState("");
@@ -54,7 +54,7 @@ export default function NewProductPage() {
         e.preventDefault();
         setError("");
 
-        if (!title.trim() || !category || !lexicalJsonToPlainText(content)) {
+        if (!title.trim() || !categoryId || !lexicalJsonToPlainText(content)) {
             setError("제목, 카테고리, 내용을 모두 입력해주세요.");
             return;
         }
@@ -64,7 +64,7 @@ export default function NewProductPage() {
             const res = await fetch("/api/products", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, category, price, imageUrl, content, contentMarkdown }),
+                body: JSON.stringify({ title, categoryId, price, imageUrl, content, contentMarkdown }),
             });
 
             if (res.ok) {
@@ -140,14 +140,14 @@ export default function NewProductPage() {
                             <Label htmlFor="category">카테고리</Label>
                             <select
                                 id="category"
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
+                                value={categoryId}
+                                onChange={(e) => setCategoryId(e.target.value)}
                                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                                 disabled={loading || categoryLoading || categories.length === 0}
                             >
                                 <option value="">카테고리 선택</option>
                                 {categories.map((cat) => (
-                                    <option key={cat.id} value={cat.slug}>
+                                    <option key={cat.id} value={cat.id}>
                                         {cat.name}
                                     </option>
                                 ))}

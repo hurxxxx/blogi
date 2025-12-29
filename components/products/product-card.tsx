@@ -3,12 +3,12 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { categoryToSlug } from "@/lib/categories";
 
 interface ProductCardProps {
     id: string;
     title: string;
-    category: string;
+    categorySlug: string;
+    categoryLabel: string;
     imageUrl: string | null;
     price: string | null;
     createdAt: Date;
@@ -17,14 +17,14 @@ interface ProductCardProps {
 export const ProductCard = ({
     id,
     title,
-    category,
+    categorySlug,
+    categoryLabel,
     imageUrl,
     price,
     createdAt
 }: ProductCardProps) => {
-    const slug = categoryToSlug(category);
     return (
-        <Link href={`/products/${slug}/${id}`}>
+        <Link href={`/products/${categorySlug}/${id}`}>
             <Card className="h-full overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <div className="aspect-[4/3] relative bg-gradient-to-br from-slate-100 via-white to-amber-50">
                     {imageUrl ? (
@@ -45,7 +45,7 @@ export const ProductCard = ({
                 </div>
                 <CardContent className="p-4">
                     <Badge variant="outline" className="mb-3 uppercase">
-                        {category.replace(/_/g, " ").replace(/-/g, " ")}
+                        {categoryLabel}
                     </Badge>
                     <h3 className="font-display text-lg leading-tight line-clamp-2 mb-2">
                         {title}

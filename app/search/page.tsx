@@ -45,14 +45,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         prisma.product.findMany({
             where: {
                 isVisible: true,
-                ...(session ? {} : { category: { notIn: ["VIP_TRIP", "vip-trip"] } }),
+                ...(session ? {} : { NOT: { categoryRef: { is: { slug: "vip-trip" } } } }),
                 OR: [
                     { title: { contains: query, mode: "insensitive" } },
-                    { category: { contains: query, mode: "insensitive" } },
+                    { categoryRef: { is: { name: { contains: query, mode: "insensitive" } } } },
+                    { categoryRef: { is: { slug: { contains: query, mode: "insensitive" } } } },
                 ],
             },
             orderBy: { createdAt: "desc" },
             take: 20,
+            include: { categoryRef: true },
         }),
     ]);
 
@@ -112,7 +114,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                 key={product.id}
                                 id={product.id}
                                 title={product.title}
-                                category={product.category}
+                                categorySlug={product.categoryRef?.slug ?? product.category}
+                                categoryLabel={product.categoryRef?.name ?? product.category}
                                 imageUrl={product.imageUrl}
                                 price={product.price}
                                 createdAt={product.createdAt}

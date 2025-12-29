@@ -10,7 +10,6 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { lexicalJsonToPlainText } from "@/lib/lexical";
-import { categoryToSlug } from "@/lib/categories";
 
 type CategoryOption = {
     id: string;
@@ -22,7 +21,7 @@ export default function EditProductPage() {
     const { id } = useParams<{ id: string }>();
     const router = useRouter();
     const [title, setTitle] = useState("");
-    const [category, setCategory] = useState("");
+    const [categoryId, setCategoryId] = useState("");
     const [categories, setCategories] = useState<CategoryOption[]>([]);
     const [categoryLoading, setCategoryLoading] = useState(true);
     const [price, setPrice] = useState("");
@@ -42,7 +41,7 @@ export default function EditProductPage() {
             if (res.ok) {
                 const data = await res.json();
                 setTitle(data.title);
-                setCategory(categoryToSlug(data.category));
+                setCategoryId(data.categoryId || data.categoryRef?.id || "");
                 setPrice(data.price || "");
                 setImageUrl(data.imageUrl || "");
                 setContent(data.content || "");
@@ -88,7 +87,7 @@ export default function EditProductPage() {
         e.preventDefault();
         setError("");
 
-        if (!title.trim() || !category || !lexicalJsonToPlainText(content)) {
+        if (!title.trim() || !categoryId || !lexicalJsonToPlainText(content)) {
             setError("제목, 카테고리, 내용을 모두 입력해주세요.");
             return;
         }
@@ -100,7 +99,7 @@ export default function EditProductPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     title,
-                    category,
+                    categoryId,
                     price,
                     imageUrl,
                     content,
@@ -194,14 +193,14 @@ export default function EditProductPage() {
                             <Label htmlFor="category">카테고리</Label>
                             <select
                                 id="category"
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
+                                value={categoryId}
+                                onChange={(e) => setCategoryId(e.target.value)}
                                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                                 disabled={saving || categoryLoading || categories.length === 0}
                             >
                                 <option value="">카테고리 선택</option>
                                 {categories.map((cat) => (
-                                    <option key={cat.id} value={cat.slug}>
+                                    <option key={cat.id} value={cat.id}>
                                         {cat.name}
                                     </option>
                                 ))}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { isVipCategoryValue } from "@/lib/categories";
+import { isVipCategorySlug } from "@/lib/categories";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -14,6 +14,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const isAdmin = session?.user?.role === "ADMIN";
     const product = await prisma.product.findUnique({
         where: { id },
+        include: { categoryRef: true },
     });
 
     if (!product) {
@@ -24,7 +25,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: "상품을 찾을 수 없습니다" }, { status: 404 });
     }
 
-    if (isVipCategoryValue(product.category) && !session) {
+    const productCategorySlug = product.categoryRef?.slug ?? product.category;
+    if (isVipCategorySlug(productCategorySlug) && !session) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
@@ -43,10 +45,15 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const body = await req.json();
-    const { title, content, contentMarkdown, category, price, imageUrl, isVisible } = body;
+    const { title, content, contentMarkdown, categoryId, price, imageUrl, isVisible } = body;
 
-    if (!title || !content || !category) {
+    if (!title || !content || !categoryId) {
         return NextResponse.json({ error: "필수 항목을 입력해주세요" }, { status: 400 });
+    }
+
+    const categoryRef = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!categoryRef) {
+        return NextResponse.json({ error: "카테고리를 찾을 수 없습니다" }, { status: 400 });
     }
 
     const updateData: {
@@ -57,13 +64,15 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         price?: string | null;
         imageUrl?: string | null;
         isVisible: boolean;
+        categoryId?: string | null;
     } = {
         title,
         content,
-        category,
+        category: categoryRef.slug,
         price: price || null,
         imageUrl: imageUrl || null,
         isVisible: typeof isVisible === "boolean" ? isVisible : true,
+        categoryId: categoryRef.id,
     };
     if (typeof contentMarkdown === "string") {
         updateData.contentMarkdown = contentMarkdown.trim() || null;

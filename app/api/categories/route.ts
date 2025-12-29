@@ -16,8 +16,10 @@ const ensureCategoriesFromMenu = async () => {
         order: item.order ?? index + 1,
         isVisible: item.isVisible ?? true,
       }));
+  // 카테고리 타입만 필터링 (community, external 제외)
   const items = itemsSource.filter(
-    (item) => item.linkType !== "community" && !item.href?.startsWith("/community")
+    (item) => item.linkType === "category" ||
+      (!item.linkType && item.href?.startsWith("/products/"))
   );
   const data = items
     .map((item, index) => {
@@ -33,8 +35,14 @@ const ensureCategoriesFromMenu = async () => {
       };
     })
     .filter(Boolean) as { name: string; slug: string; order: number; isVisible: boolean }[];
-  if (data.length) {
-    await prisma.category.createMany({ data, skipDuplicates: true });
+
+  // 카테고리 upsert로 변경하여 메뉴와 동기화
+  for (const cat of data) {
+    await prisma.category.upsert({
+      where: { slug: cat.slug },
+      update: { name: cat.name, order: cat.order, isVisible: cat.isVisible },
+      create: cat,
+    });
   }
 };
 

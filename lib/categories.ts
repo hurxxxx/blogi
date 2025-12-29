@@ -1,31 +1,6 @@
-const CATEGORY_SLUG_MAP: Record<string, string> = {
-  CASINO: "casino",
-  NIGHTLIFE: "nightlife",
-  PROMOTION: "promotion",
-  VIP_TRIP: "vip-trip",
-  TIP: "tip",
-  HOTEL_VILLA: "hotel-villa",
-  GOLF: "golf",
-};
+import { slugify } from "@/lib/slug";
 
-const SLUG_CATEGORY_MAP = Object.fromEntries(
-  Object.entries(CATEGORY_SLUG_MAP).map(([key, value]) => [value, key])
-);
+export const normalizeCategorySlug = (value: string) => slugify(value);
 
-export const legacyCategoryFromSlug = (slug: string) => {
-  const normalized = slug.toLowerCase();
-  return SLUG_CATEGORY_MAP[normalized] ?? null;
-};
-
-export const categoryToSlug = (category: string) => {
-  const normalized = category.toUpperCase();
-  return CATEGORY_SLUG_MAP[normalized] ?? normalized.toLowerCase().replace(/_/g, "-");
-};
-
-export const slugToCategory = (slug: string) => {
-  const normalized = slug.toLowerCase();
-  return SLUG_CATEGORY_MAP[normalized] ?? normalized.toUpperCase().replace(/-/g, "_");
-};
-
-export const isVipCategoryValue = (value: string) =>
-  value === "VIP_TRIP" || value.toLowerCase() === "vip-trip";
+export const isVipCategorySlug = (value: string) =>
+  normalizeCategorySlug(value) === "vip-trip";

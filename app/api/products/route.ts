@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { isVipCategoryValue, legacyCategoryFromSlug } from "@/lib/categories";
+import { isVipCategorySlug } from "@/lib/categories";
 
 // GET: List products
 export async function GET(req: NextRequest) {
@@ -9,28 +9,28 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get("category");
     const session = await auth();
     const isAdmin = session?.user?.role === "ADMIN";
-    const legacyCategory = category ? legacyCategoryFromSlug(category) : null;
-    const categoryValues = category
-        ? legacyCategory
-            ? [legacyCategory, category]
-            : [category]
-        : [];
+    const categoryRecord = category
+        ? await prisma.category.findUnique({ where: { slug: category } })
+        : null;
 
-    if (category && !session && (isVipCategoryValue(category) || legacyCategory === "VIP_TRIP")) {
+    if (category && !session && isVipCategorySlug(category)) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
     const products = await prisma.product.findMany({
         where: category
-            ? {
-                category: categoryValues.length > 1 ? { in: categoryValues } : categoryValues[0],
-                isVisible: isAdmin ? undefined : true,
-            }
+            ? categoryRecord
+                ? {
+                    categoryId: categoryRecord.id,
+                    isVisible: isAdmin ? undefined : true,
+                }
+                : { id: { in: [] } }
             : {
                 isVisible: isAdmin ? undefined : true,
-                ...(session ? {} : { category: { notIn: ["VIP_TRIP", "vip-trip"] } }),
+                ...(session ? {} : { NOT: { categoryRef: { is: { slug: "vip-trip" } } } }),
             },
         orderBy: { createdAt: "desc" },
+        include: { categoryRef: true },
     });
 
     return NextResponse.json(products);
@@ -44,10 +44,15 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, content, contentMarkdown, category, price, imageUrl } = body;
+    const { title, content, contentMarkdown, categoryId, price, imageUrl } = body;
 
-    if (!title || !content || !category) {
+    if (!title || !content || !categoryId) {
         return NextResponse.json({ error: "필수 항목을 입력해주세요" }, { status: 400 });
+    }
+
+    const categoryRef = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!categoryRef) {
+        return NextResponse.json({ error: "카테고리를 찾을 수 없습니다" }, { status: 400 });
     }
 
     const product = await prisma.product.create({
@@ -57,7 +62,8 @@ export async function POST(req: NextRequest) {
             contentMarkdown: typeof contentMarkdown === "string" && contentMarkdown.trim()
                 ? contentMarkdown.trim()
                 : null,
-            category,
+            category: categoryRef.slug,
+            categoryId: categoryRef.id,
             price: price || null,
             imageUrl: imageUrl || null,
         },

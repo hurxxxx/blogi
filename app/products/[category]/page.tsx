@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/products/product-card";
 import { auth } from "@/auth";
-import { legacyCategoryFromSlug } from "@/lib/categories";
+import { isVipCategorySlug } from "@/lib/categories";
 
 interface CategoryPageProps {
     params: Promise<{
@@ -12,27 +12,29 @@ interface CategoryPageProps {
 export default async function CategoryPage({ params }: CategoryPageProps) {
     const { category: categorySlug } = await params;
     const session = await auth();
-    const legacyCategory = legacyCategoryFromSlug(categorySlug);
-    const categoryValues = legacyCategory ? [legacyCategory, categorySlug] : [categorySlug];
-    const isVipCategory = legacyCategory === "VIP_TRIP" || categorySlug.toLowerCase() === "vip-trip";
+    const category = await prisma.category.findUnique({
+        where: { slug: categorySlug },
+    });
+    const isVipCategory = isVipCategorySlug(categorySlug);
     const canViewVip = !isVipCategory || Boolean(session);
 
-    const products = canViewVip
+    const products = canViewVip && category
         ? await prisma.product.findMany({
             where: {
-                category: categoryValues.length > 1 ? { in: categoryValues } : categoryValues[0],
+                categoryId: category.id,
                 isVisible: true,
             },
             orderBy: {
                 createdAt: "desc",
             },
+            include: { categoryRef: true },
         })
         : [];
 
     return (
         <div className="container mx-auto px-4 py-10">
             <h1 className="font-display text-3xl sm:text-4xl mb-8 capitalize">
-                {categorySlug.replace(/-/g, " ")}
+                {category?.name ?? categorySlug.replace(/-/g, " ")}
             </h1>
 
             {!canViewVip ? (
@@ -52,7 +54,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             ) : products.length === 0 ? (
                 <div className="text-center py-20 bg-gray-50 rounded-lg">
                     <p className="text-gray-500 text-lg">
-                        게시물이 없습니다.
+                        상품이 없습니다.
                     </p>
                 </div>
             ) : (
@@ -62,7 +64,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                             key={product.id}
                             id={product.id}
                             title={product.title}
-                            category={product.category}
+                            categorySlug={product.categoryRef?.slug ?? categorySlug}
+                            categoryLabel={product.categoryRef?.name ?? category?.name ?? categorySlug}
                             imageUrl={product.imageUrl}
                             price={product.price}
                             createdAt={product.createdAt}

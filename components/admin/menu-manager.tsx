@@ -19,11 +19,21 @@ interface MenuManagerProps {
   communityEnabled?: boolean;
 }
 
-const blankItem = {
+const blankItem: {
+  label: string;
+  href: string;
+  slug: string;
+  linkType: MenuItemData["linkType"];
+  isVisible: boolean;
+  isExternal: boolean;
+  openInNew: boolean;
+  requiresAuth: boolean;
+  badgeText: string;
+} = {
   label: "",
   href: "",
   slug: "",
-  linkType: "category" as MenuItemData["linkType"],
+  linkType: "category",
   isVisible: true,
   isExternal: false,
   openInNew: false,
@@ -43,7 +53,10 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
   } | null>(null);
   const normalizedMenus = useMemo(() => {
     const guessType = (item: MenuItemData): MenuItemData["linkType"] => {
-      if (item.linkType === "community" || item.linkType === "category") return item.linkType;
+      if (item.linkType === "community" || item.linkType === "category" || item.linkType === "external") {
+        return item.linkType;
+      }
+      if (item.href?.startsWith("http")) return "external";
       if (item.href?.startsWith("/community")) return "community";
       return "category";
     };
@@ -136,6 +149,40 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
       showToast("메뉴명을 입력해주세요.", "error");
       return;
     }
+
+    // 외부 링크 타입 처리
+    if (payload.linkType === "external") {
+      if (!payload.href?.startsWith("http")) {
+        showToast("외부 링크는 http:// 또는 https://로 시작해야 합니다.", "error");
+        return;
+      }
+      const resolvedPayload = { ...payload, isExternal: true };
+      const menu = menuState.find((item) => item.key === menuKey);
+      const nextOrder = menu ? menu.items.length + 1 : 1;
+      startTransition(async () => {
+        const res = await fetch("/api/admin/menus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "create",
+            menuKey,
+            data: { ...resolvedPayload, order: nextOrder },
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          showToast(data.error || "메뉴 생성에 실패했습니다.", "error");
+          return;
+        }
+        const item = await res.json();
+        updateMenuState(menuKey, (items) => [...items, item]);
+        setDrafts((prev) => ({ ...prev, [menuKey]: { ...blankItem } }));
+        setCreateOpen((prev) => ({ ...prev, [menuKey]: false }));
+        showToast("메뉴가 추가되었습니다.", "success");
+      });
+      return;
+    }
+
     const slug = payload.slug?.trim() || getNextSequentialSlug(menuKey, payload.linkType);
     if (!isSlugValid(slug)) {
       showToast("슬러그는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.", "error");
@@ -369,35 +416,35 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                         : getCategorySlug(item.href)}
                     </div>
 
-                    {/* 유형 */}
-                    <div className="w-28 hidden md:block">
-                      <select
-                        value={item.linkType ?? "category"}
-                        onChange={(event) => {
-                          const nextType = event.target.value as MenuItemData["linkType"];
-                          handleFieldChange(menu.key, item.id ?? "", "linkType", nextType);
-                          if (nextType === "community") {
-                            handleFieldChange(
-                              menu.key,
-                              item.id ?? "",
-                              "href",
-                              `/community/${getNextSequentialSlug(menu.key, "community")}`
-                            );
-                          } else {
-                            handleFieldChange(
-                              menu.key,
-                              item.id ?? "",
-                              "href",
-                              `/products/${getNextSequentialSlug(menu.key, "category")}`
-                            );
-                          }
-                        }}
-                        className="h-8 w-full rounded-md border border-gray-200 bg-white px-2 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300"
+                    {/* 유형 (읽기 전용 배지) */}
+                    <div className="w-14 sm:w-16 md:w-20">
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded text-xs ${
+                          item.linkType === "community"
+                            ? "bg-blue-100 text-blue-700"
+                            : item.linkType === "external"
+                            ? "bg-purple-100 text-purple-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                        title="메뉴 유형은 생성 후 변경할 수 없습니다"
                       >
-                        <option value="category">상품</option>
-                        <option value="community">커뮤니티</option>
-                      </select>
+                        {item.linkType === "community" ? "커뮤니티" : item.linkType === "external" ? "외부" : "상품"}
+                      </span>
                     </div>
+
+                    {/* 외부 링크 URL 입력 */}
+                    {item.linkType === "external" && (
+                      <div className="w-36 sm:w-44">
+                        <Input
+                          value={item.href}
+                          onChange={(event) =>
+                            handleFieldChange(menu.key, item.id ?? "", "href", event.target.value)
+                          }
+                          className="h-8 text-xs"
+                          placeholder="https://example.com"
+                        />
+                      </div>
+                    )}
 
                     {/* 옵션 토글들 */}
                     <div className="flex items-center gap-1.5 ml-auto">
@@ -541,28 +588,42 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                   placeholder="메뉴명"
                   className="w-32 h-9"
                 />
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-400">
-                    {drafts[menu.key]?.linkType === "community" ? "/community/" : "/products/"}
-                  </span>
+                {drafts[menu.key]?.linkType === "external" ? (
                   <Input
-                    value={drafts[menu.key]?.slug ?? ""}
+                    value={drafts[menu.key]?.href ?? ""}
                     onChange={(event) =>
                       setDrafts((prev) => ({
                         ...prev,
-                        [menu.key]: { ...prev[menu.key], slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") },
+                        [menu.key]: { ...prev[menu.key], href: event.target.value },
                       }))
                     }
-                    placeholder={getNextSequentialSlug(menu.key, drafts[menu.key]?.linkType ?? "category")}
-                    className={`w-36 h-9 ${
-                      drafts[menu.key]?.slug && !isSlugValid(drafts[menu.key]?.slug ?? "")
-                        ? "border-red-500 focus:ring-red-500"
-                        : drafts[menu.key]?.slug && isSlugDuplicate(menu.key, drafts[menu.key]?.slug ?? "", drafts[menu.key]?.linkType ?? "category")
-                        ? "border-red-500 focus:ring-red-500"
-                        : ""
-                    }`}
+                    placeholder="https://example.com"
+                    className="w-48 h-9"
                   />
-                </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-gray-400">
+                      {drafts[menu.key]?.linkType === "community" ? "/community/" : "/products/"}
+                    </span>
+                    <Input
+                      value={drafts[menu.key]?.slug ?? ""}
+                      onChange={(event) =>
+                        setDrafts((prev) => ({
+                          ...prev,
+                          [menu.key]: { ...prev[menu.key], slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") },
+                        }))
+                      }
+                      placeholder={getNextSequentialSlug(menu.key, drafts[menu.key]?.linkType ?? "category")}
+                      className={`w-36 h-9 ${
+                        drafts[menu.key]?.slug && !isSlugValid(drafts[menu.key]?.slug ?? "")
+                          ? "border-red-500 focus:ring-red-500"
+                          : drafts[menu.key]?.slug && isSlugDuplicate(menu.key, drafts[menu.key]?.slug ?? "", drafts[menu.key]?.linkType ?? "category")
+                          ? "border-red-500 focus:ring-red-500"
+                          : ""
+                      }`}
+                    />
+                  </div>
+                )}
                 <select
                   value={drafts[menu.key]?.linkType ?? "category"}
                   onChange={(event) => {
@@ -573,6 +634,7 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                         ...prev[menu.key],
                         linkType: nextType,
                         slug: "",
+                        href: nextType === "external" ? "" : prev[menu.key]?.href ?? "",
                       },
                     }));
                   }}
@@ -580,6 +642,7 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                 >
                   <option value="category">상품</option>
                   <option value="community">커뮤니티</option>
+                  <option value="external">외부 링크</option>
                 </select>
                 <Button
                   type="button"

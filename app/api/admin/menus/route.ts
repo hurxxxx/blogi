@@ -25,10 +25,26 @@ const getOrCreateMenu = async (key: string, name?: string) => {
 };
 
 const resolveLinkType = (value?: string, href?: string) => {
+  if (value === "external") return "external";
   if (value === "community") return "community";
   if (value === "category") return "category";
+  if (href?.startsWith("http")) return "external";
   if (href?.startsWith("/community")) return "community";
   return "category";
+};
+
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
+
+const validateSlug = (slug: string): { valid: boolean; error?: string } => {
+  if (!slug) return { valid: true };
+  if (slug.length > 50) return { valid: false, error: "슬러그는 50자 이하여야 합니다" };
+  if (!SLUG_PATTERN.test(slug)) {
+    return { valid: false, error: "슬러그는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다" };
+  }
+  if (slug.startsWith("-") || slug.endsWith("-")) {
+    return { valid: false, error: "슬러그는 하이픈으로 시작하거나 끝날 수 없습니다" };
+  }
+  return { valid: true };
 };
 
 const getExistingCommunitySlug = (href?: string) => {
@@ -89,8 +105,21 @@ export async function POST(req: NextRequest) {
     const linkType = resolveLinkType(data.linkType, data.href);
     let href = data.href;
     let linkedId: string | null = null;
-    if (linkType === "community") {
-      const slug = data.slug?.trim() || await getNextSequentialSlug({
+
+    // 외부 링크 처리
+    if (linkType === "external") {
+      if (!data.href?.startsWith("http")) {
+        return NextResponse.json({ error: "외부 링크는 http:// 또는 https://로 시작해야 합니다" }, { status: 400 });
+      }
+      href = data.href;
+      linkedId = null;
+    } else if (linkType === "community") {
+      const inputSlug = data.slug?.trim();
+      const validation = validateSlug(inputSlug || "");
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
+      }
+      const slug = inputSlug || await getNextSequentialSlug({
         menuId: menu.id,
         linkType: "community",
         prefix: "community",
@@ -103,8 +132,13 @@ export async function POST(req: NextRequest) {
       if (duplicate) {
         return NextResponse.json({ error: "이미 존재하는 커뮤니티 슬러그입니다" }, { status: 400 });
       }
-    } else {
-      const slug = data.slug?.trim() || await getNextSequentialSlug({
+    } else if (linkType === "category") {
+      const inputSlug = data.slug?.trim();
+      const validation = validateSlug(inputSlug || "");
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
+      }
+      const slug = inputSlug || await getNextSequentialSlug({
         menuId: menu.id,
         linkType: "category",
         prefix: "category",
@@ -170,93 +204,41 @@ export async function POST(req: NextRequest) {
     if (!existing) {
       return NextResponse.json({ error: "메뉴를 찾을 수 없습니다" }, { status: 404 });
     }
-    const linkType = resolveLinkType(data.linkType, data.href ?? existing.href);
-    let href = data.href ?? existing.href;
+
+    // 메뉴 생성 후 타입 변경 차단
+    if (data.linkType && data.linkType !== existing.linkType) {
+      return NextResponse.json(
+        { error: "메뉴 유형은 생성 후 변경할 수 없습니다. 기존 메뉴를 삭제하고 새로 생성해주세요." },
+        { status: 400 }
+      );
+    }
+
+    const linkType = existing.linkType; // 기존 타입 유지
+    let href = existing.href; // href도 기존 값 유지 (타입에 따라 결정됨)
     let linkedId: string | null = existing.linkedId ?? null;
-    if (linkType === "community") {
-      const isSwitching = existing.linkType !== "community";
-      const slug = isSwitching
-        ? await getNextSequentialSlug({
-            menuId: existing.menuId,
-            linkType: "community",
-            prefix: "community",
-            basePath: "/community/",
-          })
-        : getExistingCommunitySlug(existing.href);
-      if (!slug) {
-        return NextResponse.json({ error: "커뮤니티 슬러그를 생성할 수 없습니다" }, { status: 400 });
+
+    // 외부 링크인 경우 href 업데이트 허용
+    if (linkType === "external") {
+      if (data.href && !data.href.startsWith("http")) {
+        return NextResponse.json({ error: "외부 링크는 http:// 또는 https://로 시작해야 합니다" }, { status: 400 });
       }
-      href = buildCommunityHref(slug);
-      const duplicate = await prisma.menuItem.findFirst({
-        where: {
-          menuId: existing.menuId,
-          linkType: "community",
-          href,
-          NOT: { id: existing.id },
-        },
-      });
-      if (duplicate) {
-        return NextResponse.json({ error: "이미 존재하는 커뮤니티 슬러그입니다" }, { status: 400 });
-      }
-      if (existing.linkType === "category" && existing.linkedId) {
-        await prisma.category.update({
-          where: { id: existing.linkedId },
-          data: { isVisible: false },
-        });
-      }
+      href = data.href ?? existing.href;
+    } else if (linkType === "community") {
+      // 커뮤니티는 href 변경 없이 기존 값 유지 (슬러그 변경 불가)
       linkedId = null;
-      if (existing.linkType === "community") {
-        const prevSlug = getExistingCommunitySlug(existing.href);
-        if (prevSlug && prevSlug !== slug) {
-          const boards = await prisma.board.findMany({
-            where: { menuItemId: existing.id },
-          });
-          for (const board of boards) {
-            const nextKey = buildBoardKey(slug, board.slug);
-            if (nextKey !== board.key) {
-              await prisma.post.updateMany({
-                where: { type: { equals: board.key, mode: "insensitive" } },
-                data: { type: nextKey },
-              });
-              await prisma.board.update({
-                where: { id: board.id },
-                data: { key: nextKey },
-              });
-            }
-          }
-        }
-      }
-    } else {
-      const isSwitching = existing.linkType !== "category";
-      const slug = isSwitching
-        ? await getNextSequentialSlug({
-            menuId: existing.menuId,
-            linkType: "category",
-            prefix: "category",
-            basePath: "/products/",
-          })
-        : getExistingCategorySlug(existing.href);
-      if (!slug) {
-        return NextResponse.json({ error: "카테고리 주소가 필요합니다" }, { status: 400 });
-      }
-      href = `/products/${slug}`;
+    } else if (linkType === "category") {
+      // 카테고리는 연결된 Category 정보만 업데이트
+      const slug = getExistingCategorySlug(existing.href);
       if (linkedId) {
-        const prevCategory = await prisma.category.findUnique({ where: { id: linkedId } });
-        if (prevCategory && prevCategory.slug !== slug) {
-          await prisma.product.updateMany({
-            where: { category: prevCategory.slug },
-            data: { category: slug },
-          });
-        }
         await prisma.category.update({
           where: { id: linkedId },
           data: {
             name: data.label ?? existing.label,
-            slug,
             isVisible: data.isVisible ?? existing.isVisible,
           },
         });
-      } else {
+      } else if (slug) {
+        // linkedId가 없는 기존 데이터의 경우 Category 생성/연결
         const category = await prisma.category.upsert({
           where: { slug },
           update: {

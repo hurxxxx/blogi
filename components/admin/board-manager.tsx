@@ -165,6 +165,49 @@ export const BoardManager = ({
     });
   };
 
+  const handleDeleteAllPosts = async (boardId: string, boardName: string) => {
+    // 1단계: 게시글 수 확인
+    const res = await fetch(`/api/admin/boards/${boardId}/posts`);
+    if (!res.ok) {
+      showToast("게시글 정보를 불러올 수 없습니다.", "error");
+      return;
+    }
+    const { count } = await res.json();
+
+    if (count === 0) {
+      showToast("삭제할 게시글이 없습니다.", "info");
+      return;
+    }
+
+    // 2단계: 경고 + 확인
+    const confirmed = window.confirm(
+      `정말로 "${boardName}" 게시판의 모든 게시글(${count}개)을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`
+    );
+    if (!confirmed) return;
+
+    // 3단계: 재확인 (게시글이 많은 경우)
+    if (count > 10) {
+      const doubleConfirmed = window.confirm(
+        `마지막 확인: ${count}개의 게시글이 영구 삭제됩니다. 계속하시겠습니까?`
+      );
+      if (!doubleConfirmed) return;
+    }
+
+    // 4단계: 삭제 실행
+    startTransition(async () => {
+      const deleteRes = await fetch(`/api/admin/boards/${boardId}/posts`, {
+        method: "DELETE",
+      });
+
+      if (deleteRes.ok) {
+        const { deleted } = await deleteRes.json();
+        showToast(`${deleted}개의 게시글이 삭제되었습니다.`, "success");
+      } else {
+        showToast("삭제 중 오류가 발생했습니다.", "error");
+      }
+    });
+  };
+
   const moveItem = (fromIndex: number, toIndex: number) => {
     // 유효성 검사
     if (fromIndex === toIndex) return;
@@ -352,6 +395,18 @@ export const BoardManager = ({
                     >
                       <Save className="h-3 w-3 mr-0.5" />
                       저장
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteAllPosts(item.id, item.name)}
+                      disabled={disabled || isPending}
+                      className="h-6 px-1.5 text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                      title="이 게시판의 모든 게시글을 삭제합니다"
+                    >
+                      <Trash2 className="h-3 w-3 mr-0.5" />
+                      글 삭제
                     </Button>
                     <Button
                       type="button"

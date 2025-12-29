@@ -4,20 +4,38 @@ import { DEFAULT_MAIN_MENU } from "@/lib/menus";
 import { getSiteSettings } from "@/lib/site-settings";
 
 const seedMenuItems = async (menuId: string, items: typeof DEFAULT_MAIN_MENU) => {
-  await prisma.menuItem.createMany({
-    data: items.map((item, index) => ({
-      menuId,
-      label: item.label,
-      href: item.href,
-      order: item.order ?? index + 1,
-      isVisible: item.isVisible ?? true,
-      isExternal: item.isExternal ?? false,
-      openInNew: item.openInNew ?? false,
-      requiresAuth: item.requiresAuth ?? false,
-      badgeText: item.badgeText ?? null,
-      linkType: item.linkType ?? "category",
-    })),
-  });
+  for (const [index, item] of items.entries()) {
+    let linkedId: string | null = null;
+
+    // 카테고리 타입인 경우 Category 생성 및 linkedId 연결
+    if (item.linkType === "category" && item.href) {
+      const slug = item.href.replace("/products/", "");
+      if (slug) {
+        const category = await prisma.category.upsert({
+          where: { slug },
+          update: { name: item.label, order: item.order ?? index + 1 },
+          create: { name: item.label, slug, order: item.order ?? index + 1, isVisible: true },
+        });
+        linkedId = category.id;
+      }
+    }
+
+    await prisma.menuItem.create({
+      data: {
+        menuId,
+        label: item.label,
+        href: item.href,
+        order: item.order ?? index + 1,
+        isVisible: item.isVisible ?? true,
+        isExternal: item.isExternal ?? false,
+        openInNew: item.openInNew ?? false,
+        requiresAuth: item.requiresAuth ?? false,
+        badgeText: item.badgeText ?? null,
+        linkType: item.linkType ?? "category",
+        linkedId,
+      },
+    });
+  }
 };
 
 export default async function AdminMenusPage() {
@@ -55,11 +73,13 @@ export default async function AdminMenusPage() {
       isVisible: board.isVisible,
     })),
     linkType:
-      item.linkType === "category" || item.linkType === "community"
-        ? (item.linkType as "category" | "community")
-        : item.href?.startsWith("/community")
-          ? ("community" as const)
-          : ("category" as const),
+      item.linkType === "category" || item.linkType === "community" || item.linkType === "external"
+        ? (item.linkType as "category" | "community" | "external")
+        : item.href?.startsWith("http")
+          ? ("external" as const)
+          : item.href?.startsWith("/community")
+            ? ("community" as const)
+            : ("category" as const),
   }));
 
   return (
@@ -76,7 +96,6 @@ export default async function AdminMenusPage() {
             </p>
           </div>
           <div className="text-xs text-gray-500 space-y-1">
-            <div>정렬 변경 후 꼭 ‘정렬 저장’을 눌러주세요.</div>
             <div>커뮤니티는 그룹 단위로 게시판을 추가합니다.</div>
           </div>
         </div>

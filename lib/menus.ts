@@ -11,7 +11,7 @@ export type MenuItemData = {
   openInNew?: boolean;
   requiresAuth?: boolean;
   badgeText?: string | null;
-  linkType?: "category" | "community";
+  linkType?: "category" | "community" | "external";
   linkedId?: string | null;
   boards?: BoardData[];
 };
@@ -79,11 +79,13 @@ export const getMenuByKey = async (key: string) => {
         isVisible: board.isVisible,
       })),
       linkType:
-        item.linkType === "community" || item.linkType === "category"
+        item.linkType === "community" || item.linkType === "category" || item.linkType === "external"
           ? (item.linkType as MenuItemData["linkType"])
-          : item.href?.startsWith("/community")
-            ? "community"
-            : "category",
+          : item.href?.startsWith("http")
+            ? "external"
+            : item.href?.startsWith("/community")
+              ? "community"
+              : "category",
       linkedId: item.linkedId ?? null,
     })),
   };

@@ -25,13 +25,24 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         return { error: "이미 사용 중인 이메일입니다." };
     }
 
+    // 첫 번째 사용자인지 확인
+    const userCount = await prisma.user.count();
+    const isFirstUser = userCount === 0;
+
     await prisma.user.create({
         data: {
             name,
             email,
             password: hashedPassword,
+            // 첫 번째 사용자는 자동으로 관리자 + 승인됨
+            role: isFirstUser ? "ADMIN" : "USER",
+            isApproved: isFirstUser ? true : false,
         },
     });
+
+    if (isFirstUser) {
+        return { success: "최초 관리자 계정이 생성되었습니다. 바로 로그인하실 수 있습니다." };
+    }
 
     return { success: "회원가입이 완료되었습니다. 관리자 승인 후 로그인이 가능합니다." };
 };

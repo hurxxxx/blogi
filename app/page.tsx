@@ -14,49 +14,49 @@ const categories = [
     label: "카지노",
     en: "Casino",
     href: "/products/casino",
-    image: "/images/stock-pexels/casino-guide-03.jpg",
+    image: "/images/landing/casino-guide-03.jpg",
     description: "시설·게임·에티켓까지 한 번에 정리한 카지노 가이드.",
   },
   {
     label: "다낭 유흥",
     en: "Nightlife",
     href: "/products/nightlife",
-    image: "/images/stock-pexels/nightlife-sky36-01.jpg",
+    image: "/images/landing/nightlife-sky36-01.jpg",
     description: "바, 라운지, 루프탑까지 세련된 밤 코스.",
   },
   {
     label: "프로모션",
     en: "Promotion",
     href: "/products/promotion",
-    image: "/images/stock-pexels/promo-hoian-sunset-01.jpg",
+    image: "/images/landing/promo-hoian-sunset-01.jpg",
     description: "숙박+투어+픽업을 묶은 프리미엄 패키지.",
   },
   {
     label: "VIP 여행",
     en: "VIP Trip",
     href: "/products/vip-trip",
-    image: "/images/stock-pexels/promo-couple-night-01.jpg",
+    image: "/images/landing/promo-couple-night-01.jpg",
     description: "프라이빗 이동, 예약, 코스까지 원스톱.",
   },
   {
     label: "여행 TIP",
     en: "Travel TIP",
     href: "/products/tip",
-    image: "/images/stock-pexels/tip-itinerary-01.jpg",
+    image: "/images/landing/tip-itinerary-01.jpg",
     description: "처음 가도 실수 없는 다낭 실전 팁.",
   },
   {
     label: "호텔 & 풀빌라",
     en: "Hotel & Villa",
     href: "/products/hotel-villa",
-    image: "/images/stock-pexels/hotel-intercontinental-01.jpg",
+    image: "/images/landing/hotel-intercontinental-01.jpg",
     description: "바다 전망과 프라이빗 풀, 감각적인 스테이.",
   },
   {
     label: "골프 & 레저",
     en: "Golf & Leisure",
     href: "/products/golf",
-    image: "/images/stock-pexels/golf-hoiana-01.jpg",
+    image: "/images/landing/golf-hoiana-01.jpg",
     description: "휴식과 라운딩을 동시에 즐기는 셀렉션.",
   },
 ];
@@ -185,7 +185,7 @@ export default async function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="relative h-[240px] sm:h-[320px] rounded-3xl overflow-hidden shadow-[0_30px_60px_-40px_rgba(15,23,42,0.45)]">
                   <Image
-                    src="/images/stock-pexels/hotel-pullman-01.jpg"
+                    src="/images/landing/hotel-pullman-01.jpg"
                     alt="다낭 럭셔리 호텔"
                     fill
                     className="object-cover"
@@ -194,7 +194,7 @@ export default async function Home() {
                 </div>
                 <div className="relative h-[200px] sm:h-[280px] rounded-3xl overflow-hidden self-end shadow-[0_25px_50px_-35px_rgba(15,23,42,0.45)]">
                   <Image
-                    src="/images/stock-pexels/nightlife-waterfront-01.jpg"
+                    src="/images/landing/nightlife-waterfront-01.jpg"
                     alt="다낭 나이트 라이프"
                     fill
                     className="object-cover"
@@ -290,7 +290,7 @@ export default async function Home() {
           <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] items-center">
             <div className="relative h-[260px] sm:h-[320px] rounded-3xl overflow-hidden shadow-[0_30px_60px_-40px_rgba(15,23,42,0.45)]">
               <Image
-                src="/images/stock-pexels/promo-workation-01.jpg"
+                src="/images/landing/hq720.webp"
                 alt="다낭 시그니처 코스"
                 fill
                 className="object-cover"

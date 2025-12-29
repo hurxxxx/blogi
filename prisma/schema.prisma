@@ -7,78 +7,77 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  name      String?
-  role      String    @default("USER") // ADMIN, USER
-  isApproved Boolean  @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  posts     Post[]
-  comments  Comment[]
+  id         String      @id @default(cuid())
+  email      String      @unique
+  password   String
+  name       String?
+  role       String      @default("USER")
+  isApproved Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  comments   Comment[]
+  posts      Post[]
   postLikes  PostLike[]
   postScraps PostScrap[]
 }
 
 model Product {
-  id        String   @id @default(cuid())
-  title     String
-  content   String // Lexical JSON
+  id              String    @id @default(cuid())
+  title           String
+  content         String
+  category        String
+  imageUrl        String?
+  price           String?
+  isVisible       Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   contentMarkdown String?
-  category  String // CASINO, NIGHTLIFE, GOLF, HOTEL, ETC
-  categoryId String?
-  categoryRef Category? @relation(fields: [categoryId], references: [id])
-  contentType String @default("RICH")
-  htmlContent String?
-  imageUrl  String?
-  price     String?
-  isVisible Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  categoryId      String?
+  contentType     String    @default("RICH")
+  htmlContent     String?
+  categoryRef     Category? @relation(fields: [categoryId], references: [id])
 }
 
 model Post {
-  id        String    @id @default(cuid())
-  title     String
-  content   String // Lexical JSON
+  id              String           @id @default(cuid())
+  title           String
+  content         String
+  type            String
+  authorId        String
+  viewCount       Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   contentMarkdown String?
-  type      String    // FREE, REVIEW
-  authorId  String
-  author    User      @relation(fields: [authorId], references: [id])
-  comments  Comment[]
-  viewCount Int       @default(0)
-  isPinned  Boolean   @default(false)
-  isSecret  Boolean   @default(false)
-  likeCount Int       @default(0)
-  scrapCount Int      @default(0)
-  attachments PostAttachment[]
-  likes     PostLike[]
-  scraps    PostScrap[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  isPinned        Boolean          @default(false)
+  isSecret        Boolean          @default(false)
+  likeCount       Int              @default(0)
+  scrapCount      Int              @default(0)
+  comments        Comment[]
+  author          User             @relation(fields: [authorId], references: [id])
+  attachments     PostAttachment[]
+  likes           PostLike[]
+  scraps          PostScrap[]
 }
 
 model PostAttachment {
   id        String   @id @default(cuid())
   postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   url       String
   name      String?
   type      String?
   size      Int?
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model PostLike {
   id        String   @id @default(cuid())
   postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
 }
@@ -86,10 +85,10 @@ model PostLike {
 model PostScrap {
   id        String   @id @default(cuid())
   postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
 }
@@ -98,26 +97,25 @@ model Comment {
   id        String   @id @default(cuid())
   content   String
   postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Menu {
   id        String     @id @default(cuid())
   key       String     @unique
   name      String
-  items     MenuItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  items     MenuItem[]
 }
 
 model MenuItem {
   id           String   @id @default(cuid())
   menuId       String
-  menu         Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
   label        String
   href         String
   order        Int      @default(0)
@@ -126,46 +124,47 @@ model MenuItem {
   openInNew    Boolean  @default(false)
   requiresAuth Boolean  @default(false)
   badgeText    String?
-  linkType     String   @default("category")
-  linkedId     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  linkType     String   @default("category")
+  linkedId     String?
+  menu         Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
   @@index([menuId, order])
 }
 
 model SiteSettings {
-  id              String   @id @default(cuid())
-  key             String   @unique
-  siteName        String?
-  siteLogoUrl     String?
-  communityEnabled Boolean @default(true)
-  footerEnabled   Boolean  @default(true)
-  copyrightText   String?
-  showCopyright   Boolean  @default(true)
-  termsContent    String?
-  termsContentMarkdown String?
-  privacyContent  String?
+  id                     String   @id @default(cuid())
+  key                    String   @unique
+  footerEnabled          Boolean  @default(true)
+  showTerms              Boolean  @default(true)
+  showPrivacy            Boolean  @default(true)
+  showBusinessInfo       Boolean  @default(true)
+  socialLinks            Json?
+  showSocials            Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  businessLines          Json?
+  privacyContent         String?
   privacyContentMarkdown String?
-  showTerms       Boolean  @default(true)
-  showPrivacy     Boolean  @default(true)
-  businessLines   Json?
-  showBusinessInfo Boolean @default(true)
-  socialLinks     Json?
-  showSocials     Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  termsContent           String?
+  termsContentMarkdown   String?
+  siteLogoUrl            String?
+  siteName               String?
+  copyrightText          String?
+  showCopyright          Boolean  @default(true)
+  communityEnabled       Boolean  @default(true)
 }
 
 model Category {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  slug        String   @unique
+  slug        String    @unique
   description String?
-  order       Int      @default(0)
-  isVisible   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  order       Int       @default(0)
+  isVisible   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   products    Product[]
 }
 

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowRight, MapPinned, ShieldCheck, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
+import { redirect } from "next/navigation";
 
 const categories = [
   {
@@ -91,6 +92,12 @@ const signatureRoutes = [
 ];
 
 export default async function Home() {
+  // 초기 설정이 필요한지 확인
+  const userCount = await prisma.user.count();
+  if (userCount === 0) {
+    redirect("/setup");
+  }
+
   const [latestPosts, siteSettings] = await Promise.all([
     prisma.post.findMany({
       orderBy: { createdAt: "desc" },

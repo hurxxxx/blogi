@@ -255,7 +255,7 @@ export const HeaderClient = ({
           </div>
 
           <div className="hidden md:block pb-5">
-            <nav className="flex items-center gap-2 overflow-x-auto pb-1">
+            <nav className="flex items-center gap-2 overflow-x-auto overflow-y-hidden pb-1">
               {visibleMenuItems.map((route) =>
                 route.linkType === "community"
                   ? renderCommunityMenu(route)

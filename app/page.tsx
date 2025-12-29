@@ -6,6 +6,9 @@ import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
 
+// 항상 동적으로 렌더링 (사용자 수 체크를 위해)
+export const dynamic = "force-dynamic";
+
 const categories = [
   {
     label: "카지노",

@@ -45,6 +45,10 @@ export const BoardManager = ({
   const [draft, setDraft] = useState<typeof blankBoard>(blankBoard);
   const [orderDirty, setOrderDirty] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [dragState, setDragState] = useState<{
+    fromIndex: number;
+    overIndex: number | null;
+  } | null>(null);
 
   useEffect(() => {
     setBoardState(boards.filter(Boolean));
@@ -212,19 +216,59 @@ export const BoardManager = ({
       {boardState.length > 0 && (
         <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
           <div className="divide-y divide-gray-100">
-            {boardState.filter(Boolean).map((item, index) => (
+            {boardState.filter(Boolean).map((item, index) => {
+              const isDragging = dragState?.fromIndex === index;
+              const fromIdx = dragState?.fromIndex ?? -1;
+              const overIdx = dragState?.overIndex ?? -1;
+              const showDropBefore = overIdx === index && fromIdx !== index && fromIdx > index;
+              const showDropAfter = overIdx === index && fromIdx !== index && fromIdx < index;
+
+              return (
               <div
                 key={item.id}
                 draggable={!disabled}
-                onDragStart={(event) => event.dataTransfer.setData("text/plain", String(index))}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  const fromIndex = Number(event.dataTransfer.getData("text/plain"));
-                  if (Number.isNaN(fromIndex)) return;
-                  moveItem(fromIndex, index);
+                onDragStart={(event) => {
+                  event.dataTransfer.setData("text/plain", String(index));
+                  event.dataTransfer.effectAllowed = "move";
+                  setDragState({ fromIndex: index, overIndex: null });
                 }}
-                className="group"
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  if (dragState && dragState.overIndex !== index) {
+                    setDragState((prev) => prev ? { ...prev, overIndex: index } : null);
+                  }
+                }}
+                onDragLeave={() => {
+                  if (dragState?.overIndex === index) {
+                    setDragState((prev) => prev ? { ...prev, overIndex: null } : null);
+                  }
+                }}
+                onDrop={(event) => {
+                  const from = Number(event.dataTransfer.getData("text/plain"));
+                  if (Number.isNaN(from)) return;
+                  moveItem(from, index);
+                  setDragState(null);
+                }}
+                onDragEnd={() => {
+                  setDragState(null);
+                }}
+                className={`group relative ${
+                  isDragging ? "opacity-40" : ""
+                }`}
               >
+                {/* 드롭 위치 인디케이터 - 위 */}
+                {showDropBefore && (
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 z-10">
+                    <div className="absolute -top-1 left-2 w-2 h-2 bg-blue-500 rounded-full" />
+                  </div>
+                )}
+                {/* 드롭 위치 인디케이터 - 아래 */}
+                {showDropAfter && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 z-10">
+                    <div className="absolute -bottom-1 left-2 w-2 h-2 bg-blue-500 rounded-full" />
+                  </div>
+                )}
                 <div className="flex items-center gap-2 p-2 hover:bg-gray-50/50">
                   {/* 드래그 핸들 */}
                   <div className={`cursor-grab text-gray-300 hover:text-gray-500 ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}>
@@ -328,7 +372,8 @@ export const BoardManager = ({
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

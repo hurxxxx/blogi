@@ -36,6 +36,11 @@ const SLUG_PATTERN = /^[a-z0-9-]+$/;
 export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps) => {
   const { showToast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [dragState, setDragState] = useState<{
+    menuKey: string;
+    fromIndex: number;
+    overIndex: number | null;
+  } | null>(null);
   const normalizedMenus = useMemo(() => {
     const guessType = (item: MenuItemData): MenuItemData["linkType"] => {
       if (item.linkType === "community" || item.linkType === "category") return item.linkType;
@@ -279,23 +284,66 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {menu.items.map((item, index) => (
+              {menu.items.map((item, index) => {
+                const isDragging = dragState?.menuKey === menu.key && dragState?.fromIndex === index;
+                const fromIndex = dragState?.fromIndex ?? -1;
+                const overIndex = dragState?.overIndex ?? -1;
+                // 드래그 중인 아이템이 위에서 아래로 이동할 때는 아이템 아래에, 아래에서 위로 이동할 때는 아이템 위에 표시
+                const showDropBefore = dragState?.menuKey === menu.key &&
+                  overIndex === index &&
+                  fromIndex !== index &&
+                  fromIndex > index;
+                const showDropAfter = dragState?.menuKey === menu.key &&
+                  overIndex === index &&
+                  fromIndex !== index &&
+                  fromIndex < index;
+
+                return (
                 <div
                   key={item.id}
                   draggable
                   onDragStart={(event) => {
                     event.dataTransfer.setData("text/plain", String(index));
+                    event.dataTransfer.effectAllowed = "move";
+                    setDragState({ menuKey: menu.key, fromIndex: index, overIndex: null });
                   }}
                   onDragOver={(event) => {
                     event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                    if (dragState?.menuKey === menu.key && dragState?.overIndex !== index) {
+                      setDragState((prev) => prev ? { ...prev, overIndex: index } : null);
+                    }
+                  }}
+                  onDragLeave={() => {
+                    if (dragState?.overIndex === index) {
+                      setDragState((prev) => prev ? { ...prev, overIndex: null } : null);
+                    }
                   }}
                   onDrop={(event) => {
-                    const fromIndex = Number(event.dataTransfer.getData("text/plain"));
-                    if (Number.isNaN(fromIndex)) return;
-                    moveItem(menu.key, fromIndex, index);
+                    const from = Number(event.dataTransfer.getData("text/plain"));
+                    if (Number.isNaN(from)) return;
+                    moveItem(menu.key, from, index);
+                    setDragState(null);
                   }}
-                  className="group"
+                  onDragEnd={() => {
+                    setDragState(null);
+                  }}
+                  className={`group relative ${
+                    isDragging ? "opacity-40" : ""
+                  }`}
                 >
+                  {/* 드롭 위치 인디케이터 - 위 */}
+                  {showDropBefore && (
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 z-10">
+                      <div className="absolute -top-1 left-3 w-2.5 h-2.5 bg-blue-500 rounded-full" />
+                    </div>
+                  )}
+                  {/* 드롭 위치 인디케이터 - 아래 */}
+                  {showDropAfter && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 z-10">
+                      <div className="absolute -bottom-1 left-3 w-2.5 h-2.5 bg-blue-500 rounded-full" />
+                    </div>
+                  )}
                   {/* 메인 행 */}
                   <div className="flex items-center gap-3 p-3 hover:bg-gray-50/50">
                     {/* 드래그 핸들 */}
@@ -467,7 +515,8 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                     </div>
                   )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>

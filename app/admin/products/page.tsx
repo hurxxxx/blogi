@@ -124,10 +124,10 @@ export default async function AdminProductsPage() {
 
                   <Link
                     href={`/admin/products/${product.id}/edit`}
-                    className="p-1.5 rounded text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
-                    title="수정"
+                    className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
                   >
-                    <Pencil className="h-4 w-4" />
+                    <Pencil className="h-3.5 w-3.5" />
+                    수정
                   </Link>
 
                   <ConfirmForm
@@ -137,10 +137,10 @@ export default async function AdminProductsPage() {
                   >
                     <button
                       type="submit"
-                      className="p-1.5 rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      title="삭제"
+                      className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
+                      삭제
                     </button>
                   </ConfirmForm>
                 </div>

@@ -357,49 +357,49 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                       </select>
                     </div>
 
-                    {/* 옵션 아이콘들 */}
-                    <div className="flex items-center gap-1 ml-auto">
+                    {/* 옵션 토글들 */}
+                    <div className="flex items-center gap-1.5 ml-auto">
                       <button
                         type="button"
                         onClick={() =>
                           handleFieldChange(menu.key, item.id ?? "", "isVisible", !item.isVisible)
                         }
-                        className={`p-1.5 rounded transition-colors ${
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
                           item.isVisible
-                            ? "text-green-600 hover:bg-green-50"
-                            : "text-gray-300 hover:bg-gray-100"
+                            ? "text-green-600 bg-green-50 hover:bg-green-100"
+                            : "text-gray-400 bg-gray-100 hover:bg-gray-200"
                         }`}
-                        title={item.isVisible ? "노출 중" : "숨김"}
                       >
-                        {item.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        {item.isVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                        {item.isVisible ? "노출" : "숨김"}
                       </button>
                       <button
                         type="button"
                         onClick={() =>
                           handleFieldChange(menu.key, item.id ?? "", "openInNew", !item.openInNew)
                         }
-                        className={`p-1.5 rounded transition-colors ${
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
                           item.openInNew
-                            ? "text-blue-600 hover:bg-blue-50"
-                            : "text-gray-300 hover:bg-gray-100"
+                            ? "text-blue-600 bg-blue-50 hover:bg-blue-100"
+                            : "text-gray-400 bg-gray-100 hover:bg-gray-200"
                         }`}
-                        title={item.openInNew ? "새 탭" : "현재 탭"}
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <ExternalLink className="h-3 w-3" />
+                        {item.openInNew ? "새탭" : "현재탭"}
                       </button>
                       <button
                         type="button"
                         onClick={() =>
                           handleFieldChange(menu.key, item.id ?? "", "requiresAuth", !item.requiresAuth)
                         }
-                        className={`p-1.5 rounded transition-colors ${
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
                           item.requiresAuth
-                            ? "text-amber-600 hover:bg-amber-50"
-                            : "text-gray-300 hover:bg-gray-100"
+                            ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
+                            : "text-gray-400 bg-gray-100 hover:bg-gray-200"
                         }`}
-                        title={item.requiresAuth ? "로그인 필요" : "공개"}
                       >
-                        <Lock className="h-4 w-4" />
+                        <Lock className="h-3 w-3" />
+                        {item.requiresAuth ? "로그인" : "공개"}
                       </button>
                     </div>
 
@@ -444,7 +444,8 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                         disabled={isPending}
                         className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                        삭제
                       </Button>
                     </div>
                   </div>

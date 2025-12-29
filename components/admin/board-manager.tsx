@@ -271,14 +271,14 @@ export const BoardManager = ({
                       )
                     }
                     disabled={disabled}
-                    className={`p-1 rounded transition-colors ${
+                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-colors ${
                       item.isVisible
-                        ? "text-green-600 hover:bg-green-50"
-                        : "text-gray-300 hover:bg-gray-100"
+                        ? "text-green-600 bg-green-50 hover:bg-green-100"
+                        : "text-gray-400 bg-gray-100 hover:bg-gray-200"
                     } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                    title={item.isVisible ? "노출 중" : "숨김"}
                   >
-                    {item.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    {item.isVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                    {item.isVisible ? "노출" : "숨김"}
                   </button>
 
                   {/* 순서 버튼 */}
@@ -322,7 +322,8 @@ export const BoardManager = ({
                       disabled={disabled || isPending}
                       className="h-6 px-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-3 w-3 mr-0.5" />
+                      삭제
                     </Button>
                   </div>
                 </div>
@@ -388,6 +389,7 @@ export const BoardManager = ({
                 }`}
               >
                 {draft.isVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                {draft.isVisible ? "노출" : "숨김"}
               </button>
               <div className="flex gap-1.5 ml-auto">
                 <Button

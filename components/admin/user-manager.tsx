@@ -293,10 +293,10 @@ export const UserManager = ({ users, currentUserId }: UserManagerProps) => {
                       setShowPasswordForm((prev) => ({ ...prev, [user.id]: true }))
                     }
                     disabled={isPending}
-                    className="p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                    title="비밀번호 변경"
+                    className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                   >
-                    <KeyRound className="h-4 w-4" />
+                    <KeyRound className="h-3.5 w-3.5" />
+                    비밀번호
                   </button>
                 )}
 
@@ -305,19 +305,19 @@ export const UserManager = ({ users, currentUserId }: UserManagerProps) => {
                   type="button"
                   onClick={() => handleUpdate(user)}
                   disabled={isPending}
-                  className="p-1.5 rounded text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
-                  title="저장"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
                 >
-                  <Save className="h-4 w-4" />
+                  <Save className="h-3.5 w-3.5" />
+                  저장
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDelete(user)}
                   disabled={isPending || user.id === currentUserId}
-                  className="p-1.5 rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="삭제"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" />
+                  삭제
                 </button>
               </div>
             </div>

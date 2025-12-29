@@ -26,7 +26,8 @@ export default function EditPage() {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [contentMarkdown, setContentMarkdown] = useState("");
-    const [type, setType] = useState("FREE");
+    const [boards, setBoards] = useState<{ id: string; key: string; name: string }[]>([]);
+    const [boardKey, setBoardKey] = useState("");
     const [authorId, setAuthorId] = useState("");
     const [isSecret, setIsSecret] = useState(false);
     const [isPinned, setIsPinned] = useState(false);
@@ -38,6 +39,7 @@ export default function EditPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const { showToast } = useToast();
+    const isAdminUser = session?.user?.role === "ADMIN";
 
     const fetchPost = useCallback(async () => {
         if (!id) return;
@@ -48,7 +50,7 @@ export default function EditPage() {
                 setTitle(data.title);
                 setContent(data.content);
                 setContentMarkdown(data.contentMarkdown ?? "");
-                setType(data.type);
+                setBoardKey(data.boardKey ?? data.type ?? "");
                 setAuthorId(data.authorId);
                 setIsSecret(Boolean(data.isSecret));
                 setIsPinned(Boolean(data.isPinned));
@@ -63,11 +65,29 @@ export default function EditPage() {
         }
     }, [id, router]);
 
+    const fetchBoards = useCallback(async () => {
+        try {
+                const res = await fetch(`/api/boards${isAdminUser ? "?all=true" : ""}`);
+            if (res.ok) {
+                const data = await res.json();
+                setBoards(Array.isArray(data) ? data : []);
+            } else {
+                setBoards([]);
+            }
+        } catch {
+            setBoards([]);
+        }
+    }, [isAdminUser]);
+
     useEffect(() => {
         if (id) {
             fetchPost();
         }
     }, [id, fetchPost]);
+
+    useEffect(() => {
+        fetchBoards();
+    }, [fetchBoards]);
 
     if (status === "loading" || loading) {
         return (
@@ -99,8 +119,8 @@ export default function EditPage() {
         setError("");
 
         const textContent = lexicalJsonToPlainText(content);
-        if (!title.trim() || !textContent) {
-            setError("제목과 내용을 모두 입력해주세요.");
+        if (!title.trim() || !textContent || !boardKey) {
+            setError("제목, 내용, 게시판을 모두 입력해주세요.");
             return;
         }
 
@@ -113,7 +133,7 @@ export default function EditPage() {
                     title,
                     content,
                     contentMarkdown,
-                    type,
+                    boardKey,
                     isSecret,
                     isPinned,
                     attachments,
@@ -186,16 +206,24 @@ export default function EditPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                    <Label htmlFor="type">게시판</Label>
-                    <Select value={type} onValueChange={setType}>
+                    <Label htmlFor="board">게시판</Label>
+                    <Select value={boardKey} onValueChange={setBoardKey}>
                         <SelectTrigger className="w-48">
-                            <SelectValue />
+                            <SelectValue placeholder="게시판 선택" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="FREE">자유게시판</SelectItem>
-                            <SelectItem value="REVIEW">후기</SelectItem>
+                            {boards.map((board) => (
+                                <SelectItem key={board.id} value={board.key}>
+                                    {board.name}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
+                    {boards.length === 0 && (
+                        <p className="text-xs text-amber-600">
+                            아직 생성된 게시판이 없습니다. 관리자에게 문의해주세요.
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex flex-wrap gap-4">

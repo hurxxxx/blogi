@@ -9,6 +9,7 @@ interface SiteSettingsFormProps {
   initialData: {
     siteName?: string | null;
     siteLogoUrl?: string | null;
+    communityEnabled?: boolean | null;
   };
 }
 
@@ -17,6 +18,9 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
   const [isPending, startTransition] = useTransition();
   const [siteName, setSiteName] = useState(initialData.siteName ?? "");
   const [siteLogoUrl, setSiteLogoUrl] = useState(initialData.siteLogoUrl ?? "");
+  const [communityEnabled, setCommunityEnabled] = useState(
+    typeof initialData.communityEnabled === "boolean" ? initialData.communityEnabled : true
+  );
   const [uploading, setUploading] = useState(false);
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,6 +56,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
       const payload = {
         siteName: siteName.trim() || null,
         siteLogoUrl: siteLogoUrl.trim() || null,
+        communityEnabled,
       };
       const res = await fetch("/api/admin/site-settings", {
         method: "POST",
@@ -93,6 +98,22 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
         <label className="text-sm font-medium">로고 업로드</label>
         <Input type="file" accept="image/*" onChange={handleLogoUpload} disabled={isPending} />
         {uploading && <div className="text-xs text-gray-500">업로드 중...</div>}
+      </div>
+
+      <div className="rounded-lg border border-black/5 bg-gray-50/60 p-4">
+        <label className="flex items-center gap-3 text-sm font-medium">
+          <input
+            type="checkbox"
+            className="h-4 w-4"
+            checked={communityEnabled}
+            onChange={(event) => setCommunityEnabled(event.target.checked)}
+            disabled={isPending}
+          />
+          커뮤니티 기능 사용
+        </label>
+        <p className="mt-2 text-xs text-gray-500">
+          비활성화하면 커뮤니티 메뉴와 게시판이 숨겨집니다.
+        </p>
       </div>
 
       <div className="flex justify-end">

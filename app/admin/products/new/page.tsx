@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,20 +11,18 @@ import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { lexicalJsonToPlainText } from "@/lib/lexical";
 
-const categories = [
-    { value: "CASINO", label: "카지노" },
-    { value: "NIGHTLIFE", label: "다낭 유흥" },
-    { value: "PROMOTION", label: "프로모션" },
-    { value: "VIP_TRIP", label: "VIP 여행" },
-    { value: "TIP", label: "여행 TIP" },
-    { value: "HOTEL_VILLA", label: "호텔 & 풀빌라" },
-    { value: "GOLF", label: "골프 & 레저" },
-];
+type CategoryOption = {
+    id: string;
+    name: string;
+    slug: string;
+};
 
 export default function NewProductPage() {
     const router = useRouter();
     const [title, setTitle] = useState("");
     const [category, setCategory] = useState("");
+    const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [categoryLoading, setCategoryLoading] = useState(true);
     const [price, setPrice] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [content, setContent] = useState("");
@@ -32,6 +30,25 @@ export default function NewProductPage() {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch("/api/categories?all=true");
+                if (res.ok) {
+                    const data = await res.json();
+                    setCategories(Array.isArray(data) ? data : []);
+                } else {
+                    setCategories([]);
+                }
+            } catch {
+                setCategories([]);
+            } finally {
+                setCategoryLoading(false);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -126,15 +143,20 @@ export default function NewProductPage() {
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
                                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                disabled={loading}
+                                disabled={loading || categoryLoading || categories.length === 0}
                             >
                                 <option value="">카테고리 선택</option>
                                 {categories.map((cat) => (
-                                    <option key={cat.value} value={cat.value}>
-                                        {cat.label}
+                                    <option key={cat.id} value={cat.slug}>
+                                        {cat.name}
                                     </option>
                                 ))}
                             </select>
+                            {categories.length === 0 && !categoryLoading && (
+                                <p className="text-xs text-amber-600">
+                                    메뉴 관리에서 상품 카테고리를 먼저 추가해주세요.
+                                </p>
+                            )}
                         </div>
                     </div>
 

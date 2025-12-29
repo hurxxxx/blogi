@@ -17,6 +17,8 @@ interface Post {
     title: string;
     content: string;
     type: string;
+    boardName?: string;
+    boardKey?: string;
     viewCount: number;
     createdAt: string;
     authorId: string;
@@ -264,7 +266,9 @@ export default function PostDetailPage() {
                         작성자 또는 관리자만 확인할 수 있습니다.
                     </p>
                     <Button asChild>
-                        <Link href="/community">목록으로</Link>
+                        <Link href={`/community${post?.boardKey ? `?board=${post.boardKey}` : ""}`}>
+                            목록으로
+                        </Link>
                     </Button>
                 </div>
             </div>
@@ -278,7 +282,7 @@ export default function PostDetailPage() {
     return (
         <div className="container mx-auto px-4 py-10 max-w-5xl">
             <Button variant="ghost" className="mb-4" asChild>
-                <Link href="/community">
+                <Link href={`/community${post?.boardKey ? `?board=${post.boardKey}` : ""}`}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     목록으로
                 </Link>
@@ -286,8 +290,8 @@ export default function PostDetailPage() {
 
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <Badge variant={post.type === "REVIEW" ? "default" : "secondary"}>
-                        {post.type === "REVIEW" ? "후기" : "자유게시판"}
+                    <Badge variant="secondary">
+                        {post.boardName ?? post.type}
                     </Badge>
                     {post.isSecret && (
                         <Badge variant="outline" className="flex items-center gap-1 text-gray-500">

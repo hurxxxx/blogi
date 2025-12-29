@@ -15,16 +15,31 @@ interface HeaderClientProps {
   menuItems: MenuItemData[];
   siteName: string;
   siteLogoUrl: string;
+  boards: { id: string; key: string; name: string }[];
+  communityEnabled: boolean;
 }
 
-export const HeaderClient = ({ menuItems, siteName, siteLogoUrl }: HeaderClientProps) => {
+export const HeaderClient = ({
+  menuItems,
+  siteName,
+  siteLogoUrl,
+  boards,
+  communityEnabled,
+}: HeaderClientProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
   const { showToast } = useToast();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCommunityOpen, setIsCommunityOpen] = useState(false);
 
-  const closeSidebar = () => setIsSidebarOpen(false);
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+    setIsCommunityOpen(false);
+  };
+  const visibleMenuItems = communityEnabled
+    ? menuItems
+    : menuItems.filter((item) => item.linkType !== "community");
 
   const handleProtectedClick = (event: React.MouseEvent, href: string) => {
     if (session) return;
@@ -79,6 +94,85 @@ export const HeaderClient = ({ menuItems, siteName, siteLogoUrl }: HeaderClientP
       >
         {content}
       </Link>
+    );
+  };
+
+  const renderCommunityMenu = (route: MenuItemData, isMobile = false) => {
+    if (!communityEnabled) return null;
+    const communityHref = route.href || "/community";
+    const isActive = pathname === "/community" || pathname?.startsWith("/community/");
+    const label = route.label || "커뮤니티";
+    const linkClass = isMobile
+      ? cn(
+          "block px-6 py-3 text-sm font-semibold transition-colors",
+          isActive
+            ? "text-white bg-white/10 border-l-4 border-white/70"
+            : "text-white/70 hover:text-white hover:bg-white/5"
+        )
+      : cn(
+          "px-3 py-2 text-sm font-medium transition-all whitespace-nowrap",
+          isActive ? "text-white" : "text-white/70 hover:text-white"
+        );
+
+    const list = boards.map((board) => (
+      <Link
+        key={board.id}
+        href={`/community?board=${board.key}`}
+        className={isMobile ? "block px-8 py-2 text-sm text-white/70 hover:text-white" : "block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"}
+        onClick={() => {
+          if (isMobile) closeSidebar();
+        }}
+      >
+        {board.name}
+      </Link>
+    ));
+
+    if (isMobile) {
+      return (
+        <div key={route.id ?? "community"} className="border-b border-white/5">
+          <button
+            type="button"
+            className={linkClass}
+            onClick={() => setIsCommunityOpen((prev) => !prev)}
+          >
+            {label}
+          </button>
+          {isCommunityOpen && (
+            <div className="pb-3">
+              <Link
+                href={communityHref}
+                className="block px-8 py-2 text-sm text-white/70 hover:text-white"
+                onClick={closeSidebar}
+              >
+                전체 보기
+              </Link>
+              {list.length > 0 ? list : (
+                <span className="block px-8 py-2 text-xs text-white/40">게시판 없음</span>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div key={route.id ?? "community"} className="relative group">
+        <Link href={communityHref} className={linkClass}>
+          {label}
+        </Link>
+        <div className="absolute left-0 top-full mt-2 min-w-[180px] rounded-xl border border-black/10 bg-white/95 shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition">
+          <Link
+            href={communityHref}
+            className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            전체 보기
+          </Link>
+          <div className="border-t border-black/5" />
+          {list.length > 0 ? list : (
+            <span className="block px-4 py-3 text-xs text-gray-400">게시판 없음</span>
+          )}
+        </div>
+      </div>
     );
   };
 
@@ -162,7 +256,11 @@ export const HeaderClient = ({ menuItems, siteName, siteLogoUrl }: HeaderClientP
 
           <div className="hidden md:block pb-5">
             <nav className="flex items-center gap-2 overflow-x-auto pb-1">
-              {menuItems.map((route) => renderMenuLink(route))}
+              {visibleMenuItems.map((route) =>
+                route.linkType === "community"
+                  ? renderCommunityMenu(route)
+                  : renderMenuLink(route)
+              )}
             </nav>
           </div>
         </div>
@@ -219,7 +317,13 @@ export const HeaderClient = ({ menuItems, siteName, siteLogoUrl }: HeaderClientP
           </form>
         </div>
 
-        <nav className="py-2">{menuItems.map((route) => renderMenuLink(route, true))}</nav>
+        <nav className="py-2">
+          {visibleMenuItems.map((route) =>
+            route.linkType === "community"
+              ? renderCommunityMenu(route, true)
+              : renderMenuLink(route, true)
+          )}
+        </nav>
 
         <div className="border-t border-white/10 p-4">
           {session ? (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 const requireAdmin = async () => {
   const session = await auth();
@@ -17,11 +18,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { siteName, siteLogoUrl } = body;
+  const { siteName, siteLogoUrl, communityEnabled } = body;
 
   const data = {
     siteName: typeof siteName === "string" && siteName.trim() ? siteName.trim() : null,
     siteLogoUrl: typeof siteLogoUrl === "string" && siteLogoUrl.trim() ? siteLogoUrl.trim() : null,
+    communityEnabled: typeof communityEnabled === "boolean" ? communityEnabled : undefined,
   };
 
   const settings = await prisma.siteSettings.upsert({
@@ -33,5 +35,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  revalidatePath("/", "layout");
+  revalidatePath("/community");
   return NextResponse.json(settings);
 }

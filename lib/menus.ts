@@ -10,17 +10,19 @@ export type MenuItemData = {
   openInNew?: boolean;
   requiresAuth?: boolean;
   badgeText?: string | null;
+  linkType?: "category" | "community";
+  linkedId?: string | null;
 };
 
 export const DEFAULT_MAIN_MENU: MenuItemData[] = [
-  { label: "카지노", href: "/products/casino", order: 1 },
-  { label: "다낭 유흥", href: "/products/nightlife", order: 2 },
-  { label: "프로모션", href: "/products/promotion", order: 3 },
-  { label: "VIP 여행", href: "/products/vip-trip", order: 4, requiresAuth: true },
-  { label: "여행 TIP", href: "/products/tip", order: 5 },
-  { label: "호텔 & 풀빌라", href: "/products/hotel-villa", order: 6 },
-  { label: "골프 & 레저", href: "/products/golf", order: 7 },
-  { label: "후기 & 자유게시판", href: "/community", order: 8 },
+  { label: "카지노", href: "/products/casino", order: 1, linkType: "category" },
+  { label: "다낭 유흥", href: "/products/nightlife", order: 2, linkType: "category" },
+  { label: "프로모션", href: "/products/promotion", order: 3, linkType: "category" },
+  { label: "VIP 여행", href: "/products/vip-trip", order: 4, requiresAuth: true, linkType: "category" },
+  { label: "여행 TIP", href: "/products/tip", order: 5, linkType: "category" },
+  { label: "호텔 & 풀빌라", href: "/products/hotel-villa", order: 6, linkType: "category" },
+  { label: "골프 & 레저", href: "/products/golf", order: 7, linkType: "category" },
+  { label: "커뮤니티", href: "/community", order: 8, linkType: "community" },
 ];
 
 
@@ -64,6 +66,13 @@ export const getMenuByKey = async (key: string) => {
       requiresAuth: item.requiresAuth,
       badgeText: item.badgeText,
       isVisible: item.isVisible,
+      linkType:
+        item.linkType === "community" || item.linkType === "category"
+          ? (item.linkType as MenuItemData["linkType"])
+          : item.href?.startsWith("/community")
+            ? "community"
+            : "category",
+      linkedId: item.linkedId ?? null,
     })),
   };
 };

@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { getSiteSettings } from "@/lib/site-settings";
 
 // GET: List all posts
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type");
+    const type = searchParams.get("type") || searchParams.get("board");
     const session = await auth();
     const sessionUserId = session?.user?.id || null;
     const isAdmin = session?.user?.role === "ADMIN";
+    const settings = await getSiteSettings();
+
+    if (!settings.communityEnabled && !isAdmin) {
+        return NextResponse.json({ error: "커뮤니티 기능이 비활성화되어 있습니다." }, { status: 403 });
+    }
 
     const posts = await prisma.post.findMany({
-        where: type ? { type } : undefined,
+        where: type ? { type: { equals: type, mode: "insensitive" } } : undefined,
         include: {
             author: { select: { name: true } },
             _count: { select: { comments: true } },
@@ -38,12 +44,26 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
+    const settings = await getSiteSettings();
+    if (!settings.communityEnabled && session.user.role !== "ADMIN") {
+        return NextResponse.json({ error: "커뮤니티 기능이 비활성화되어 있습니다." }, { status: 403 });
+    }
 
     const body = await req.json();
-    const { title, content, contentMarkdown, type, isSecret, isPinned, attachments } = body;
+    const { title, content, contentMarkdown, type, boardKey, isSecret, isPinned, attachments } = body;
+    const resolvedKey = typeof boardKey === "string" ? boardKey : type;
 
-    if (!title || !content || !type) {
+    if (!title || !content || !resolvedKey) {
         return NextResponse.json({ error: "모든 필드를 입력해주세요" }, { status: 400 });
+    }
+    const board = await prisma.board.findFirst({
+        where: { key: { equals: resolvedKey, mode: "insensitive" } },
+    });
+    if (!board) {
+        return NextResponse.json({ error: "게시판을 찾을 수 없습니다." }, { status: 400 });
+    }
+    if (!board.isVisible && session.user.role !== "ADMIN") {
+        return NextResponse.json({ error: "비공개 게시판입니다." }, { status: 403 });
     }
 
     const post = await prisma.post.create({
@@ -53,7 +73,7 @@ export async function POST(req: NextRequest) {
             contentMarkdown: typeof contentMarkdown === "string" && contentMarkdown.trim()
                 ? contentMarkdown.trim()
                 : null,
-            type,
+            type: board.key,
             isSecret: Boolean(isSecret),
             isPinned: session.user.role === "ADMIN" ? Boolean(isPinned) : false,
             authorId: session.user.id,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { getSiteSettings } from "@/lib/site-settings";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -9,6 +10,7 @@ interface RouteParams {
 // GET: Get a single post
 export async function GET(req: NextRequest, { params }: RouteParams) {
     const session = await auth();
+    const settings = await getSiteSettings();
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const shouldIncrement =
@@ -32,8 +34,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
     }
 
-    const isAuthor = session?.user?.id === post.authorId;
     const isAdmin = session?.user?.role === "ADMIN";
+    if (!settings.communityEnabled && !isAdmin) {
+        return NextResponse.json({ error: "커뮤니티 기능이 비활성화되어 있습니다." }, { status: 403 });
+    }
+
+    const isAuthor = session?.user?.id === post.authorId;
     if (post.isSecret && !isAuthor && !isAdmin) {
         return NextResponse.json({ error: "비밀글입니다", isSecret: true }, { status: 403 });
     }
@@ -57,6 +63,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         });
     }
 
+    const board = await prisma.board.findFirst({
+        where: { key: { equals: post.type, mode: "insensitive" } },
+    });
+
     return NextResponse.json({
         ...post,
         viewCount: shouldIncrement ? post.viewCount + 1 : post.viewCount,
@@ -64,6 +74,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         authorId: post.author.id,
         liked: Boolean(liked),
         scrapped: Boolean(scrapped),
+        boardName: board?.name ?? post.type,
+        boardKey: board?.key ?? post.type,
         comments: post.comments.map((c) => ({
             ...c,
             authorId: c.author.id,
@@ -76,6 +88,10 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
+    }
+    const settings = await getSiteSettings();
+    if (!settings.communityEnabled && session.user.role !== "ADMIN") {
+        return NextResponse.json({ error: "커뮤니티 기능이 비활성화되어 있습니다." }, { status: 403 });
     }
 
     const { id } = await params;
@@ -93,7 +109,19 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 
     const body = await req.json();
-    const { title, content, contentMarkdown, type, isSecret, isPinned, attachments } = body;
+    const { title, content, contentMarkdown, type, boardKey, isSecret, isPinned, attachments } = body;
+    const resolvedKey = typeof boardKey === "string" ? boardKey : type;
+    const board = resolvedKey
+        ? await prisma.board.findFirst({
+            where: { key: { equals: resolvedKey, mode: "insensitive" } },
+        })
+        : null;
+    if (resolvedKey && !board) {
+        return NextResponse.json({ error: "게시판을 찾을 수 없습니다." }, { status: 400 });
+    }
+    if (board && !board.isVisible && session.user.role !== "ADMIN") {
+        return NextResponse.json({ error: "비공개 게시판입니다." }, { status: 403 });
+    }
 
     const updateData: {
         title?: string;
@@ -105,7 +133,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     } = {
         title,
         content,
-        type,
+        type: board?.key ?? type,
     };
     if (typeof isSecret === "boolean") {
         updateData.isSecret = isSecret;

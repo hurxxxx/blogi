@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,11 +21,13 @@ import { useToast } from "@/components/ui/toast";
 
 export default function WritePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { data: session, status } = useSession();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [contentMarkdown, setContentMarkdown] = useState("");
-    const [type, setType] = useState("FREE");
+    const [boards, setBoards] = useState<{ id: string; key: string; name: string }[]>([]);
+    const [boardKey, setBoardKey] = useState("");
     const [isSecret, setIsSecret] = useState(false);
     const [isPinned, setIsPinned] = useState(false);
     const [attachments, setAttachments] = useState<
@@ -35,6 +37,29 @@ export default function WritePage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const { showToast } = useToast();
+    const isAdmin = session?.user?.role === "ADMIN";
+
+    useEffect(() => {
+        const fetchBoards = async () => {
+            try {
+                const res = await fetch(`/api/boards${isAdmin ? "?all=true" : ""}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const list = Array.isArray(data) ? data : [];
+                    setBoards(list);
+                    const preferred = searchParams.get("board");
+                    const matched = list.find((item) => item.key === preferred);
+                    setBoardKey(matched?.key ?? list[0]?.key ?? "");
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    setError(data.error || "게시판 목록을 불러오지 못했습니다.");
+                }
+            } catch {
+                setError("게시판 목록을 불러오지 못했습니다.");
+            }
+        };
+        fetchBoards();
+    }, [isAdmin, searchParams]);
 
     if (status === "loading") {
         return (
@@ -65,8 +90,8 @@ export default function WritePage() {
         setError("");
 
         const textContent = lexicalJsonToPlainText(content);
-        if (!title.trim() || !textContent) {
-            setError("제목과 내용을 모두 입력해주세요.");
+        if (!title.trim() || !textContent || !boardKey) {
+            setError("제목, 내용, 게시판을 모두 선택해주세요.");
             return;
         }
 
@@ -79,7 +104,7 @@ export default function WritePage() {
                     title,
                     content,
                     contentMarkdown,
-                    type,
+                    boardKey,
                     isSecret,
                     isPinned,
                     attachments,
@@ -143,7 +168,7 @@ export default function WritePage() {
     return (
         <div className="container mx-auto px-4 py-10 max-w-5xl">
             <Button variant="ghost" className="mb-6" asChild>
-                <Link href="/community">
+                <Link href={`/community${boardKey ? `?board=${boardKey}` : ""}`}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     목록으로
                 </Link>
@@ -153,16 +178,24 @@ export default function WritePage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                    <Label htmlFor="type">게시판</Label>
-                    <Select value={type} onValueChange={setType}>
+                    <Label htmlFor="board">게시판</Label>
+                    <Select value={boardKey} onValueChange={setBoardKey}>
                         <SelectTrigger className="w-48">
-                            <SelectValue />
+                            <SelectValue placeholder="게시판 선택" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="FREE">자유게시판</SelectItem>
-                            <SelectItem value="REVIEW">후기</SelectItem>
+                            {boards.map((board) => (
+                                <SelectItem key={board.id} value={board.key}>
+                                    {board.name}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
+                    {boards.length === 0 && (
+                        <p className="text-xs text-amber-600">
+                            아직 생성된 게시판이 없습니다. 관리자에게 문의해주세요.
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex flex-wrap gap-4">

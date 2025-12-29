@@ -14,6 +14,7 @@ const seedMenuItems = async (menuId: string, items: typeof DEFAULT_MAIN_MENU) =>
       openInNew: item.openInNew ?? false,
       requiresAuth: item.requiresAuth ?? false,
       badgeText: item.badgeText ?? null,
+      linkType: item.linkType ?? "category",
     })),
   });
 };
@@ -42,6 +43,9 @@ export default async function AdminMenusPage() {
         <h1 className="font-display text-3xl">Menu Management</h1>
         <p className="text-sm text-gray-500 mt-2">
           모바일 우선 기준으로 메뉴를 구성하세요. 로그인 필요 메뉴는 안내 토스트가 표시됩니다.
+        </p>
+        <p className="text-sm text-gray-400 mt-1">
+          메뉴 유형을 상품 카테고리 또는 커뮤니티로 설정할 수 있습니다.
         </p>
       </div>
 

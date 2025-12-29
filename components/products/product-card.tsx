@@ -45,7 +45,7 @@ export const ProductCard = ({
                 </div>
                 <CardContent className="p-4">
                     <Badge variant="outline" className="mb-3 uppercase">
-                        {category.replace("_", " ")}
+                        {category.replace(/_/g, " ").replace(/-/g, " ")}
                     </Badge>
                     <h3 className="font-display text-lg leading-tight line-clamp-2 mb-2">
                         {title}

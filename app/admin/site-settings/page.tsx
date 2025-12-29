@@ -20,6 +20,7 @@ export default async function AdminSiteSettingsPage() {
           initialData={{
             siteName: settings?.siteName ?? "",
             siteLogoUrl: settings?.siteLogoUrl ?? "",
+            communityEnabled: settings?.communityEnabled ?? true,
           }}
         />
       </div>

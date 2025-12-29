@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
@@ -37,6 +37,10 @@ export function PostListView({
   const [items, setItems] = useState(posts);
   const [lockedPost, setLockedPost] = useState<PostListItem | null>(null);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    setItems(posts);
+  }, [posts]);
 
   const canEdit = (authorId: string) =>
     Boolean(sessionUserId && (sessionUserId === authorId || sessionRole === "ADMIN"));

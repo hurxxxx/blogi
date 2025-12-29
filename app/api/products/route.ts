@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { isVipCategoryValue, legacyCategoryFromSlug } from "@/lib/categories";
 
 // GET: List products
 export async function GET(req: NextRequest) {
@@ -8,20 +9,26 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get("category");
     const session = await auth();
     const isAdmin = session?.user?.role === "ADMIN";
+    const legacyCategory = category ? legacyCategoryFromSlug(category) : null;
+    const categoryValues = category
+        ? legacyCategory
+            ? [legacyCategory, category]
+            : [category]
+        : [];
 
-    if (category === "VIP_TRIP" && !session) {
+    if (category && !session && (isVipCategoryValue(category) || legacyCategory === "VIP_TRIP")) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
     const products = await prisma.product.findMany({
         where: category
             ? {
-                category,
+                category: categoryValues.length > 1 ? { in: categoryValues } : categoryValues[0],
                 isVisible: isAdmin ? undefined : true,
             }
             : {
                 isVisible: isAdmin ? undefined : true,
-                ...(session ? {} : { category: { not: "VIP_TRIP" } }),
+                ...(session ? {} : { category: { notIn: ["VIP_TRIP", "vip-trip"] } }),
             },
         orderBy: { createdAt: "desc" },
     });

@@ -7,6 +7,7 @@ import { RichTextViewer } from "@/components/editor/rich-text-viewer";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
+import { isVipCategoryValue } from "@/lib/categories";
 
 interface ProductDetailPageProps {
     params: Promise<{
@@ -29,7 +30,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         notFound();
     }
 
-    const isVipProduct = product.category === "VIP_TRIP";
+    const isVipProduct = isVipCategoryValue(product.category);
     const isAdmin = session?.user?.role === "ADMIN";
     const canViewVip = !isVipProduct || Boolean(session);
 

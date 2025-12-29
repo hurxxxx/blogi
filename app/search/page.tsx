@@ -44,7 +44,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         prisma.product.findMany({
             where: {
                 isVisible: true,
-                ...(session ? {} : { category: { not: "VIP_TRIP" } }),
+                ...(session ? {} : { category: { notIn: ["VIP_TRIP", "vip-trip"] } }),
                 OR: [
                     { title: { contains: query, mode: "insensitive" } },
                     { category: { contains: query, mode: "insensitive" } },

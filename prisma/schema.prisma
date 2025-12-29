@@ -126,7 +126,7 @@ model MenuItem {
   openInNew    Boolean  @default(false)
   requiresAuth Boolean  @default(false)
   badgeText    String?
-  linkType     String   @default("custom")
+  linkType     String   @default("category")
   linkedId     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -139,6 +139,7 @@ model SiteSettings {
   key             String   @unique
   siteName        String?
   siteLogoUrl     String?
+  communityEnabled Boolean @default(true)
   footerEnabled   Boolean  @default(true)
   copyrightText   String?
   showCopyright   Boolean  @default(true)

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/products/product-card";
 import { auth } from "@/auth";
-import { slugToCategory } from "@/lib/categories";
+import { legacyCategoryFromSlug } from "@/lib/categories";
 
 interface CategoryPageProps {
     params: Promise<{
@@ -12,14 +12,15 @@ interface CategoryPageProps {
 export default async function CategoryPage({ params }: CategoryPageProps) {
     const { category: categorySlug } = await params;
     const session = await auth();
-    const dbCategory = slugToCategory(categorySlug);
-    const isVipCategory = dbCategory === "VIP_TRIP";
+    const legacyCategory = legacyCategoryFromSlug(categorySlug);
+    const categoryValues = legacyCategory ? [legacyCategory, categorySlug] : [categorySlug];
+    const isVipCategory = legacyCategory === "VIP_TRIP" || categorySlug.toLowerCase() === "vip-trip";
     const canViewVip = !isVipCategory || Boolean(session);
 
     const products = canViewVip
         ? await prisma.product.findMany({
             where: {
-                category: dbCategory,
+                category: categoryValues.length > 1 ? { in: categoryValues } : categoryValues[0],
                 isVisible: true,
             },
             orderBy: {

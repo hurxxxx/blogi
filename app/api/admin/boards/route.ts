@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "커뮤니티 메뉴를 찾을 수 없습니다" }, { status: 404 });
     }
     const groupSlug = extractCommunitySlug(menuItem.href, menuItem.label);
-    const slug = await getNextBoardSlug(menuItem.id);
+    const slug = data.slug?.trim() || await getNextBoardSlug(menuItem.id);
     if (!slug) {
       return NextResponse.json({ error: "게시판 슬러그를 생성할 수 없습니다" }, { status: 400 });
     }
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       where: { menuItemId: menuItem.id, slug },
     });
     if (exists) {
-      return NextResponse.json({ error: "이미 존재하는 게시판입니다" }, { status: 400 });
+      return NextResponse.json({ error: "이미 존재하는 게시판 슬러그입니다" }, { status: 400 });
     }
     const count = await prisma.board.count({ where: { menuItemId: menuItem.id } });
     const board = await prisma.board.create({

@@ -63,7 +63,7 @@ export default async function AdminMenusPage() {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm md:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>

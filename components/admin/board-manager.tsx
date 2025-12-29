@@ -3,9 +3,9 @@
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
-import { Plus } from "lucide-react";
+import { Plus, GripVertical, ChevronUp, ChevronDown, Trash2, Save, Eye, EyeOff } from "lucide-react";
+
 export type BoardItem = {
   id: string;
   key: string;
@@ -19,9 +19,12 @@ export type BoardItem = {
 
 const blankBoard = {
   name: "",
+  slug: "",
   description: "",
   isVisible: true,
 };
+
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
 
 interface BoardManagerProps {
   boards: BoardItem[];
@@ -62,6 +65,16 @@ export const BoardManager = ({
     return `board-${max + 1}`;
   };
 
+  const isSlugDuplicate = (slug: string) => {
+    if (!slug) return false;
+    return boardState.some((b) => b.slug === slug);
+  };
+
+  const isSlugValid = (slug: string) => {
+    if (!slug) return true;
+    return SLUG_PATTERN.test(slug);
+  };
+
   const updateBoardState = (updater: (items: BoardItem[]) => BoardItem[]) => {
     setBoardState((prev) => updater(prev));
   };
@@ -71,13 +84,22 @@ export const BoardManager = ({
       showToast("게시판 이름을 입력해주세요.", "error");
       return;
     }
+    const slug = draft.slug?.trim() || nextBoardSlug();
+    if (!isSlugValid(slug)) {
+      showToast("슬러그는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.", "error");
+      return;
+    }
+    if (isSlugDuplicate(slug)) {
+      showToast("이미 사용 중인 슬러그입니다.", "error");
+      return;
+    }
     startTransition(async () => {
       const res = await fetch("/api/admin/boards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "create",
-          data: { ...draft, menuItemId },
+          data: { ...draft, slug, menuItemId },
         }),
       });
       if (!res.ok) {
@@ -169,190 +191,233 @@ export const BoardManager = ({
   };
 
   return (
-    <div className="space-y-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-display text-2xl">게시판 목록</h2>
-              <p className="text-sm text-gray-500">
-                {groupSlug} 그룹의 게시판을 관리합니다. 드래그 또는 화살표로 순서를 조정하세요.
-              </p>
-            </div>
+    <div className="space-y-3">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium text-gray-700">
+          게시판 ({boardState.length}개)
+        </div>
         <Button
-          variant="secondary"
+          variant={orderDirty ? "default" : "outline"}
+          size="sm"
           onClick={handleReorderSave}
           disabled={disabled || isPending || !orderDirty}
+          className="h-7 text-xs"
         >
           정렬 저장
         </Button>
       </div>
 
-      <div className="space-y-3">
-        {boardState.filter(Boolean).map((item, index) => (
-          <div
-            key={item.id}
-            draggable
-            onDragStart={(event) => event.dataTransfer.setData("text/plain", String(index))}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => {
-              const fromIndex = Number(event.dataTransfer.getData("text/plain"));
-              if (Number.isNaN(fromIndex)) return;
-              moveItem(fromIndex, index);
-            }}
-            className="rounded-xl border border-black/5 bg-white p-4 shadow-sm"
-          >
-            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-              <div className="flex-1 space-y-3">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <Input
-                    value={item.name}
-                    onChange={(event) =>
-                      updateBoardState((items) =>
-                        items.map((target) =>
-                          target.id === item.id ? { ...target, name: event.target.value } : target
+      {/* 게시판 목록 */}
+      {boardState.length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+          <div className="divide-y divide-gray-100">
+            {boardState.filter(Boolean).map((item, index) => (
+              <div
+                key={item.id}
+                draggable={!disabled}
+                onDragStart={(event) => event.dataTransfer.setData("text/plain", String(index))}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  const fromIndex = Number(event.dataTransfer.getData("text/plain"));
+                  if (Number.isNaN(fromIndex)) return;
+                  moveItem(fromIndex, index);
+                }}
+                className="group"
+              >
+                <div className="flex items-center gap-2 p-2 hover:bg-gray-50/50">
+                  {/* 드래그 핸들 */}
+                  <div className={`cursor-grab text-gray-300 hover:text-gray-500 ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}>
+                    <GripVertical className="h-3.5 w-3.5" />
+                  </div>
+
+                  {/* 순서 번호 */}
+                  <div className="w-5 text-center text-xs text-gray-400 font-medium">
+                    {index + 1}
+                  </div>
+
+                  {/* 게시판명 */}
+                  <div className="flex-1 min-w-0">
+                    <Input
+                      value={item.name}
+                      onChange={(event) =>
+                        updateBoardState((items) =>
+                          items.map((target) =>
+                            target.id === item.id ? { ...target, name: event.target.value } : target
+                          )
                         )
-                      )
-                    }
-                    placeholder="게시판 이름"
-                    disabled={disabled}
-                  />
-                  <Input value={`${groupSlug}__${item.slug}`} disabled />
-                </div>
-                <Textarea
-                  value={item.description ?? ""}
-                  onChange={(event) =>
-                    updateBoardState((items) =>
-                      items.map((target) =>
-                        target.id === item.id ? { ...target, description: event.target.value } : target
-                      )
-                    )
-                  }
-                  placeholder="게시판 설명 (선택)"
-                  rows={2}
-                  disabled={disabled}
-                />
-                <label className="flex items-center gap-2 text-xs text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={item.isVisible}
-                    onChange={(event) =>
+                      }
+                      className="h-7 text-xs"
+                      placeholder="게시판 이름"
+                      disabled={disabled}
+                    />
+                  </div>
+
+                  {/* 슬러그 */}
+                  <div className="w-24 text-xs text-gray-400 truncate hidden sm:block">
+                    {item.slug}
+                  </div>
+
+                  {/* 노출 토글 */}
+                  <button
+                    type="button"
+                    onClick={() =>
                       updateBoardState((items) =>
                         items.map((target) =>
                           target.id === item.id
-                            ? { ...target, isVisible: event.target.checked }
+                            ? { ...target, isVisible: !target.isVisible }
                             : target
                         )
                       )
                     }
                     disabled={disabled}
-                  />
-                  노출
-                </label>
-              </div>
+                    className={`p-1 rounded transition-colors ${
+                      item.isVisible
+                        ? "text-green-600 hover:bg-green-50"
+                        : "text-gray-300 hover:bg-gray-100"
+                    } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                    title={item.isVisible ? "노출 중" : "숨김"}
+                  >
+                    {item.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                  </button>
 
-              <div className="flex flex-row gap-2 md:flex-col md:items-end">
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => moveItem(index, Math.max(0, index - 1))}
-                    disabled={disabled}
-                  >
-                    ↑
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => moveItem(index, Math.min(boardState.length - 1, index + 1))}
-                    disabled={disabled}
-                  >
-                    ↓
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button type="button" onClick={() => handleSave(item)} disabled={disabled || isPending}>
-                    저장
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => handleDelete(item.id)}
-                    disabled={disabled || isPending}
-                  >
-                    삭제
-                  </Button>
+                  {/* 순서 버튼 */}
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => moveItem(index, Math.max(0, index - 1))}
+                      disabled={disabled || index === 0}
+                      className="p-0.5 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <ChevronUp className="h-3.5 w-3.5 text-gray-500" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveItem(index, Math.min(boardState.length - 1, index + 1))}
+                      disabled={disabled || index === boardState.length - 1}
+                      className="p-0.5 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
+                    </button>
+                  </div>
+
+                  {/* 액션 버튼 */}
+                  <div className="flex items-center gap-0.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSave(item)}
+                      disabled={disabled || isPending}
+                      className="h-6 px-1.5 text-xs"
+                    >
+                      <Save className="h-3 w-3 mr-0.5" />
+                      저장
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(item.id)}
+                      disabled={disabled || isPending}
+                      className="h-6 px-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      <div className="rounded-xl border border-dashed border-black/10 bg-white/60 p-4">
+      {/* 새 게시판 추가 */}
+      <div className="rounded-lg border border-dashed border-gray-300 bg-white/50">
         {!showCreateForm ? (
-          <Button
+          <button
             type="button"
-            variant="outline"
-            className="w-full"
             onClick={() => setShowCreateForm(true)}
             disabled={disabled}
+            className="w-full p-2 flex items-center justify-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            새 게시판 추가
-          </Button>
+            <Plus className="w-3.5 h-3.5" />
+            새 게시판
+          </button>
         ) : (
-          <>
-            <h3 className="font-semibold mb-3">새 게시판 추가</h3>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="p-3 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Input
                 value={draft.name}
                 onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
                 placeholder="게시판 이름"
+                className="w-28 h-8 text-sm"
                 disabled={disabled}
               />
-              <Input
-                value={`${groupSlug}__${nextBoardSlug()}`}
-                placeholder="URL 키 (자동 생성)"
-                disabled
-              />
-            </div>
-            <Textarea
-              value={draft.description}
-              onChange={(event) => setDraft((prev) => ({ ...prev, description: event.target.value }))}
-              placeholder="게시판 설명 (선택)"
-              rows={2}
-              className="mt-3"
-              disabled={disabled}
-            />
-            <div className="mt-3 flex items-center justify-between">
-              <label className="flex items-center gap-2 text-xs text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={draft.isVisible}
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-400">{groupSlug}__</span>
+                <Input
+                  value={draft.slug}
                   onChange={(event) =>
-                    setDraft((prev) => ({ ...prev, isVisible: event.target.checked }))
+                    setDraft((prev) => ({
+                      ...prev,
+                      slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                    }))
                   }
+                  placeholder={nextBoardSlug()}
+                  className={`w-24 h-8 text-sm ${
+                    draft.slug && !isSlugValid(draft.slug)
+                      ? "border-red-500 focus:ring-red-500"
+                      : draft.slug && isSlugDuplicate(draft.slug)
+                      ? "border-red-500 focus:ring-red-500"
+                      : ""
+                  }`}
                   disabled={disabled}
                 />
-                노출
-              </label>
-              <div className="flex gap-2">
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft((prev) => ({ ...prev, isVisible: !prev.isVisible }))
+                }
+                disabled={disabled}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                  draft.isVisible
+                    ? "text-green-600 bg-green-50"
+                    : "text-gray-400 bg-gray-100"
+                }`}
+              >
+                {draft.isVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              </button>
+              <div className="flex gap-1.5 ml-auto">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => {
                     setDraft(blankBoard);
                     setShowCreateForm(false);
                   }}
                   disabled={disabled || isPending}
+                  className="h-7 text-xs"
                 >
                   취소
                 </Button>
-                <Button type="button" onClick={handleCreate} disabled={disabled || isPending}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleCreate}
+                  disabled={disabled || isPending}
+                  className="h-7 text-xs"
+                >
                   추가
                 </Button>
               </div>
             </div>
-          </>
+            {draft.slug && isSlugDuplicate(draft.slug) && (
+              <div className="text-xs text-red-500">이미 사용 중인 슬러그입니다.</div>
+            )}
+          </div>
         )}
       </div>
     </div>

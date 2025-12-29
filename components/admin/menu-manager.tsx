@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { BoardManager } from "@/components/admin/board-manager";
 import type { MenuItemData } from "@/lib/menus";
-import { Plus } from "lucide-react";
+import { Plus, GripVertical, ChevronUp, ChevronDown, Trash2, Save, Eye, EyeOff, ExternalLink, Lock } from "lucide-react";
 
 type MenuSection = {
   key: string;
@@ -22,6 +22,7 @@ interface MenuManagerProps {
 const blankItem = {
   label: "",
   href: "",
+  slug: "",
   linkType: "category" as MenuItemData["linkType"],
   isVisible: true,
   isExternal: false,
@@ -29,6 +30,8 @@ const blankItem = {
   requiresAuth: false,
   badgeText: "",
 };
+
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
 
 export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps) => {
   const { showToast } = useToast();
@@ -91,6 +94,19 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
     return `${prefix}-${max + 1}`;
   };
 
+  const isSlugDuplicate = (menuKey: string, slug: string, linkType: MenuItemData["linkType"]) => {
+    if (!slug) return false;
+    const menu = menuState.find((m) => m.key === menuKey);
+    if (!menu) return false;
+    const basePath = linkType === "community" ? "/community/" : "/products/";
+    return menu.items.some((item) => item.href === `${basePath}${slug}`);
+  };
+
+  const isSlugValid = (slug: string) => {
+    if (!slug) return true;
+    return SLUG_PATTERN.test(slug);
+  };
+
   const updateMenuState = (menuKey: string, updater: (items: MenuItemData[]) => MenuItemData[]) => {
     setMenuState((prev) =>
       prev.map((menu) =>
@@ -112,15 +128,24 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
 
   const handleCreate = (menuKey: string) => {
     const payload = drafts[menuKey];
-    const resolvedHref =
-      payload.linkType === "community"
-        ? `/community/${getNextSequentialSlug(menuKey, "community")}`
-        : `/products/${getNextSequentialSlug(menuKey, "category")}`;
-    if (!payload.label.trim() || !resolvedHref.trim()) {
-      showToast("메뉴명과 링크를 입력해주세요.", "error");
+    if (!payload.label.trim()) {
+      showToast("메뉴명을 입력해주세요.", "error");
       return;
     }
-    const resolvedPayload = { ...payload, href: resolvedHref };
+    const slug = payload.slug?.trim() || getNextSequentialSlug(menuKey, payload.linkType);
+    if (!isSlugValid(slug)) {
+      showToast("슬러그는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.", "error");
+      return;
+    }
+    if (isSlugDuplicate(menuKey, slug, payload.linkType)) {
+      showToast("이미 사용 중인 슬러그입니다.", "error");
+      return;
+    }
+    const resolvedHref =
+      payload.linkType === "community"
+        ? `/community/${slug}`
+        : `/products/${slug}`;
+    const resolvedPayload = { ...payload, href: resolvedHref, slug };
     const menu = menuState.find((item) => item.key === menuKey);
     const nextOrder = menu ? menu.items.length + 1 : 1;
     startTransition(async () => {
@@ -177,7 +202,7 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
           items.map((current) => (current.id === updated.id ? { ...current, ...updated } : current))
         );
       }
-      showToast("메뉴가 저장되었습니다.", "success");
+      showToast("저장되었습니다.", "success");
     });
   };
 
@@ -196,7 +221,7 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
         return;
       }
       updateMenuState(menuKey, (items) => items.filter((item) => item.id !== itemId));
-      showToast("메뉴가 삭제되었습니다.", "success");
+      showToast("삭제되었습니다.", "success");
     });
   };
 
@@ -232,17 +257,13 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
 
   const renderMenuSection = (menu: MenuSection) => {
     return (
-      <section
-        key={menu.key}
-        className="space-y-4 rounded-2xl border border-black/5 bg-slate-50/70 p-4 md:p-6"
-      >
+      <section key={menu.key} className="space-y-4">
+        {/* 헤더 */}
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-2xl">{menu.name}</h2>
-            <p className="text-sm text-gray-500">드래그 또는 화살표로 순서를 조정하세요.</p>
-          </div>
+          <h2 className="font-display text-xl">{menu.name}</h2>
           <Button
-            variant="secondary"
+            variant={orderDirty[menu.key] ? "default" : "outline"}
+            size="sm"
             onClick={() => handleReorderSave(menu.key)}
             disabled={isPending || !orderDirty[menu.key]}
           >
@@ -250,51 +271,64 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
           </Button>
         </div>
 
-        <div className="space-y-3">
-          {menu.items.map((item, index) => (
-            <div
-              key={item.id}
-              draggable
-              onDragStart={(event) => {
-                event.dataTransfer.setData("text/plain", String(index));
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-              }}
-              onDrop={(event) => {
-                const fromIndex = Number(event.dataTransfer.getData("text/plain"));
-                if (Number.isNaN(fromIndex)) return;
-                moveItem(menu.key, fromIndex, index);
-              }}
-              className="rounded-xl border border-black/5 bg-white p-4 shadow-sm overflow-hidden"
-            >
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-                <div className="flex-1 min-w-0 space-y-3">
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <Input
-                      value={item.label}
-                      onChange={(event) =>
-                        handleFieldChange(menu.key, item.id ?? "", "label", event.target.value)
-                      }
-                      placeholder="메뉴명"
-                    />
-                    {item.linkType === "community" ? (
+        {/* 메뉴 목록 */}
+        <div className="rounded-xl border border-black/10 bg-white overflow-hidden">
+          {menu.items.length === 0 ? (
+            <div className="p-8 text-center text-gray-400">
+              등록된 메뉴가 없습니다.
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {menu.items.map((item, index) => (
+                <div
+                  key={item.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData("text/plain", String(index));
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                  }}
+                  onDrop={(event) => {
+                    const fromIndex = Number(event.dataTransfer.getData("text/plain"));
+                    if (Number.isNaN(fromIndex)) return;
+                    moveItem(menu.key, fromIndex, index);
+                  }}
+                  className="group"
+                >
+                  {/* 메인 행 */}
+                  <div className="flex items-center gap-3 p-3 hover:bg-gray-50/50">
+                    {/* 드래그 핸들 */}
+                    <div className="cursor-grab text-gray-300 hover:text-gray-500">
+                      <GripVertical className="h-4 w-4" />
+                    </div>
+
+                    {/* 순서 번호 */}
+                    <div className="w-6 text-center text-xs text-gray-400 font-medium">
+                      {index + 1}
+                    </div>
+
+                    {/* 메뉴명 */}
+                    <div className="w-32 min-w-0">
                       <Input
-                        value={getCommunitySlug(item.href, item.label)}
-                        placeholder="커뮤니티 슬러그 (자동 생성)"
-                        disabled
+                        value={item.label}
+                        onChange={(event) =>
+                          handleFieldChange(menu.key, item.id ?? "", "label", event.target.value)
+                        }
+                        className="h-8 text-sm"
+                        placeholder="메뉴명"
                       />
-                    ) : (
-                      <Input
-                        value={getCategorySlug(item.href)}
-                        placeholder="카테고리 슬러그 (자동 생성)"
-                        disabled
-                      />
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-[200px_1fr] text-sm text-gray-600">
-                    <label className="flex items-center gap-2">
-                      <span className="min-w-12">유형</span>
+                    </div>
+
+                    {/* 슬러그 */}
+                    <div className="w-28 text-xs text-gray-500 truncate hidden sm:block">
+                      {item.linkType === "community"
+                        ? getCommunitySlug(item.href, item.label)
+                        : getCategorySlug(item.href)}
+                    </div>
+
+                    {/* 유형 */}
+                    <div className="w-28 hidden md:block">
                       <select
                         value={item.linkType ?? "category"}
                         onChange={(event) => {
@@ -307,147 +341,151 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                               "href",
                               `/community/${getNextSequentialSlug(menu.key, "community")}`
                             );
-                            return;
+                          } else {
+                            handleFieldChange(
+                              menu.key,
+                              item.id ?? "",
+                              "href",
+                              `/products/${getNextSequentialSlug(menu.key, "category")}`
+                            );
                           }
-                          handleFieldChange(
-                            menu.key,
-                            item.id ?? "",
-                            "href",
-                            `/products/${getNextSequentialSlug(menu.key, "category")}`
-                          );
                         }}
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        className="h-8 w-full rounded-md border border-gray-200 bg-white px-2 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300"
                       >
-                        <option value="category">상품 카테고리</option>
+                        <option value="category">상품</option>
                         <option value="community">커뮤니티</option>
                       </select>
-                    </label>
-                    <span className="text-xs text-gray-400">
-                      커뮤니티 유형은 /community/슬러그 형태로 저장됩니다. (순번 자동)
-                    </span>
+                    </div>
+
+                    {/* 옵션 아이콘들 */}
+                    <div className="flex items-center gap-1 ml-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleFieldChange(menu.key, item.id ?? "", "isVisible", !item.isVisible)
+                        }
+                        className={`p-1.5 rounded transition-colors ${
+                          item.isVisible
+                            ? "text-green-600 hover:bg-green-50"
+                            : "text-gray-300 hover:bg-gray-100"
+                        }`}
+                        title={item.isVisible ? "노출 중" : "숨김"}
+                      >
+                        {item.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleFieldChange(menu.key, item.id ?? "", "openInNew", !item.openInNew)
+                        }
+                        className={`p-1.5 rounded transition-colors ${
+                          item.openInNew
+                            ? "text-blue-600 hover:bg-blue-50"
+                            : "text-gray-300 hover:bg-gray-100"
+                        }`}
+                        title={item.openInNew ? "새 탭" : "현재 탭"}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleFieldChange(menu.key, item.id ?? "", "requiresAuth", !item.requiresAuth)
+                        }
+                        className={`p-1.5 rounded transition-colors ${
+                          item.requiresAuth
+                            ? "text-amber-600 hover:bg-amber-50"
+                            : "text-gray-300 hover:bg-gray-100"
+                        }`}
+                        title={item.requiresAuth ? "로그인 필요" : "공개"}
+                      >
+                        <Lock className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {/* 순서 버튼 */}
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => moveItem(menu.key, index, Math.max(0, index - 1))}
+                        disabled={index === 0}
+                        className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <ChevronUp className="h-4 w-4 text-gray-500" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveItem(menu.key, index, Math.min(menu.items.length - 1, index + 1))}
+                        disabled={index === menu.items.length - 1}
+                        className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                      </button>
+                    </div>
+
+                    {/* 액션 버튼 */}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSave(menu.key, item)}
+                        disabled={isPending}
+                        className="h-7 px-2 text-xs"
+                      >
+                        <Save className="h-3.5 w-3.5 mr-1" />
+                        저장
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(menu.key, item.id)}
+                        disabled={isPending}
+                        className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4 text-xs text-gray-600">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={item.isVisible ?? true}
-                        onChange={(event) =>
-                          handleFieldChange(menu.key, item.id ?? "", "isVisible", event.target.checked)
-                        }
+                  {/* 커뮤니티 하위 게시판 */}
+                  {item.linkType === "community" && item.id && (
+                    <div className="px-4 pb-4 pt-2 bg-slate-50/50 border-t border-dashed border-gray-200">
+                      {!communityEnabled && (
+                        <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                          커뮤니티 기능이 비활성화되어 있습니다.
+                        </div>
+                      )}
+                      <BoardManager
+                        boards={item.boards ?? []}
+                        menuItemId={item.id}
+                        groupSlug={getCommunitySlug(item.href, item.label)}
+                        disabled={isPending || !communityEnabled}
                       />
-                      노출
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={item.isExternal ?? false}
-                        onChange={(event) =>
-                          handleFieldChange(menu.key, item.id ?? "", "isExternal", event.target.checked)
-                        }
-                      />
-                      외부 링크
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={item.openInNew ?? false}
-                        onChange={(event) =>
-                          handleFieldChange(menu.key, item.id ?? "", "openInNew", event.target.checked)
-                        }
-                      />
-                      새 탭
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={item.requiresAuth ?? false}
-                        onChange={(event) =>
-                          handleFieldChange(menu.key, item.id ?? "", "requiresAuth", event.target.checked)
-                        }
-                      />
-                      로그인 필요
-                    </label>
-                  </div>
-
+                    </div>
+                  )}
                 </div>
-
-                <div className="flex flex-row flex-wrap gap-2 shrink-0 lg:flex-col lg:items-stretch">
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => moveItem(menu.key, index, Math.max(0, index - 1))}
-                    >
-                      ↑
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => moveItem(menu.key, index, Math.min(menu.items.length - 1, index + 1))}
-                    >
-                      ↓
-                    </Button>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => handleSave(menu.key, item)}
-                      disabled={isPending}
-                    >
-                      저장
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(menu.key, item.id)}
-                      disabled={isPending}
-                    >
-                      삭제
-                    </Button>
-                  </div>
-              </div>
+              ))}
             </div>
-            {item.linkType === "community" && item.id && (
-              <div className="mt-4 border-t border-dashed border-black/10 pt-4 space-y-3">
-                {!communityEnabled && (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                    커뮤니티 기능이 비활성화되어 있어 게시판이 노출되지 않습니다. 사이트 설정에서
-                    커뮤니티 기능을 켜주세요.
-                  </div>
-                )}
-                <BoardManager
-                  boards={item.boards ?? []}
-                  menuItemId={item.id}
-                  groupSlug={getCommunitySlug(item.href, item.label)}
-                  disabled={isPending || !communityEnabled}
-                />
-              </div>
-            )}
-          </div>
-        ))}
+          )}
         </div>
 
-        <div className="rounded-xl border border-dashed border-black/10 bg-white/60 p-4">
+        {/* 새 메뉴 추가 */}
+        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50/50">
           {!createOpen[menu.key] ? (
-            <Button
+            <button
               type="button"
-              variant="outline"
-              className="w-full"
               onClick={() => setCreateOpen((prev) => ({ ...prev, [menu.key]: true }))}
               disabled={isPending}
+              className="w-full p-3 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100/50 transition-colors rounded-xl"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4" />
               새 메뉴 추가
-            </Button>
+            </button>
           ) : (
-            <>
-              <h3 className="font-semibold mb-3">새 메뉴 추가</h3>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto] md:items-center">
+            <div className="p-4 space-y-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Input
                   value={drafts[menu.key]?.label ?? ""}
                   onChange={(event) =>
@@ -457,94 +495,81 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                     }))
                   }
                   placeholder="메뉴명"
+                  className="w-32 h-9"
                 />
-                {drafts[menu.key]?.linkType === "community" ? (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-400">
+                    {drafts[menu.key]?.linkType === "community" ? "/community/" : "/products/"}
+                  </span>
                   <Input
-                    value={getNextSequentialSlug(menu.key, "community")}
-                    placeholder="커뮤니티 슬러그 (자동 생성)"
-                    disabled
-                  />
-                ) : (
-                  <Input
-                    value={getNextSequentialSlug(menu.key, "category")}
-                    placeholder="카테고리 슬러그 (자동 생성)"
-                    disabled
-                  />
-                )}
-                <Button type="button" onClick={() => handleCreate(menu.key)} disabled={isPending}>
-                  추가
-                </Button>
-              </div>
-              <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[200px_1fr] text-sm text-gray-600">
-                <label className="flex items-center gap-2">
-                  <span className="min-w-12">유형</span>
-                  <select
-                    value={drafts[menu.key]?.linkType ?? "category"}
-                    onChange={(event) => {
-                      const nextType = event.target.value as MenuItemData["linkType"];
+                    value={drafts[menu.key]?.slug ?? ""}
+                    onChange={(event) =>
                       setDrafts((prev) => ({
                         ...prev,
-                        [menu.key]: {
-                          ...prev[menu.key],
-                          linkType: nextType,
-                          href:
-                            nextType === "community"
-                              ? `/community/${getNextSequentialSlug(menu.key, "community")}`
-                              : `/products/${getNextSequentialSlug(menu.key, "category")}`,
-                        },
-                      }));
-                    }}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  >
-                    <option value="category">상품 카테고리</option>
-                    <option value="community">커뮤니티</option>
-                  </select>
-                </label>
-                <span className="text-xs text-gray-400">
-                  커뮤니티 유형은 /community/슬러그 형태로 저장됩니다. (순번 자동)
-                </span>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4 text-xs text-gray-600">
-                {([
-                  ["isVisible", "노출"],
-                  ["isExternal", "외부 링크"],
-                  ["openInNew", "새 탭"],
-                  ["requiresAuth", "로그인 필요"],
-                ] as const).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={drafts[menu.key]?.[key] ?? false}
-                      onChange={(event) =>
-                        setDrafts((prev) => ({
-                          ...prev,
-                          [menu.key]: { ...prev[menu.key], [key]: event.target.checked },
-                        }))
-                      }
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-              <div className="mt-4 flex justify-end">
+                        [menu.key]: { ...prev[menu.key], slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") },
+                      }))
+                    }
+                    placeholder={getNextSequentialSlug(menu.key, drafts[menu.key]?.linkType ?? "category")}
+                    className={`w-36 h-9 ${
+                      drafts[menu.key]?.slug && !isSlugValid(drafts[menu.key]?.slug ?? "")
+                        ? "border-red-500 focus:ring-red-500"
+                        : drafts[menu.key]?.slug && isSlugDuplicate(menu.key, drafts[menu.key]?.slug ?? "", drafts[menu.key]?.linkType ?? "category")
+                        ? "border-red-500 focus:ring-red-500"
+                        : ""
+                    }`}
+                  />
+                </div>
+                <select
+                  value={drafts[menu.key]?.linkType ?? "category"}
+                  onChange={(event) => {
+                    const nextType = event.target.value as MenuItemData["linkType"];
+                    setDrafts((prev) => ({
+                      ...prev,
+                      [menu.key]: {
+                        ...prev[menu.key],
+                        linkType: nextType,
+                        slug: "",
+                      },
+                    }));
+                  }}
+                  className="h-9 rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
+                >
+                  <option value="category">상품</option>
+                  <option value="community">커뮤니티</option>
+                </select>
                 <Button
                   type="button"
-                  variant="outline"
+                  onClick={() => handleCreate(menu.key)}
+                  disabled={isPending}
+                  size="sm"
+                >
+                  추가
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
                   onClick={() => {
                     setDrafts((prev) => ({ ...prev, [menu.key]: { ...blankItem } }));
                     setCreateOpen((prev) => ({ ...prev, [menu.key]: false }));
                   }}
                   disabled={isPending}
+                  size="sm"
                 >
-                  닫기
+                  취소
                 </Button>
               </div>
-            </>
+              {drafts[menu.key]?.slug && isSlugDuplicate(menu.key, drafts[menu.key]?.slug ?? "", drafts[menu.key]?.linkType ?? "category") && (
+                <div className="text-xs text-red-500">이미 사용 중인 슬러그입니다.</div>
+              )}
+              <div className="text-xs text-gray-400">
+                슬러그를 비워두면 자동 생성됩니다. 영문 소문자, 숫자, 하이픈만 사용 가능합니다.
+              </div>
+            </div>
           )}
         </div>
       </section>
     );
   };
 
-  return <div className="space-y-10">{menuState.map(renderMenuSection)}</div>;
+  return <div className="space-y-8">{menuState.map(renderMenuSection)}</div>;
 };

@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     let href = data.href;
     let linkedId: string | null = null;
     if (linkType === "community") {
-      const slug = await getNextSequentialSlug({
+      const slug = data.slug?.trim() || await getNextSequentialSlug({
         menuId: menu.id,
         linkType: "community",
         prefix: "community",
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "이미 존재하는 커뮤니티 슬러그입니다" }, { status: 400 });
       }
     } else {
-      const slug = await getNextSequentialSlug({
+      const slug = data.slug?.trim() || await getNextSequentialSlug({
         menuId: menu.id,
         linkType: "category",
         prefix: "category",
@@ -112,6 +112,11 @@ export async function POST(req: NextRequest) {
       });
       if (!slug) {
         return NextResponse.json({ error: "카테고리 주소가 필요합니다" }, { status: 400 });
+      }
+      // 카테고리 slug 중복 체크
+      const existingCategory = await prisma.category.findUnique({ where: { slug } });
+      if (existingCategory) {
+        return NextResponse.json({ error: "이미 존재하는 카테고리 슬러그입니다" }, { status: 400 });
       }
       href = `/products/${slug}`;
       const category = await prisma.category.upsert({

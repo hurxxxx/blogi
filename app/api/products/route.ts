@@ -62,7 +62,6 @@ export async function POST(req: NextRequest) {
             contentMarkdown: typeof contentMarkdown === "string" && contentMarkdown.trim()
                 ? contentMarkdown.trim()
                 : null,
-            category: categoryRef.slug,
             categoryId: categoryRef.id,
             price: price || null,
             imageUrl: imageUrl || null,

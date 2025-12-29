@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     const menu = await getOrCreateMenu(menuKey, menuKey === "footer" ? "Footer" : "Main");
     const linkType = resolveLinkType(data.linkType, data.href);
     let href = data.href;
-    let linkedId: string | null = null;
+    let linkedCategoryId: string | null = null;
 
     // 외부 링크 처리
     if (linkType === "external") {
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "외부 링크는 http:// 또는 https://로 시작해야 합니다" }, { status: 400 });
       }
       href = data.href;
-      linkedId = null;
+      linkedCategoryId = null;
     } else if (linkType === "community") {
       const inputSlug = data.slug?.trim();
       const validation = validateSlug(inputSlug || "");
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
           order: data.order ?? 0,
         },
       });
-      linkedId = category.id;
+      linkedCategoryId = category.id;
     }
     const item = await prisma.menuItem.create({
       data: {
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
         requiresAuth: data.requiresAuth ?? false,
         badgeText: data.badgeText || null,
         linkType,
-        linkedId,
+        linkedCategoryId,
       },
     });
     // 커뮤니티 게시판은 관리자 메뉴에서 직접 생성합니다.
@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
 
     const linkType = existing.linkType; // 기존 타입 유지
     let href = existing.href; // href도 기존 값 유지 (타입에 따라 결정됨)
-    let linkedId: string | null = existing.linkedId ?? null;
+    let linkedCategoryId: string | null = existing.linkedCategoryId ?? null;
 
     // 외부 링크인 경우 href 업데이트 허용
     if (linkType === "external") {
@@ -225,20 +225,20 @@ export async function POST(req: NextRequest) {
       href = data.href ?? existing.href;
     } else if (linkType === "community") {
       // 커뮤니티는 href 변경 없이 기존 값 유지 (슬러그 변경 불가)
-      linkedId = null;
+      linkedCategoryId = null;
     } else if (linkType === "category") {
       // 카테고리는 연결된 Category 정보만 업데이트
       const slug = getExistingCategorySlug(existing.href);
-      if (linkedId) {
+      if (linkedCategoryId) {
         await prisma.category.update({
-          where: { id: linkedId },
+          where: { id: linkedCategoryId },
           data: {
             name: data.label ?? existing.label,
             isVisible: data.isVisible ?? existing.isVisible,
           },
         });
       } else if (slug) {
-        // linkedId가 없는 기존 데이터의 경우 Category 생성/연결
+        // linkedCategoryId가 없는 기존 데이터의 경우 Category 생성/연결
         const category = await prisma.category.upsert({
           where: { slug },
           update: {
@@ -252,7 +252,7 @@ export async function POST(req: NextRequest) {
             order: existing.order ?? 0,
           },
         });
-        linkedId = category.id;
+        linkedCategoryId = category.id;
       }
     }
     const item = await prisma.menuItem.update({
@@ -266,7 +266,7 @@ export async function POST(req: NextRequest) {
         requiresAuth: data.requiresAuth,
         badgeText: data.badgeText || null,
         linkType,
-        linkedId,
+        linkedCategoryId,
       },
     });
     // 커뮤니티 게시판은 관리자 메뉴에서 직접 생성합니다.
@@ -286,18 +286,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "ID가 필요합니다" }, { status: 400 });
     }
     const existing = await prisma.menuItem.findUnique({ where: { id } });
-    if (existing?.linkType === "category" && existing.linkedId) {
+    if (existing?.linkType === "category" && existing.linkedCategoryId) {
       await prisma.category.update({
-        where: { id: existing.linkedId },
+        where: { id: existing.linkedCategoryId },
         data: { isVisible: false },
       });
     }
     if (existing?.linkType === "community") {
       const boards = await prisma.board.findMany({ where: { menuItemId: existing.id } });
       if (boards.length > 0) {
-        const boardKeys = boards.map((board) => board.key);
+        const boardIds = boards.map((board) => board.id);
         const postCount = await prisma.post.count({
-          where: { type: { in: boardKeys } },
+          where: { boardId: { in: boardIds } },
         });
         if (postCount > 0) {
           return NextResponse.json(
@@ -328,14 +328,14 @@ export async function POST(req: NextRequest) {
     );
     const linkedItems = await prisma.menuItem.findMany({
       where: { id: { in: items.map((item: { id: string }) => item.id) } },
-      select: { id: true, linkType: true, linkedId: true },
+      select: { id: true, linkType: true, linkedCategoryId: true },
     });
     const orderMap = new Map(items.map((item: { id: string; order: number }) => [item.id, item.order]));
     const categoryUpdates = linkedItems
-      .filter((item) => item.linkType === "category" && item.linkedId)
+      .filter((item) => item.linkType === "category" && item.linkedCategoryId)
       .map((item) =>
         prisma.category.update({
-          where: { id: item.linkedId as string },
+          where: { id: item.linkedCategoryId as string },
           data: { order: orderMap.get(item.id) ?? 0 },
         })
       );

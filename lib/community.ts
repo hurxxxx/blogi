@@ -176,17 +176,17 @@ export const getBoardByGroupAndSlug = async (
 export const buildBoardKeyFromGroup = (groupSlug: string, boardSlug: string) =>
   buildBoardKey(groupSlug, boardSlug);
 
-export const getBoardMapByKeys = async (keys: string[]) => {
-  if (!keys.length) return new Map<string, { href: string; groupSlug: string; boardSlug: string }>();
+export const getBoardMapByIds = async (ids: string[]) => {
+  if (!ids.length) return new Map<string, { href: string; groupSlug: string; boardSlug: string }>();
   const boards = await prisma.board.findMany({
-    where: { key: { in: keys } },
+    where: { id: { in: ids } },
     include: { menuItem: true },
   });
   const map = new Map<string, { href: string; groupSlug: string; boardSlug: string }>();
   boards.forEach((board) => {
     const groupSlug = extractCommunitySlug(board.menuItem?.href, board.menuItem?.label);
     const href = `/community/${groupSlug}/${board.slug}`;
-    map.set(board.key, { href, groupSlug, boardSlug: board.slug });
+    map.set(board.id, { href, groupSlug, boardSlug: board.slug });
   });
   return map;
 };

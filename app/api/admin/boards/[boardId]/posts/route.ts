@@ -27,8 +27,8 @@ export async function GET(
     return NextResponse.json({ error: "게시판 없음" }, { status: 404 });
   }
 
-  const count = await prisma.post.count({ where: { type: board.key } });
-  return NextResponse.json({ count, boardKey: board.key, boardName: board.name });
+  const count = await prisma.post.count({ where: { boardId: board.id } });
+  return NextResponse.json({ count, boardId: board.id, boardName: board.name });
 }
 
 // DELETE: 게시글 일괄 삭제
@@ -49,7 +49,7 @@ export async function DELETE(
 
   // 관련 게시글 조회
   const posts = await prisma.post.findMany({
-    where: { type: board.key },
+    where: { boardId: board.id },
     select: { id: true },
   });
   const postIds = posts.map((p) => p.id);
@@ -61,7 +61,7 @@ export async function DELETE(
   // 관련 댓글 먼저 삭제 후 게시글 삭제
   await prisma.$transaction([
     prisma.comment.deleteMany({ where: { postId: { in: postIds } } }),
-    prisma.post.deleteMany({ where: { type: board.key } }),
+    prisma.post.deleteMany({ where: { boardId: board.id } }),
   ]);
 
   revalidatePath("/community");

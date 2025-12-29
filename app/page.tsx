@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, MapPinned, ShieldCheck, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getBoardMapByKeys } from "@/lib/community";
+import { getBoardMapByIds } from "@/lib/community";
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
 
@@ -113,7 +113,7 @@ export default async function Home() {
 
   const siteName = siteSettings?.siteName || "다낭VIP투어";
   const siteLogoUrl = siteSettings?.siteLogoUrl || "/logo.png";
-  const boardMap = await getBoardMapByKeys(latestPosts.map((post) => post.type));
+  const boardMap = await getBoardMapByIds(latestPosts.map((post) => post.boardId));
 
   return (
     <div className="flex flex-col">
@@ -350,7 +350,7 @@ export default async function Home() {
           ) : (
             <div className="grid gap-4 md:grid-cols-3">
               {latestPosts.map((post) => {
-                const boardInfo = boardMap.get(post.type);
+                const boardInfo = boardMap.get(post.boardId);
                 const href = boardInfo ? `${boardInfo.href}/${post.id}` : `/community/${post.id}`;
                 return (
                   <Link

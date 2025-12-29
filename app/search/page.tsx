@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductCard } from "@/components/products/product-card";
 import { auth } from "@/auth";
-import { getBoardMapByKeys } from "@/lib/community";
+import { getBoardMapByIds } from "@/lib/community";
 
 interface SearchPageProps {
     searchParams: {
@@ -58,7 +58,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         }),
     ]);
 
-    const boardMap = await getBoardMapByKeys(posts.map((post) => post.type));
+    const boardMap = await getBoardMapByIds(posts.map((post) => post.boardId));
 
     return (
         <div className="container mx-auto px-4 py-10 max-w-5xl">
@@ -75,7 +75,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 ) : (
                     <div className="space-y-4">
                         {posts.map((post) => {
-                            const boardInfo = boardMap.get(post.type);
+                            const boardInfo = boardMap.get(post.boardId);
                             const href = boardInfo ? `${boardInfo.href}/${post.id}` : `/community/${post.id}`;
                             return (
                             <Link key={post.id} href={href}>
@@ -114,8 +114,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                 key={product.id}
                                 id={product.id}
                                 title={product.title}
-                                categorySlug={product.categoryRef?.slug ?? product.category}
-                                categoryLabel={product.categoryRef?.name ?? product.category}
+                                categorySlug={product.categoryRef?.slug ?? "unknown"}
+                                categoryLabel={product.categoryRef?.name ?? "미분류"}
                                 imageUrl={product.imageUrl}
                                 price={product.price}
                                 createdAt={product.createdAt}

@@ -19,7 +19,7 @@ function WritePageContent() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [contentMarkdown, setContentMarkdown] = useState("");
-  const [boardKey, setBoardKey] = useState("");
+  const [boardId, setBoardId] = useState("");
   const [boardName, setBoardName] = useState("");
   const [isSecret, setIsSecret] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
@@ -40,8 +40,8 @@ function WritePageContent() {
         if (res.ok) {
           const data = await res.json();
           const list = Array.isArray(data) ? data : [];
-          const matched = list.find((item: { slug?: string; key?: string; name?: string }) => item.slug === board);
-          setBoardKey(matched?.key ?? "");
+          const matched = list.find((item: { slug?: string; id?: string; name?: string }) => item.slug === board);
+          setBoardId(matched?.id ?? "");
           setBoardName(matched?.name ?? "");
         } else {
           const data = await res.json().catch(() => ({}));
@@ -83,7 +83,7 @@ function WritePageContent() {
     setError("");
 
     const textContent = lexicalJsonToPlainText(content);
-    if (!title.trim() || !textContent || !boardKey) {
+    if (!title.trim() || !textContent || !boardId) {
       setError("제목과 내용을 입력해주세요.");
       return;
     }
@@ -93,15 +93,15 @@ function WritePageContent() {
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          content,
-          contentMarkdown,
-          boardKey,
-          isSecret,
-          isPinned,
-          attachments,
-        }),
+          body: JSON.stringify({
+            title,
+            content,
+            contentMarkdown,
+            boardId,
+            isSecret,
+            isPinned,
+            attachments,
+          }),
       });
 
       if (res.ok) {

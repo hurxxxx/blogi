@@ -19,7 +19,7 @@ export default function EditPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [contentMarkdown, setContentMarkdown] = useState("");
-  const [boardKey, setBoardKey] = useState("");
+  const [boardId, setBoardId] = useState("");
   const [authorId, setAuthorId] = useState("");
   const [isSecret, setIsSecret] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
@@ -43,7 +43,7 @@ export default function EditPage() {
         setTitle(data.title);
         setContent(data.content);
         setContentMarkdown(data.contentMarkdown ?? "");
-        setBoardKey(data.boardKey ?? data.type ?? "");
+        setBoardId(data.boardId ?? "");
         setAuthorId(data.authorId);
         setIsSecret(Boolean(data.isSecret));
         setIsPinned(Boolean(data.isPinned));
@@ -58,15 +58,15 @@ export default function EditPage() {
     }
   }, [id, router, listHref]);
 
-  const fetchBoardKey = useCallback(async () => {
+  const fetchBoardId = useCallback(async () => {
     try {
       const res = await fetch(`/api/boards?group=${encodeURIComponent(String(group))}${isAdminUser ? "&all=true" : ""}`);
       if (res.ok) {
         const data = await res.json();
         const list = Array.isArray(data) ? data : [];
-        const matched = list.find((item: { slug?: string; key?: string }) => item.slug === board);
-        if (matched?.key) {
-          setBoardKey(matched.key);
+        const matched = list.find((item: { slug?: string; id?: string }) => item.slug === board);
+        if (matched?.id) {
+          setBoardId(matched.id);
         }
       }
     } catch {
@@ -81,8 +81,8 @@ export default function EditPage() {
   }, [id, fetchPost]);
 
   useEffect(() => {
-    fetchBoardKey();
-  }, [fetchBoardKey]);
+    fetchBoardId();
+  }, [fetchBoardId]);
 
   if (status === "loading" || loading) {
     return (
@@ -113,7 +113,7 @@ export default function EditPage() {
     setError("");
 
     const textContent = lexicalJsonToPlainText(content);
-    if (!title.trim() || !textContent || !boardKey) {
+    if (!title.trim() || !textContent || !boardId) {
       setError("제목과 내용을 입력해주세요.");
       return;
     }
@@ -127,7 +127,7 @@ export default function EditPage() {
           title,
           content,
           contentMarkdown,
-          boardKey,
+          boardId,
           isSecret,
           isPinned,
           attachments,

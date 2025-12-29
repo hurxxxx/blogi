@@ -5,9 +5,9 @@ import { getSiteSettings } from "@/lib/site-settings";
 
 const seedMenuItems = async (menuId: string, items: typeof DEFAULT_MAIN_MENU) => {
   for (const [index, item] of items.entries()) {
-    let linkedId: string | null = null;
+    let linkedCategoryId: string | null = null;
 
-    // 카테고리 타입인 경우 Category 생성 및 linkedId 연결
+    // 카테고리 타입인 경우 Category 생성 및 linkedCategoryId 연결
     if (item.linkType === "category" && item.href) {
       const slug = item.href.replace("/products/", "");
       if (slug) {
@@ -16,7 +16,7 @@ const seedMenuItems = async (menuId: string, items: typeof DEFAULT_MAIN_MENU) =>
           update: { name: item.label, order: item.order ?? index + 1 },
           create: { name: item.label, slug, order: item.order ?? index + 1, isVisible: true },
         });
-        linkedId = category.id;
+        linkedCategoryId = category.id;
       }
     }
 
@@ -32,7 +32,7 @@ const seedMenuItems = async (menuId: string, items: typeof DEFAULT_MAIN_MENU) =>
         requiresAuth: item.requiresAuth ?? false,
         badgeText: item.badgeText ?? null,
         linkType: item.linkType ?? "category",
-        linkedId,
+        linkedCategoryId,
       },
     });
   }

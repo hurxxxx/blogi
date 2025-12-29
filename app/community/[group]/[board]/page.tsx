@@ -10,7 +10,7 @@ import { getCommunityGroupBySlug } from "@/lib/community";
 import { getSiteSettings } from "@/lib/site-settings";
 
 async function PostList({
-  boardKey,
+  boardId,
   groupSlug,
   boardSlug,
   sessionUserId,
@@ -19,7 +19,7 @@ async function PostList({
   page,
   pageSize,
 }: {
-  boardKey: string;
+  boardId: string;
   groupSlug: string;
   boardSlug: string;
   sessionUserId?: string | null;
@@ -29,7 +29,7 @@ async function PostList({
   pageSize: number;
 }) {
   const where: Record<string, unknown> = {
-    type: { equals: boardKey, mode: "insensitive" },
+    boardId,
   };
 
   if (query) {
@@ -202,7 +202,7 @@ export default async function CommunityBoardPage({ params, searchParams }: Commu
       </div>
 
       <PostList
-        boardKey={currentBoard.key}
+        boardId={currentBoard.id}
         groupSlug={community.slug}
         boardSlug={currentBoard.slug}
         sessionUserId={session?.user?.id}

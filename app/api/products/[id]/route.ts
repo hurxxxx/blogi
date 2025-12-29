@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: "상품을 찾을 수 없습니다" }, { status: 404 });
     }
 
-    const productCategorySlug = product.categoryRef?.slug ?? product.category;
+    const productCategorySlug = product.categoryRef?.slug ?? "";
     if (isVipCategorySlug(productCategorySlug) && !session) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
@@ -60,15 +60,13 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         title: string;
         content: string;
         contentMarkdown?: string | null;
-        category: string;
         price?: string | null;
         imageUrl?: string | null;
         isVisible: boolean;
-        categoryId?: string | null;
+        categoryId: string;
     } = {
         title,
         content,
-        category: categoryRef.slug,
         price: price || null,
         imageUrl: imageUrl || null,
         isVisible: typeof isVisible === "boolean" ? isVisible : true,

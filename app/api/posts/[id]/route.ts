@@ -27,6 +27,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
                 orderBy: { createdAt: "asc" },
             },
             attachments: true,
+            board: true,
         },
     });
 
@@ -63,10 +64,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         });
     }
 
-    const board = await prisma.board.findFirst({
-        where: { key: { equals: post.type, mode: "insensitive" } },
-    });
-
     return NextResponse.json({
         ...post,
         viewCount: shouldIncrement ? post.viewCount + 1 : post.viewCount,
@@ -74,8 +71,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         authorId: post.author.id,
         liked: Boolean(liked),
         scrapped: Boolean(scrapped),
-        boardName: board?.name ?? post.type,
-        boardKey: board?.key ?? post.type,
+        boardId: post.boardId,
+        boardName: post.board?.name ?? "게시판",
+        boardSlug: post.board?.slug ?? "",
         comments: post.comments.map((c) => ({
             ...c,
             authorId: c.author.id,
@@ -113,14 +111,9 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 
     const body = await req.json();
-    const { title, content, contentMarkdown, type, boardKey, isSecret, isPinned, attachments } = body;
-    const resolvedKey = typeof boardKey === "string" ? boardKey : type;
-    const board = resolvedKey
-        ? await prisma.board.findFirst({
-            where: { key: { equals: resolvedKey, mode: "insensitive" } },
-        })
-        : null;
-    if (resolvedKey && !board) {
+    const { title, content, contentMarkdown, boardId, isSecret, isPinned, attachments } = body;
+    const board = boardId ? await prisma.board.findUnique({ where: { id: boardId } }) : null;
+    if (boardId && !board) {
         return NextResponse.json({ error: "게시판을 찾을 수 없습니다." }, { status: 400 });
     }
     if (board && !board.isVisible && session.user.role !== "ADMIN") {
@@ -131,13 +124,13 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         title?: string;
         content?: string;
         contentMarkdown?: string | null;
-        type?: string;
+        boardId?: string;
         isSecret?: boolean;
         isPinned?: boolean;
     } = {
         title,
         content,
-        type: board?.key ?? type,
+        boardId: board?.id ?? post.boardId,
     };
     if (typeof isSecret === "boolean") {
         updateData.isSecret = isSecret;

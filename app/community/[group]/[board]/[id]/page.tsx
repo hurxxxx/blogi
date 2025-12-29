@@ -16,9 +16,8 @@ interface Post {
   id: string;
   title: string;
   content: string;
-  type: string;
   boardName?: string;
-  boardKey?: string;
+  boardId?: string;
   viewCount: number;
   createdAt: string;
   authorId: string;
@@ -292,7 +291,7 @@ export default function PostDetailPage() {
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">{post.boardName ?? post.type}</Badge>
+          <Badge variant="secondary">{post.boardName ?? board}</Badge>
           {post.isSecret && (
             <Badge variant="outline" className="flex items-center gap-1 text-gray-500">
               <Lock className="w-3 h-3" />

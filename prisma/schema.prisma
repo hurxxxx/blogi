@@ -26,24 +26,23 @@ model Product {
   id              String    @id @default(cuid())
   title           String
   content         String
-  category        String
   imageUrl        String?
   price           String?
   isVisible       Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   contentMarkdown String?
-  categoryId      String?
+  categoryId      String
   contentType     String    @default("RICH")
   htmlContent     String?
-  categoryRef     Category? @relation(fields: [categoryId], references: [id])
+  categoryRef     Category  @relation(fields: [categoryId], references: [id])
 }
 
 model Post {
   id              String           @id @default(cuid())
   title           String
   content         String
-  type            String
+  boardId         String
   authorId        String
   viewCount       Int              @default(0)
   createdAt       DateTime         @default(now())
@@ -54,6 +53,7 @@ model Post {
   likeCount       Int              @default(0)
   scrapCount      Int              @default(0)
   comments        Comment[]
+  board           Board            @relation(fields: [boardId], references: [id])
   author          User             @relation(fields: [authorId], references: [id])
   attachments     PostAttachment[]
   likes           PostLike[]
@@ -127,9 +127,10 @@ model MenuItem {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   linkType     String   @default("category")
-  linkedId     String?
+  linkedCategoryId String?
   menu         Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
   boards       Board[]
+  linkedCategory Category? @relation(fields: [linkedCategoryId], references: [id])
 
   @@index([menuId, order])
 }
@@ -167,6 +168,7 @@ model Category {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   products    Product[]
+  menuItems   MenuItem[]
 }
 
 model Board {
@@ -181,6 +183,7 @@ model Board {
   isVisible   Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  posts       Post[]
 
   @@unique([menuItemId, slug])
 }

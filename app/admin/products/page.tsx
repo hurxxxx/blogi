@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { ConfirmForm, type ConfirmActionState } from "@/components/admin/confirm-form";
 import { auth } from "@/auth";
 import { Eye, EyeOff, Pencil, Trash2, ImageIcon, Plus, Filter } from "lucide-react";
-import { normalizeCategorySlug } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -139,13 +138,12 @@ export default async function AdminProductsPage({
   });
 
   // 상품 카테고리를 슬러그로 변환하는 헬퍼
-  const getProductCategorySlug = (category: string, categoryRef?: { slug?: string | null }) =>
-    categoryRef?.slug ?? normalizeCategorySlug(category);
+  const getProductCategorySlug = (categoryRef?: { slug?: string | null }) => categoryRef?.slug ?? "";
   const getCategoryLabel = (slug: string, fallback?: string) =>
     categoryBySlug.get(slug)?.label || fallback || slug;
 
   const productsByCategory = products.reduce<Record<string, typeof products>>((acc, product) => {
-    const slug = getProductCategorySlug(product.category, product.categoryRef ?? undefined);
+    const slug = getProductCategorySlug(product.categoryRef ?? undefined);
     if (!acc[slug]) acc[slug] = [];
     acc[slug].push(product);
     return acc;
@@ -161,7 +159,7 @@ export default async function AdminProductsPage({
   });
   const assignedSlugs = new Set(menuCategorySections.map((section) => section.slug));
   const otherProducts = products.filter(
-    (product) => !assignedSlugs.has(getProductCategorySlug(product.category, product.categoryRef ?? undefined))
+    (product) => !assignedSlugs.has(getProductCategorySlug(product.categoryRef ?? undefined))
   );
 
   return (
@@ -280,8 +278,8 @@ export default async function AdminProductsPage({
                               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">
                                   {getCategoryLabel(
-                                    getProductCategorySlug(product.category, product.categoryRef ?? undefined),
-                                    product.categoryRef?.name || product.category
+                                    getProductCategorySlug(product.categoryRef ?? undefined),
+                                    product.categoryRef?.name || "미분류"
                                   )}
                                 </span>
                                 <span className="text-xs text-gray-400">{format(product.createdAt, "yyyy-MM-dd")}</span>
@@ -387,8 +385,8 @@ export default async function AdminProductsPage({
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">
                                 {getCategoryLabel(
-                                  getProductCategorySlug(product.category, product.categoryRef ?? undefined),
-                                  product.categoryRef?.name || product.category
+                                  getProductCategorySlug(product.categoryRef ?? undefined),
+                                  product.categoryRef?.name || "미분류"
                                 )}
                               </span>
                               <span className="text-xs text-gray-400">{format(product.createdAt, "yyyy-MM-dd")}</span>
@@ -489,14 +487,14 @@ export default async function AdminProductsPage({
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <span
                           className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs ${
-                            selectedCategory === getProductCategorySlug(product.category, product.categoryRef ?? undefined)
+                            selectedCategory === getProductCategorySlug(product.categoryRef ?? undefined)
                               ? "bg-blue-100 text-blue-700"
                               : "bg-gray-100 text-gray-600"
                           }`}
                         >
                           {getCategoryLabel(
-                            getProductCategorySlug(product.category, product.categoryRef ?? undefined),
-                            product.categoryRef?.name || product.category
+                            getProductCategorySlug(product.categoryRef ?? undefined),
+                            product.categoryRef?.name || "미분류"
                           )}
                         </span>
                         <span className="text-xs text-gray-400">{format(product.createdAt, "yyyy-MM-dd")}</span>

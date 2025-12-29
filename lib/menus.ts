@@ -12,7 +12,7 @@ export type MenuItemData = {
   requiresAuth?: boolean;
   badgeText?: string | null;
   linkType?: "category" | "community" | "external";
-  linkedId?: string | null;
+  linkedCategoryId?: string | null;
   boards?: BoardData[];
 };
 
@@ -86,7 +86,7 @@ export const getMenuByKey = async (key: string) => {
             : item.href?.startsWith("/community")
               ? "community"
               : "category",
-      linkedId: item.linkedId ?? null,
+      linkedCategoryId: item.linkedCategoryId ?? null,
     })),
   };
 };

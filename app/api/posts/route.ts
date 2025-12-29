@@ -6,7 +6,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 // GET: List all posts
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type") || searchParams.get("board");
+    const boardId = searchParams.get("boardId");
     const session = await auth();
     const sessionUserId = session?.user?.id || null;
     const isAdmin = session?.user?.role === "ADMIN";
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     }
 
     const posts = await prisma.post.findMany({
-        where: type ? { type: { equals: type, mode: "insensitive" } } : undefined,
+        where: boardId ? { boardId } : undefined,
         include: {
             author: { select: { name: true } },
             _count: { select: { comments: true } },
@@ -54,15 +54,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, content, contentMarkdown, type, boardKey, isSecret, isPinned, attachments } = body;
-    const resolvedKey = typeof boardKey === "string" ? boardKey : type;
+    const { title, content, contentMarkdown, boardId, isSecret, isPinned, attachments } = body;
 
-    if (!title || !content || !resolvedKey) {
+    if (!title || !content || !boardId) {
         return NextResponse.json({ error: "모든 필드를 입력해주세요" }, { status: 400 });
     }
-    const board = await prisma.board.findFirst({
-        where: { key: { equals: resolvedKey, mode: "insensitive" } },
-    });
+    const board = await prisma.board.findUnique({ where: { id: boardId } });
     if (!board) {
         return NextResponse.json({ error: "게시판을 찾을 수 없습니다." }, { status: 400 });
     }
@@ -77,7 +74,7 @@ export async function POST(req: NextRequest) {
             contentMarkdown: typeof contentMarkdown === "string" && contentMarkdown.trim()
                 ? contentMarkdown.trim()
                 : null,
-            type: board.key,
+            boardId: board.id,
             isSecret: Boolean(isSecret),
             isPinned: session.user.role === "ADMIN" ? Boolean(isPinned) : false,
             authorId: currentUser.id,

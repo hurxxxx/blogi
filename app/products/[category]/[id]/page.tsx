@@ -7,7 +7,7 @@ import { RichTextViewer } from "@/components/editor/rich-text-viewer";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
-import { isVipCategorySlug, normalizeCategorySlug } from "@/lib/categories";
+import { isVipCategorySlug } from "@/lib/categories";
 
 interface ProductDetailPageProps {
     params: Promise<{
@@ -33,8 +33,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         notFound();
     }
 
-    const productCategorySlug = product.categoryRef?.slug ?? normalizeCategorySlug(product.category);
-    const productCategoryLabel = product.categoryRef?.name ?? product.category;
+    const productCategorySlug = product.categoryRef?.slug ?? category;
+    const productCategoryLabel = product.categoryRef?.name ?? category;
     const isVipProduct = isVipCategorySlug(productCategorySlug);
     const isAdmin = session?.user?.role === "ADMIN";
     const canViewVip = !isVipProduct || Boolean(session);

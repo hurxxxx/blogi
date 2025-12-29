@@ -59,7 +59,6 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
   const [drafts, setDrafts] = useState<Record<string, typeof blankItem>>(() =>
     menus.reduce((acc, menu) => ({ ...acc, [menu.key]: { ...blankItem } }), {})
   );
-  const [orderDirty, setOrderDirty] = useState<Record<string, boolean>>({});
   const [createOpen, setCreateOpen] = useState<Record<string, boolean>>({});
 
   const getCategorySlug = (href: string) => {
@@ -230,34 +229,37 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
     });
   };
 
-  const handleReorderSave = (menuKey: string) => {
-    const menu = menuState.find((item) => item.key === menuKey);
-    if (!menu) return;
-    const items = menu.items.map((item, index) => ({ id: item.id, order: index + 1 }));
-    startTransition(async () => {
-      const res = await fetch("/api/admin/menus", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "reorder", menuKey, items }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        showToast(data.error || "정렬 저장에 실패했습니다.", "error");
-        return;
-      }
-      setOrderDirty((prev) => ({ ...prev, [menuKey]: false }));
-      showToast("정렬이 저장되었습니다.", "success");
-    });
-  };
-
   const moveItem = (menuKey: string, fromIndex: number, toIndex: number) => {
-    updateMenuState(menuKey, (items) => {
-      const updated = [...items];
-      const [moved] = updated.splice(fromIndex, 1);
-      updated.splice(toIndex, 0, moved);
-      return updated;
+    // 유효성 검사
+    if (fromIndex === toIndex) return;
+    if (fromIndex < 0 || toIndex < 0) return;
+
+    const menu = menuState.find((m) => m.key === menuKey);
+    if (!menu) return;
+    if (fromIndex >= menu.items.length || toIndex >= menu.items.length) return;
+
+    // 자동 저장용 데이터 미리 계산
+    const updated = [...menu.items];
+    const [moved] = updated.splice(fromIndex, 1);
+    if (!moved) return;
+    updated.splice(toIndex, 0, moved);
+    const items = updated.map((item, idx) => ({ id: item.id, order: idx + 1 }));
+
+    // 상태 업데이트
+    setMenuState((prev) =>
+      prev.map((m) => (m.key === menuKey ? { ...m, items: updated } : m))
+    );
+
+    // 자동 저장
+    fetch("/api/admin/menus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reorder", menuKey, items }),
+    }).then((res) => {
+      if (res.ok) {
+        showToast("순서가 저장되었습니다.", "success");
+      }
     });
-    setOrderDirty((prev) => ({ ...prev, [menuKey]: true }));
   };
 
   const renderMenuSection = (menu: MenuSection) => {
@@ -266,14 +268,6 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
         {/* 헤더 */}
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl">{menu.name}</h2>
-          <Button
-            variant={orderDirty[menu.key] ? "default" : "outline"}
-            size="sm"
-            onClick={() => handleReorderSave(menu.key)}
-            disabled={isPending || !orderDirty[menu.key]}
-          >
-            정렬 저장
-          </Button>
         </div>
 
         {/* 메뉴 목록 */}

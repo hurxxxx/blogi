@@ -43,7 +43,6 @@ export const BoardManager = ({
   const [isPending, startTransition] = useTransition();
   const [boardState, setBoardState] = useState<BoardItem[]>(boards.filter(Boolean));
   const [draft, setDraft] = useState<typeof blankBoard>(blankBoard);
-  const [orderDirty, setOrderDirty] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [dragState, setDragState] = useState<{
     fromIndex: number;
@@ -166,32 +165,32 @@ export const BoardManager = ({
     });
   };
 
-  const handleReorderSave = () => {
-    const items = boardState.map((item, index) => ({ id: item.id, order: index + 1 }));
-    startTransition(async () => {
-      const res = await fetch("/api/admin/boards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "reorder", items, menuItemId }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        showToast(data.error || "정렬 저장에 실패했습니다.", "error");
-        return;
-      }
-      setOrderDirty(false);
-      showToast("정렬이 저장되었습니다.", "success");
-    });
-  };
-
   const moveItem = (fromIndex: number, toIndex: number) => {
-    updateBoardState((items) => {
-      const updated = [...items];
-      const [moved] = updated.splice(fromIndex, 1);
-      updated.splice(toIndex, 0, moved);
-      return updated;
+    // 유효성 검사
+    if (fromIndex === toIndex) return;
+    if (fromIndex < 0 || toIndex < 0) return;
+    if (fromIndex >= boardState.length || toIndex >= boardState.length) return;
+
+    // 자동 저장용 데이터 미리 계산
+    const updated = [...boardState];
+    const [moved] = updated.splice(fromIndex, 1);
+    if (!moved) return;
+    updated.splice(toIndex, 0, moved);
+    const items = updated.map((item, idx) => ({ id: item.id, order: idx + 1 }));
+
+    // 상태 업데이트
+    setBoardState(updated);
+
+    // 자동 저장
+    fetch("/api/admin/boards", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reorder", items, menuItemId }),
+    }).then((res) => {
+      if (res.ok) {
+        showToast("순서가 저장되었습니다.", "success");
+      }
     });
-    setOrderDirty(true);
   };
 
   return (
@@ -201,15 +200,6 @@ export const BoardManager = ({
         <div className="text-sm font-medium text-gray-700">
           게시판 ({boardState.length}개)
         </div>
-        <Button
-          variant={orderDirty ? "default" : "outline"}
-          size="sm"
-          onClick={handleReorderSave}
-          disabled={disabled || isPending || !orderDirty}
-          className="h-7 text-xs"
-        >
-          정렬 저장
-        </Button>
       </div>
 
       {/* 게시판 목록 */}
@@ -228,29 +218,34 @@ export const BoardManager = ({
                 key={item.id}
                 draggable={!disabled}
                 onDragStart={(event) => {
+                  event.stopPropagation();
                   event.dataTransfer.setData("text/plain", String(index));
                   event.dataTransfer.effectAllowed = "move";
                   setDragState({ fromIndex: index, overIndex: null });
                 }}
                 onDragOver={(event) => {
+                  event.stopPropagation();
                   event.preventDefault();
                   event.dataTransfer.dropEffect = "move";
                   if (dragState && dragState.overIndex !== index) {
                     setDragState((prev) => prev ? { ...prev, overIndex: index } : null);
                   }
                 }}
-                onDragLeave={() => {
+                onDragLeave={(event) => {
+                  event.stopPropagation();
                   if (dragState?.overIndex === index) {
                     setDragState((prev) => prev ? { ...prev, overIndex: null } : null);
                   }
                 }}
                 onDrop={(event) => {
+                  event.stopPropagation();
                   const from = Number(event.dataTransfer.getData("text/plain"));
                   if (Number.isNaN(from)) return;
                   moveItem(from, index);
                   setDragState(null);
                 }}
-                onDragEnd={() => {
+                onDragEnd={(event) => {
+                  event.stopPropagation();
                   setDragState(null);
                 }}
                 className={`group relative ${

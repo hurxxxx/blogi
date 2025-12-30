@@ -166,6 +166,9 @@ model SiteSettings {
   copyrightText          String?
   showCopyright          Boolean  @default(true)
   communityEnabled       Boolean  @default(true)
+  // 헤더 스타일 설정 (2025-2026 트렌드)
+  headerStyle            String   @default("classic")  // classic | glassmorphism | minimal | bento
+  headerScrollEffect     Boolean  @default(true)       // 스크롤 시 축소/블러 효과
 }
 
 model Category {

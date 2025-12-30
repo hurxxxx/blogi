@@ -19,6 +19,8 @@ export const Header = async () => {
       siteTagline={siteSettings.siteTagline || ""}
       communityGroups={communityGroups}
       communityEnabled={siteSettings.communityEnabled}
+      headerStyle={siteSettings.headerStyle}
+      headerScrollEffect={siteSettings.headerScrollEffect}
     />
   );
 };

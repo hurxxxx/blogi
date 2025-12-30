@@ -29,6 +29,8 @@ export default async function AdminSiteSettingsPage() {
             ogImageUrl: settings?.ogImageUrl ?? "",
             faviconUrl: settings?.faviconUrl ?? "",
             communityEnabled: settings?.communityEnabled ?? true,
+            headerStyle: settings?.headerStyle ?? "classic",
+            headerScrollEffect: settings?.headerScrollEffect ?? true,
           }}
         />
       </div>

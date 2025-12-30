@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Search, LogOut, Settings, Menu, X, Lock } from "lucide-react";
@@ -10,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { useSession, signOut } from "next-auth/react";
 import { useToast } from "@/components/ui/toast";
 import type { MenuItemData } from "@/lib/menus";
+import type { HeaderStyle } from "@/lib/header-styles";
+import { useScrollHeader } from "@/hooks/use-scroll-header";
 
 interface HeaderClientProps {
   menuItems: MenuItemData[];
@@ -24,6 +25,8 @@ interface HeaderClientProps {
     boards: { id: string; key: string; slug: string; name: string }[];
   }[];
   communityEnabled: boolean;
+  headerStyle?: HeaderStyle;
+  headerScrollEffect?: boolean;
 }
 
 export const HeaderClient = ({
@@ -33,6 +36,8 @@ export const HeaderClient = ({
   siteTagline,
   communityGroups,
   communityEnabled,
+  headerStyle = "classic",
+  headerScrollEffect = true,
 }: HeaderClientProps) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -44,6 +49,99 @@ export const HeaderClient = ({
     () => new Map(communityGroups.map((group) => [group.menuItemId, group])),
     [communityGroups]
   );
+
+  // 스크롤 감지 (classic 외 스타일에서 사용)
+  const { isScrolled } = useScrollHeader(50, headerScrollEffect && headerStyle !== "classic");
+
+  const isBento = headerStyle === "bento";
+
+  // 스타일별 헤더 클래스
+  const getHeaderClasses = () => {
+    const baseTransition = "transition-all duration-300 ease-out";
+
+    switch (headerStyle) {
+      case "glassmorphism":
+        return cn(
+          "sticky top-0 z-40 w-full text-gray-900",
+          baseTransition,
+          isScrolled
+            ? "backdrop-blur-xl bg-white/80 shadow-lg border-b border-white/20"
+            : "backdrop-blur-md bg-white/60"
+        );
+      case "minimal":
+        return cn(
+          "sticky top-0 z-40 w-full text-gray-900",
+          baseTransition,
+          isScrolled
+            ? "bg-white shadow-sm border-b border-gray-200/70"
+            : "bg-white/95 border-b border-gray-200/60"
+        );
+      case "bento":
+        return cn(
+          "sticky top-0 z-40 w-full text-gray-900",
+          baseTransition,
+          isScrolled
+            ? "backdrop-blur-lg bg-gray-50/90 shadow-md"
+            : "backdrop-blur-md bg-gray-50/70"
+        );
+      default: // classic
+        return "relative w-full overflow-hidden bg-[#0b1320] text-white";
+    }
+  };
+
+  // 스타일별 텍스트 클래스
+  const getTextClasses = (isActive: boolean, isNav = false) => {
+    if (headerStyle === "classic") {
+      return isActive ? "text-white" : "text-white/70 hover:text-white";
+    }
+    // 모던 스타일들
+    if (isNav) {
+      return isActive
+        ? "text-gray-900 font-semibold"
+        : "text-gray-600 hover:text-gray-900";
+    }
+    return isActive ? "text-gray-900" : "text-gray-600 hover:text-gray-900";
+  };
+
+  // 스타일별 배경 오버레이 (classic만 사용)
+  const renderBackgroundOverlay = () => {
+    if (headerStyle !== "classic") return null;
+    return (
+      <>
+        <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_20%_-10%,rgba(14,165,166,0.35),transparent_60%),radial-gradient(700px_420px_at_80%_0%,rgba(255,107,87,0.35),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,10,20,0.85)_0%,rgba(11,19,32,0.6)_45%,rgba(12,28,42,0.9)_100%)]" />
+      </>
+    );
+  };
+
+  // 스타일별 입력 필드 클래스
+  const getInputClasses = () => {
+    if (headerStyle === "classic") {
+      return "w-full pl-4 pr-10 bg-white/10 text-white placeholder:text-white/60 border-white/15";
+    }
+    if (headerStyle === "bento") {
+      return "w-full pl-4 pr-10 bg-transparent text-gray-900 placeholder:text-gray-500 border-transparent focus-visible:ring-0 focus-visible:ring-offset-0";
+    }
+    return "w-full pl-4 pr-10 bg-gray-100/80 text-gray-900 placeholder:text-gray-500 border-gray-200/50";
+  };
+
+  // 스타일별 아이콘 색상
+  const getIconClasses = () => {
+    if (headerStyle === "classic") {
+      return "text-white/60";
+    }
+    return "text-gray-500";
+  };
+
+  // Bento 스타일 모듈 클래스
+  const getBentoTileClasses = () => {
+    if (!isBento) return "";
+    return cn(
+      "rounded-2xl border border-gray-200/60 bg-white/70 backdrop-blur-md",
+      isScrolled ? "shadow-md" : "shadow-sm",
+      "transition-all duration-200"
+    );
+  };
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
@@ -66,25 +164,30 @@ export const HeaderClient = ({
       !!route.href &&
       (pathname === route.href || pathname?.startsWith(route.href + "/"));
     const isProtected = Boolean(route.requiresAuth && !session);
-    const communityKey = route.id ?? route.href ?? route.label ?? "community";
-    const linkClass = isMobile
-      ? cn(
-          "block px-6 py-3 text-sm font-semibold transition-colors",
-          isActive
-            ? "text-white bg-white/10 border-l-4 border-white/70"
-            : "text-white/70 hover:text-white hover:bg-white/5"
-        )
-      : cn(
-          "px-3 py-2 text-sm font-medium transition-all whitespace-nowrap",
-          isActive
-            ? "text-white"
-            : "text-white/70 hover:text-white"
-        );
+
+    // 모바일 스타일 (사이드바용 - 항상 다크)
+    const mobileLinkClass = cn(
+      "block px-6 py-3 text-sm font-semibold transition-colors",
+      isActive
+        ? "text-white bg-white/10 border-l-4 border-white/70"
+        : "text-white/70 hover:text-white hover:bg-white/5"
+    );
+
+    // 데스크톱 스타일 (headerStyle에 따라 변경)
+    const desktopLinkClass = cn(
+      "px-3 py-2 text-sm font-medium transition-all whitespace-nowrap",
+      getTextClasses(isActive, true),
+      headerStyle === "bento" && "rounded-xl hover:bg-white/50"
+    );
+
+    const linkClass = isMobile ? mobileLinkClass : desktopLinkClass;
+
+    const lockIconClass = headerStyle === "classic" ? "text-white/70" : "text-gray-400";
 
     const content = (
       <span className="flex items-center gap-2">
         <span>{route.label}</span>
-        {route.requiresAuth && <Lock className="w-3 h-3 text-white/70" />}
+        {route.requiresAuth && <Lock className={cn("w-3 h-3", lockIconClass)} />}
       </span>
     );
 
@@ -119,17 +222,23 @@ export const HeaderClient = ({
       : pathname === "/community" || pathname?.startsWith("/community/");
     const label = group?.label || route.label || "커뮤니티";
     const communityKey = route.id ?? route.href ?? route.label ?? "community";
-    const linkClass = isMobile
-      ? cn(
-          "block px-6 py-3 text-sm font-semibold transition-colors",
-          isActive
-            ? "text-white bg-white/10 border-l-4 border-white/70"
-            : "text-white/70 hover:text-white hover:bg-white/5"
-        )
-      : cn(
-          "px-3 py-2 text-sm font-medium transition-all whitespace-nowrap",
-          isActive ? "text-white" : "text-white/70 hover:text-white"
-        );
+
+    // 모바일 스타일 (사이드바용 - 항상 다크)
+    const mobileLinkClass = cn(
+      "block px-6 py-3 text-sm font-semibold transition-colors",
+      isActive
+        ? "text-white bg-white/10 border-l-4 border-white/70"
+        : "text-white/70 hover:text-white hover:bg-white/5"
+    );
+
+    // 데스크톱 스타일 (headerStyle에 따라 변경)
+    const desktopLinkClass = cn(
+      "px-3 py-2 text-sm font-medium transition-all whitespace-nowrap",
+      getTextClasses(isActive, true),
+      headerStyle === "bento" && "rounded-xl hover:bg-white/50"
+    );
+
+    const linkClass = isMobile ? mobileLinkClass : desktopLinkClass;
 
     const list = (group?.boards ?? []).map((board) => (
       <Link
@@ -209,96 +318,186 @@ export const HeaderClient = ({
     );
   };
 
+  // 스타일별 사이트명/태그라인 색상
+  const taglineClass = headerStyle === "classic" ? "text-white/60" : "text-gray-500";
+  const userNameClass = headerStyle === "classic" ? "text-white/70" : "text-gray-600";
+
   return (
     <>
-      <header className="relative w-full overflow-hidden bg-[#0b1320] text-white hidden md:block">
-        <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_20%_-10%,rgba(14,165,166,0.35),transparent_60%),radial-gradient(700px_420px_at_80%_0%,rgba(255,107,87,0.35),transparent_65%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,10,20,0.85)_0%,rgba(11,19,32,0.6)_45%,rgba(12,28,42,0.9)_100%)]" />
-        <div className="container mx-auto px-4 relative">
-          <div className="flex items-center justify-between gap-3 py-3">
-            <button
-              className="md:hidden p-2 rounded-full border border-white/10 bg-white/10 hover:bg-white/20 transition"
-              onClick={() => setIsSidebarOpen(true)}
-              aria-label="메뉴 열기"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+      <header className={cn(getHeaderClasses(), "hidden md:block")}>
+        {renderBackgroundOverlay()}
+        {isBento ? (
+          <div className="container mx-auto px-4 relative py-3">
+            <div className="grid gap-3">
+              <div className="grid gap-3 items-center lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+                <Link
+                  href="/"
+                  className={cn("flex items-center gap-3 px-4 py-2", getBentoTileClasses())}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={siteLogoUrl}
+                    alt={`${siteName} 로고`}
+                    className="h-12 object-contain"
+                  />
+                  <div className="hidden sm:flex flex-col leading-none">
+                    <span className="font-display text-xl tracking-tight">{siteName}</span>
+                    {siteTagline ? (
+                      <span className={cn("text-[10px] uppercase tracking-[0.3em]", taglineClass)}>
+                        {siteTagline}
+                      </span>
+                    ) : null}
+                  </div>
+                </Link>
 
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src={siteLogoUrl}
-                alt={`${siteName} 로고`}
-                width={280}
-                height={96}
-                className="h-14 w-auto"
-                priority
-                unoptimized
-              />
-              <div className="hidden sm:flex flex-col leading-none">
-                <span className="font-display text-xl tracking-tight">{siteName}</span>
-                {siteTagline ? (
-                  <span className="text-[10px] uppercase tracking-[0.3em] text-white/60">
-                    {siteTagline}
-                  </span>
-                ) : null}
-              </div>
-            </Link>
+                <form
+                  action="/search"
+                  method="get"
+                  className={cn("relative w-full px-4 py-2", getBentoTileClasses())}
+                >
+                  <Input
+                    name="q"
+                    type="search"
+                    className={getInputClasses()}
+                    placeholder="검색어를 입력하세요"
+                  />
+                  <Search className={cn("absolute right-3 top-2.5 h-5 w-5", getIconClasses())} />
+                </form>
 
-            <form action="/search" method="get" className="hidden md:flex relative w-[360px]">
-              <Input
-                name="q"
-                type="search"
-                className="w-full pl-4 pr-10 bg-white/10 text-white placeholder:text-white/60 border-white/15"
-                placeholder="검색어를 입력하세요"
-              />
-              <Search className="absolute right-3 top-2.5 h-5 w-5 text-white/60" />
-            </form>
-
-            <div className="hidden md:flex items-center gap-x-4 text-sm">
-              {session ? (
-                <>
-                  <span className="text-white/70">
-                    {session.user?.name || session.user?.email}님
-                  </span>
-                  {session.user?.role === "ADMIN" && (
-                    <Link href="/admin" className="hover:text-white transition flex items-center gap-1">
-                      <Settings className="w-4 h-4" />
-                      관리자
-                    </Link>
+                <div className={cn("flex items-center gap-x-4 text-sm px-4 py-2", getBentoTileClasses())}>
+                  {session ? (
+                    <>
+                      <span className={userNameClass}>
+                        {session.user?.name || session.user?.email}님
+                      </span>
+                      {session.user?.role === "ADMIN" && (
+                        <Link href="/admin" className={cn(getTextClasses(false), "transition flex items-center gap-1")}>
+                          <Settings className="w-4 h-4" />
+                          관리자
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => signOut({ callbackUrl: "/" })}
+                        className={cn(getTextClasses(false), "transition flex items-center gap-1")}
+                      >
+                        <LogOut className="w-4 h-4" />
+                        로그아웃
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/login" className={cn(getTextClasses(false), "transition")}>
+                        로그인
+                      </Link>
+                      <Link href="/register" className={cn(getTextClasses(false), "transition")}>
+                        회원가입
+                      </Link>
+                    </>
                   )}
-                  <button
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className="hover:text-white transition flex items-center gap-1"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    로그아웃
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="hover:text-white transition">
-                    로그인
-                  </Link>
-                  <Link href="/register" className="hover:text-white transition">
-                    회원가입
-                  </Link>
-                </>
-              )}
+                </div>
+              </div>
+
+              <div className={cn("px-3 py-2", getBentoTileClasses())}>
+                <nav className="flex items-center gap-2 overflow-x-auto overflow-y-hidden pb-1">
+                  {visibleMenuItems.map((route) =>
+                    route.linkType === "community"
+                      ? renderCommunityMenu(route)
+                      : renderMenuLink(route)
+                  )}
+                </nav>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="container mx-auto px-4 relative">
+            <div className={cn(
+              "flex items-center justify-between gap-3 py-3",
+              "transition-all duration-300"
+            )}>
+              <button
+                className="md:hidden p-2 rounded-full border border-white/10 bg-white/10 hover:bg-white/20 transition"
+                onClick={() => setIsSidebarOpen(true)}
+                aria-label="메뉴 열기"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+
+              <Link href="/" className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={siteLogoUrl}
+                  alt={`${siteName} 로고`}
+                  className={cn(
+                    "transition-all duration-300 object-contain",
+                    headerStyle === "classic" ? "h-14" : "h-12"
+                  )}
+                />
+                <div className="hidden sm:flex flex-col leading-none">
+                  <span className="font-display text-xl tracking-tight">{siteName}</span>
+                  {siteTagline ? (
+                    <span className={cn("text-[10px] uppercase tracking-[0.3em]", taglineClass)}>
+                      {siteTagline}
+                    </span>
+                  ) : null}
+                </div>
+              </Link>
+
+              <form action="/search" method="get" className="hidden md:flex relative w-[360px]">
+                <Input
+                  name="q"
+                  type="search"
+                  className={getInputClasses()}
+                  placeholder="검색어를 입력하세요"
+                />
+                <Search className={cn("absolute right-3 top-2.5 h-5 w-5", getIconClasses())} />
+              </form>
+
+              <div className="hidden md:flex items-center gap-x-4 text-sm">
+                {session ? (
+                  <>
+                    <span className={userNameClass}>
+                      {session.user?.name || session.user?.email}님
+                    </span>
+                    {session.user?.role === "ADMIN" && (
+                      <Link href="/admin" className={cn(getTextClasses(false), "transition flex items-center gap-1")}>
+                        <Settings className="w-4 h-4" />
+                        관리자
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className={cn(getTextClasses(false), "transition flex items-center gap-1")}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      로그아웃
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" className={cn(getTextClasses(false), "transition")}>
+                      로그인
+                    </Link>
+                    <Link href="/register" className={cn(getTextClasses(false), "transition")}>
+                      회원가입
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              <div className="md:hidden w-10" />
             </div>
 
-            <div className="md:hidden w-10" />
+            <div className="hidden md:block transition-all duration-300 pb-4">
+              <nav className="flex items-center gap-2 overflow-x-auto overflow-y-hidden pb-1">
+                {visibleMenuItems.map((route) =>
+                  route.linkType === "community"
+                    ? renderCommunityMenu(route)
+                    : renderMenuLink(route)
+                )}
+              </nav>
+            </div>
           </div>
-
-          <div className="hidden md:block pb-5">
-            <nav className="flex items-center gap-2 overflow-x-auto overflow-y-hidden pb-1">
-              {visibleMenuItems.map((route) =>
-                route.linkType === "community"
-                  ? renderCommunityMenu(route)
-                  : renderMenuLink(route)
-              )}
-            </nav>
-          </div>
-        </div>
+        )}
       </header>
 
       {/* Floating hamburger button for mobile */}
@@ -322,13 +521,11 @@ export const HeaderClient = ({
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <Link href="/" className="flex items-center" onClick={closeSidebar}>
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={siteLogoUrl}
               alt={`${siteName} 로고`}
-              width={240}
-              height={82}
-              className="h-12 w-auto"
-              unoptimized
+              className="h-12 w-auto object-contain"
             />
           </Link>
           <button

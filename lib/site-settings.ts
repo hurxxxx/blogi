@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { HeaderStyle, isValidHeaderStyle } from "@/lib/header-styles";
 
 export type SiteSettingsSnapshot = {
   siteName?: string | null;
@@ -8,12 +9,21 @@ export type SiteSettingsSnapshot = {
   ogImageUrl?: string | null;
   faviconUrl?: string | null;
   communityEnabled: boolean;
+  // 헤더 스타일 설정
+  headerStyle: HeaderStyle;
+  headerScrollEffect: boolean;
 };
 
 export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
   const settings = await prisma.siteSettings.findUnique({
     where: { key: "default" },
   });
+
+  // headerStyle 유효성 검사
+  const headerStyle =
+    settings?.headerStyle && isValidHeaderStyle(settings.headerStyle)
+      ? settings.headerStyle
+      : "classic";
 
   return {
     siteName: settings?.siteName ?? null,
@@ -23,5 +33,7 @@ export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
     ogImageUrl: settings?.ogImageUrl ?? null,
     faviconUrl: settings?.faviconUrl ?? null,
     communityEnabled: settings?.communityEnabled ?? true,
+    headerStyle,
+    headerScrollEffect: settings?.headerScrollEffect ?? true,
   };
 };

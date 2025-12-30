@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
-import { FileText, Globe, Image, ImageIcon, Tag, Users, Upload } from "lucide-react";
+import { FileText, Globe, Image, ImageIcon, Tag, Users, Upload, Palette, MousePointer2, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { HeaderStyle, HEADER_STYLES } from "@/lib/header-styles";
 
 interface SiteSettingsFormProps {
   initialData: {
@@ -16,6 +18,8 @@ interface SiteSettingsFormProps {
     ogImageUrl?: string | null;
     faviconUrl?: string | null;
     communityEnabled?: boolean | null;
+    headerStyle?: string | null;
+    headerScrollEffect?: boolean | null;
   };
 }
 
@@ -30,6 +34,12 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
   const [faviconUrl, setFaviconUrl] = useState(initialData.faviconUrl ?? "");
   const [communityEnabled, setCommunityEnabled] = useState(
     typeof initialData.communityEnabled === "boolean" ? initialData.communityEnabled : true
+  );
+  const [headerStyle, setHeaderStyle] = useState<HeaderStyle>(
+    (initialData.headerStyle as HeaderStyle) || "classic"
+  );
+  const [headerScrollEffect, setHeaderScrollEffect] = useState(
+    typeof initialData.headerScrollEffect === "boolean" ? initialData.headerScrollEffect : true
   );
   const [uploading, setUploading] = useState(false);
 
@@ -89,6 +99,8 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
         ogImageUrl: ogImageUrl.trim() || null,
         faviconUrl: faviconUrl.trim() || null,
         communityEnabled,
+        headerStyle,
+        headerScrollEffect,
       };
       const res = await fetch("/api/admin/site-settings", {
         method: "POST",
@@ -293,6 +305,82 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
           </div>
           <p className="text-xs text-gray-400">
             비활성화하면 커뮤니티 메뉴와 게시판이 숨겨집니다.
+          </p>
+        </div>
+      </div>
+
+      {/* 헤더 스타일 */}
+      <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+        <div className="p-2.5 rounded-lg bg-cyan-50 text-cyan-600">
+          <Palette className="w-5 h-5" />
+        </div>
+        <div className="flex-1 space-y-4">
+          <div>
+            <label className="text-sm font-medium">헤더 스타일</label>
+            <p className="text-xs text-gray-400 mt-1">2025-2026 트렌드를 반영한 헤더 디자인을 선택하세요.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {(Object.entries(HEADER_STYLES) as [HeaderStyle, typeof HEADER_STYLES[HeaderStyle]][]).map(
+              ([key, config]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setHeaderStyle(key)}
+                  disabled={isPending}
+                  className={cn(
+                    "relative p-4 rounded-xl border-2 text-left transition-all",
+                    headerStyle === key
+                      ? "border-cyan-500 bg-cyan-50/50"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  )}
+                >
+                  {headerStyle === key && (
+                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                  {/* 미리보기 영역 */}
+                  <div className={cn(
+                    "h-10 rounded-lg mb-3 flex items-center justify-center text-xs",
+                    config.preview.bg,
+                    config.preview.text
+                  )}>
+                    헤더 미리보기
+                  </div>
+                  <div className="font-medium text-sm">{config.label}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{config.description}</div>
+                </button>
+              )
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 스크롤 효과 */}
+      <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors">
+        <div className={`p-2.5 rounded-lg ${headerScrollEffect ? "bg-teal-50 text-teal-600" : "bg-gray-100 text-gray-400"}`}>
+          <MousePointer2 className="w-5 h-5" />
+        </div>
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">스크롤 효과</label>
+            <button
+              type="button"
+              onClick={() => setHeaderScrollEffect(!headerScrollEffect)}
+              disabled={isPending}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                headerScrollEffect ? "bg-teal-500" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  headerScrollEffect ? "translate-x-5" : ""
+                }`}
+              />
+            </button>
+          </div>
+          <p className="text-xs text-gray-400">
+            스크롤 시 헤더에 그림자/블러 효과가 적용됩니다. (클래식 제외)
           </p>
         </div>
       </div>

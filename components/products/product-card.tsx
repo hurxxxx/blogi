@@ -43,20 +43,20 @@ export const ProductCard = ({
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-transparent" />
                 </div>
-                <CardContent className="p-4">
-                    <Badge variant="outline" className="mb-3 uppercase">
+                <CardContent className="p-2.5 md:p-4">
+                    <Badge variant="outline" className="mb-2 md:mb-3 uppercase text-[10px] md:text-xs">
                         {categoryLabel}
                     </Badge>
-                    <h3 className="font-display text-lg leading-tight line-clamp-2 mb-2">
+                    <h3 className="font-display text-sm md:text-lg leading-tight line-clamp-2 mb-1.5 md:mb-2">
                         {title}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs md:text-sm text-gray-500">
                         {format(createdAt, "yyyy.MM.dd")}
                     </p>
                 </CardContent>
                 {price && (
-                    <CardFooter className="p-4 pt-0">
-                        <p className="font-semibold text-sky-700">
+                    <CardFooter className="p-2.5 md:p-4 pt-0">
+                        <p className="font-semibold text-sky-700 text-sm md:text-base">
                             {price}
                         </p>
                     </CardFooter>

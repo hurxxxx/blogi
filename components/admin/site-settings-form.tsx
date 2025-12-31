@@ -111,8 +111,19 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
     });
   };
 
+  const SaveButton = () => (
+    <Button type="submit" disabled={isPending}>
+      {isPending ? "저장 중..." : "저장"}
+    </Button>
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* 상단 저장 버튼 */}
+      <div className="flex justify-end">
+        <SaveButton />
+      </div>
+
       {/* 사이트 이름 */}
       <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors">
         <div className="p-2.5 rounded-lg bg-blue-50 text-blue-600">
@@ -351,10 +362,9 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
         </div>
       </div>
 
+      {/* 하단 저장 버튼 */}
       <div className="flex justify-end pt-2">
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "저장 중..." : "저장"}
-        </Button>
+        <SaveButton />
       </div>
     </form>
   );

@@ -36,6 +36,9 @@ export default async function AdminLayout({
                     <Link href="/admin/footer" className="block p-2 hover:bg-gray-800 rounded">
                         푸터 설정
                     </Link>
+                    <Link href="/admin/trash" className="block p-2 hover:bg-gray-800 rounded">
+                        휴지통
+                    </Link>
                     <Link href="/" className="block p-2 text-gray-400 hover:text-white md:mt-8">
                         사이트로 돌아가기
                     </Link>

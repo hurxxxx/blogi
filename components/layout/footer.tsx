@@ -1,16 +1,46 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getFooterSettings } from "@/lib/footer-settings";
-import { Instagram, Facebook, Youtube, Send, MessageCircle, Twitter, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
+import { FaInstagram, FaFacebookF, FaYoutube, FaTiktok, FaTelegram, FaXTwitter } from "react-icons/fa6";
+import { RiKakaoTalkFill } from "react-icons/ri";
 
 const SOCIAL_ICONS: Record<string, ReactNode> = {
-    instagram: <Instagram className="w-4 h-4" />,
-    facebook: <Facebook className="w-4 h-4" />,
-    youtube: <Youtube className="w-4 h-4" />,
-    tiktok: <Globe className="w-4 h-4" />,
-    telegram: <Send className="w-4 h-4" />,
-    kakao: <MessageCircle className="w-4 h-4" />,
-    x: <Twitter className="w-4 h-4" />,
+    instagram: (
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45]">
+            <FaInstagram className="w-5 h-5 text-white" />
+        </span>
+    ),
+    facebook: (
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-[#1877F2]">
+            <FaFacebookF className="w-5 h-5 text-white" />
+        </span>
+    ),
+    youtube: (
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-[#FF0000]">
+            <FaYoutube className="w-5 h-5 text-white" />
+        </span>
+    ),
+    tiktok: (
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-black">
+            <FaTiktok className="w-5 h-5 text-white" />
+        </span>
+    ),
+    telegram: (
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-[#0088cc]">
+            <FaTelegram className="w-5 h-5 text-white" />
+        </span>
+    ),
+    kakao: (
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-[#FEE500]">
+            <RiKakaoTalkFill className="w-5 h-5 text-[#3C1E1E]" />
+        </span>
+    ),
+    x: (
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-black">
+            <FaXTwitter className="w-5 h-5 text-white" />
+        </span>
+    ),
 };
 
 export const Footer = async () => {
@@ -45,19 +75,17 @@ export const Footer = async () => {
                     </div>
                 )}
                 {settings.showSocials && settings.socialLinks.length > 0 && (
-                    <div className="flex flex-wrap justify-center gap-3 text-xs text-white/70">
+                    <div className="flex flex-wrap justify-center gap-4">
                         {settings.socialLinks.map((link) => (
                             <Link
                                 key={`${link.key}-${link.url}`}
                                 href={link.url}
-                                className="hover:text-white transition"
+                                className="hover:opacity-80 transition"
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                aria-label={link.label}
                             >
-                                <span className="inline-flex items-center gap-2">
-                                    {SOCIAL_ICONS[link.key] ?? <Globe className="w-4 h-4" />}
-                                    <span>{link.label}</span>
-                                </span>
+                                {SOCIAL_ICONS[link.key] ?? <Globe className="w-5 h-5 text-white" />}
                             </Link>
                         ))}
                     </div>

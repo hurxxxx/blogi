@@ -102,7 +102,19 @@ export default async function AdminMenusPage() {
   const rawMainItems = await prisma.menuItem.findMany({
     where: { menuId: mainMenu.id },
     orderBy: { order: "asc" },
-    include: { boards: { orderBy: { order: "asc" } } },
+    include: {
+      boards: {
+        where: { isDeleted: false },
+        orderBy: { order: "asc" },
+      },
+      linkedCategory: {
+        select: {
+          id: true,
+          thumbnailUrl: true,
+          description: true,
+        },
+      },
+    },
   });
 
   const mainItems = rawMainItems.map((item) => ({
@@ -125,6 +137,11 @@ export default async function AdminMenusPage() {
           : item.href?.startsWith("/community")
             ? ("community" as const)
             : ("category" as const),
+    category: item.linkedCategory ? {
+      id: item.linkedCategory.id,
+      thumbnailUrl: item.linkedCategory.thumbnailUrl,
+      description: item.linkedCategory.description,
+    } : null,
   }));
 
   return (

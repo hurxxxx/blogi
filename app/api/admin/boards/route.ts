@@ -100,14 +100,82 @@ export async function POST(req: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: "ID가 필요합니다" }, { status: 400 });
     }
+    const existing = await prisma.board.findUnique({
+      where: { id },
+      include: { _count: { select: { posts: true } } },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "게시판을 찾을 수 없습니다" }, { status: 404 });
+    }
+    // soft delete - 휴지통으로 이동
+    await prisma.board.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date(),
+        isVisible: false,
+      },
+    });
+    revalidatePath("/", "layout");
+    revalidatePath("/community");
+    return NextResponse.json({
+      success: true,
+      message: "게시판이 휴지통으로 이동되었습니다.",
+      postCount: existing._count.posts,
+    });
+  }
+
+  // 게시판 복구
+  if (action === "restore") {
+    const { id } = body;
+    if (!id) {
+      return NextResponse.json({ error: "ID가 필요합니다" }, { status: 400 });
+    }
     const existing = await prisma.board.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "게시판을 찾을 수 없습니다" }, { status: 404 });
     }
-    await prisma.board.delete({ where: { id } });
+    await prisma.board.update({
+      where: { id },
+      data: {
+        isDeleted: false,
+        deletedAt: null,
+        isVisible: true,
+      },
+    });
     revalidatePath("/", "layout");
     revalidatePath("/community");
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: "게시판이 복구되었습니다." });
+  }
+
+  // 게시판 영구 삭제
+  if (action === "permanentDelete") {
+    const { id } = body;
+    if (!id) {
+      return NextResponse.json({ error: "ID가 필요합니다" }, { status: 400 });
+    }
+    const existing = await prisma.board.findUnique({
+      where: { id },
+      include: { _count: { select: { posts: true } } },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "게시판을 찾을 수 없습니다" }, { status: 404 });
+    }
+    if (!existing.isDeleted) {
+      return NextResponse.json({ error: "휴지통에 있는 게시판만 영구 삭제할 수 있습니다" }, { status: 400 });
+    }
+    // 게시물과 함께 영구 삭제
+    await prisma.$transaction([
+      prisma.post.deleteMany({ where: { boardId: id } }),
+      prisma.board.delete({ where: { id } }),
+    ]);
+    revalidatePath("/", "layout");
+    revalidatePath("/community");
+    return NextResponse.json({
+      success: true,
+      message: "게시판이 영구 삭제되었습니다.",
+      deletedPosts: existing._count.posts,
+    });
   }
 
   if (action === "reorder") {

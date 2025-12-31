@@ -147,8 +147,24 @@ export const BoardManager = ({
     });
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm("이 게시판을 삭제할까요?")) return;
+  const handleDelete = async (id: string, boardName: string) => {
+    // 1단계: 게시글 수 확인
+    const countRes = await fetch(`/api/admin/boards/${id}/posts`);
+    let postCount = 0;
+    if (countRes.ok) {
+      const data = await countRes.json();
+      postCount = data.count || 0;
+    }
+
+    // 2단계: 확인 메시지 (휴지통 이동)
+    let confirmMessage = `"${boardName}" 게시판을 휴지통으로 이동하시겠습니까?`;
+    if (postCount > 0) {
+      confirmMessage = `"${boardName}" 게시판(게시글 ${postCount}개)을 휴지통으로 이동하시겠습니까?\n\n게시글은 유지되며, 관리자 > 휴지통에서 복구하거나 영구 삭제할 수 있습니다.`;
+    }
+
+    if (!confirm(confirmMessage)) return;
+
+    // 3단계: 삭제 실행 (soft delete)
     startTransition(async () => {
       const res = await fetch("/api/admin/boards", {
         method: "POST",
@@ -157,11 +173,12 @@ export const BoardManager = ({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        showToast(data.error || "게시판 삭제에 실패했습니다.", "error");
+        showToast(data.error || "게시판 이동에 실패했습니다.", "error");
         return;
       }
+      const result = await res.json();
       updateBoardState((items) => items.filter((item) => item.id !== id));
-      showToast("게시판이 삭제되었습니다.", "success");
+      showToast(result.message || "게시판이 휴지통으로 이동되었습니다.", "success");
     });
   };
 
@@ -412,7 +429,7 @@ export const BoardManager = ({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleDelete(item.id, item.name)}
                       disabled={disabled || isPending}
                       className="h-6 px-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                     >

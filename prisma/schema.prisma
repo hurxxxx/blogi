@@ -172,31 +172,34 @@ model SiteSettings {
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  description String?
-  order       Int       @default(0)
-  isVisible   Boolean   @default(true)
-  requiresAuth Boolean  @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
-  menuItems   MenuItem[]
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  description  String?
+  thumbnailUrl String?
+  order        Int       @default(0)
+  isVisible    Boolean   @default(true)
+  requiresAuth Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  products     Product[]
+  menuItems    MenuItem[]
 }
 
 model Board {
-  id          String   @id @default(cuid())
-  key         String   @unique
+  id          String    @id @default(cuid())
+  key         String    @unique
   slug        String
   menuItemId  String
-  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  menuItem    MenuItem  @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
   name        String
   description String?
-  order       Int      @default(0)
-  isVisible   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  order       Int       @default(0)
+  isVisible   Boolean   @default(true)
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   posts       Post[]
 
   @@unique([menuItemId, slug])

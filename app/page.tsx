@@ -62,7 +62,6 @@ export default async function Home() {
   ]);
 
   const siteName = siteSettings?.siteName || "사이트";
-  const siteLogoUrl = siteSettings?.siteLogoUrl || "/logo.png";
   const siteTagline = siteSettings?.siteTagline || "";
   const boardMap = await getBoardMapByIds(latestPosts.map((post) => post.boardId));
   const menuCategories = menu.items
@@ -110,7 +109,10 @@ export default async function Home() {
 
   const categories = menuCategories.map((item) => {
     const category = categoryBySlug.get(item.slug);
-    const imageUrl = category?.id ? imageByCategoryId.get(category.id) : undefined;
+    // 카테고리 썸네일 우선, 없으면 상품 이미지 fallback
+    const thumbnailUrl = category?.thumbnailUrl;
+    const productImageUrl = category?.id ? imageByCategoryId.get(category.id) : undefined;
+    const imageUrl = thumbnailUrl || productImageUrl;
     return {
       ...item,
       description: category?.description ?? "",
@@ -119,35 +121,76 @@ export default async function Home() {
     };
   });
 
+  // 커뮤니티 메뉴 (후기, 자유게시판 등)
+  const communityMenus = menu.items
+    .filter((item) => item.linkType === "community" && item.href)
+    .map((item, index) => ({
+      id: item.id,
+      label: item.label,
+      href: item.href ?? "",
+      order: item.order ?? index + 1,
+    }));
+
   return (
     <div className="flex flex-col">
+      {/* Mobile: Category Grid Landing */}
+      <section className="md:hidden px-3 py-2 bg-[#f6f1e8]">
+        <div className="grid grid-cols-3 gap-2">
+          {categories.map((category) => (
+            <Link
+              key={category.label}
+              href={category.href}
+              className="group"
+            >
+              <div className="relative aspect-square rounded-xl overflow-hidden shadow-md">
+                {category.imageUrl ? (
+                  <Image
+                    src={category.imageUrl}
+                    alt={category.label}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 768px) 33vw"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-2">
+                  <span className="text-white text-xs font-semibold leading-tight block">
+                    {category.label}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+          {/* 커뮤니티 메뉴 (후기, 자유게시판) */}
+          {communityMenus.map((menu) => (
+            <Link
+              key={menu.id}
+              href={menu.href}
+              className="group"
+            >
+              <div className="relative aspect-square rounded-xl overflow-hidden shadow-md">
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-600 via-teal-500 to-emerald-600" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-white text-xs font-semibold leading-tight text-center px-1">
+                    {menu.label}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Desktop: Full Landing Page */}
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[#f6f1e8]">
+      <section className="hidden md:block relative overflow-hidden bg-[#f6f1e8]">
         <div className="absolute inset-0 bg-[radial-gradient(1000px_520px_at_85%_0%,rgba(94,234,212,0.18),transparent_60%),radial-gradient(700px_520px_at_10%_10%,rgba(251,146,60,0.16),transparent_60%)]" />
         <div className="container mx-auto px-4 relative z-10 py-16 sm:py-20">
-          {/* Mobile: Elegant brand bar */}
-          <div className="md:hidden -mx-4 mb-12">
-            <div className="bg-gradient-to-r from-[#1a2332] via-[#0f1824] to-[#1a2332] py-5 px-6 flex items-center justify-center gap-5 shadow-lg">
-              <Image
-                src={siteLogoUrl}
-                alt={`${siteName} 로고`}
-                width={140}
-                height={48}
-                className="h-12 w-auto"
-                priority
-                unoptimized
-              />
-              <div className="h-8 w-px bg-white/20" />
-              <div>
-                <p className="font-display text-lg text-white tracking-wide">{siteName}</p>
-                <p className="text-[9px] uppercase tracking-[0.25em] text-white/50">
-                  {siteTagline || "Premium Travel Concierge"}
-                </p>
-              </div>
-            </div>
-          </div>
-          {/* Desktop: Site name only */}
-          <div className="hidden md:block text-center mb-10">
+          {/* Site name */}
+          <div className="text-center mb-10">
             <h2 className="font-display text-3xl tracking-tight text-foreground/90">{siteName}</h2>
             <div className="mt-2 mx-auto w-12 h-0.5 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
@@ -220,7 +263,7 @@ export default async function Home() {
       </section>
 
       {/* Pillars */}
-      <section className="py-12 sm:py-16">
+      <section className="hidden md:block py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <div className="grid gap-4 sm:grid-cols-3">
             {pillars.map((pillar) => {
@@ -247,7 +290,7 @@ export default async function Home() {
       </section>
 
       {/* Categories */}
-      <section className="py-12 sm:py-16">
+      <section className="hidden md:block py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-6">
             <div>
@@ -299,7 +342,7 @@ export default async function Home() {
       </section>
 
       {/* Signature Route */}
-      <section className="py-14 sm:py-20 bg-white/70">
+      <section className="hidden md:block py-14 sm:py-20 bg-white/70">
         <div className="container mx-auto px-4">
           <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] items-center">
             <div className="relative h-[260px] sm:h-[320px] rounded-3xl overflow-hidden shadow-[0_30px_60px_-40px_rgba(15,23,42,0.45)]">
@@ -342,7 +385,7 @@ export default async function Home() {
       </section>
 
       {/* Latest Posts */}
-      <section className="py-14 sm:py-20">
+      <section className="hidden md:block py-14 sm:py-20">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
             <div>

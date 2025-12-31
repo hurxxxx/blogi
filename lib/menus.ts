@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import type { BoardData } from "@/lib/boards";
 
+export type CategoryData = {
+  id: string;
+  thumbnailUrl?: string | null;
+  description?: string | null;
+};
+
 export type MenuItemData = {
   id?: string;
   label: string;
@@ -14,6 +20,7 @@ export type MenuItemData = {
   linkType?: "category" | "community" | "external";
   linkedCategoryId?: string | null;
   boards?: BoardData[];
+  category?: CategoryData | null;
 };
 
 export const DEFAULT_MAIN_MENU: MenuItemData[] = [
@@ -37,7 +44,15 @@ export const getMenuByKey = async (key: string) => {
   const menu = await prisma.menu.findUnique({
     where: { key },
     include: {
-      items: { orderBy: { order: "asc" }, include: { boards: { orderBy: { order: "asc" } } } },
+      items: {
+        orderBy: { order: "asc" },
+        include: {
+          boards: {
+            where: { isDeleted: false },
+            orderBy: { order: "asc" },
+          },
+        },
+      },
     },
   });
 

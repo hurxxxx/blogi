@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Search, LogOut, Settings, Menu, X, Lock } from "lucide-react";
@@ -500,14 +501,65 @@ export const HeaderClient = ({
         )}
       </header>
 
-      {/* Floating hamburger button for mobile */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 p-3 rounded-full bg-[#0b1320]/90 text-white shadow-lg backdrop-blur-sm border border-white/10 hover:bg-[#0b1320] transition"
-        onClick={() => setIsSidebarOpen(true)}
-        aria-label="메뉴 열기"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
+      {/* Mobile Header Bar - 2 rows */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0b1320] shadow-lg pt-2">
+        {/* Row 1: Menu + Search + Login */}
+        <div className="flex items-center px-2 h-11 gap-2 border-b border-white/10">
+          {/* Left: Hamburger Menu */}
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 rounded-lg bg-sky-500 hover:bg-sky-400 transition"
+            aria-label="메뉴 열기"
+          >
+            <Menu className="w-5 h-5 text-white" />
+          </button>
+
+          {/* Center: Search */}
+          <form action="/search" method="get" className="flex-1">
+            <div className="relative">
+              <Input
+                name="q"
+                type="search"
+                placeholder="검색..."
+                className="h-8 pl-3 pr-8 bg-white text-gray-900 text-sm placeholder:text-gray-400 border-0 rounded-lg"
+              />
+              <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+          </form>
+
+          {/* Right: Login */}
+          {session ? (
+            <span className="text-white text-sm font-medium px-2 truncate max-w-[80px]">
+              {session.user?.name?.slice(0, 4) || "회원"}
+            </span>
+          ) : (
+            <Link
+              href="/login"
+              className="text-white text-sm font-semibold whitespace-nowrap px-2 hover:text-white/80 transition"
+            >
+              로그인
+            </Link>
+          )}
+        </div>
+
+        {/* Row 2: Logo + Site Name */}
+        <div className="flex items-center justify-center gap-3 py-1">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src={siteLogoUrl}
+              alt={siteName}
+              width={200}
+              height={70}
+              className="h-[70px] w-auto object-contain"
+              unoptimized
+            />
+            <div className="h-10 w-px bg-white/20" />
+            <span className="text-white font-display text-xl tracking-wide">
+              {siteName}
+            </span>
+          </Link>
+        </div>
+      </div>
 
       {isSidebarOpen && (
         <div className="md:hidden fixed inset-0 bg-black/60 z-50" onClick={closeSidebar} />

@@ -1,7 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { getCommunityGroupBySlug } from "@/lib/community";
-import { getSiteSettings } from "@/lib/site-settings";
 
 interface CommunityGroupPageProps {
   params: Promise<{ group: string }>;
@@ -10,12 +9,7 @@ interface CommunityGroupPageProps {
 export default async function CommunityGroupPage({ params }: CommunityGroupPageProps) {
   const { group } = await params;
   const session = await auth();
-  const settings = await getSiteSettings();
   const isAdmin = session?.user?.role === "ADMIN";
-
-  if (!settings.communityEnabled && !isAdmin) {
-    redirect("/community");
-  }
 
   const community = await getCommunityGroupBySlug(group, {
     includeHiddenBoards: isAdmin,

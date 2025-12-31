@@ -66,7 +66,7 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>
             <Header />
-            <main className="flex-1 bg-transparent pt-[130px] md:pt-0">
+            <main className="flex-1 flex flex-col bg-transparent pt-[130px] md:pt-0">
               {children}
             </main>
             <ScrollToTop />

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
-import { FileText, Globe, Image, ImageIcon, Tag, Users, Upload, Palette, MousePointer2, Check } from "lucide-react";
+import { FileText, Globe, Image, ImageIcon, Tag, Upload, Palette, MousePointer2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HeaderStyle, HEADER_STYLES } from "@/lib/header-styles";
 
@@ -17,7 +17,6 @@ interface SiteSettingsFormProps {
     siteDescription?: string | null;
     ogImageUrl?: string | null;
     faviconUrl?: string | null;
-    communityEnabled?: boolean | null;
     headerStyle?: string | null;
     headerScrollEffect?: boolean | null;
   };
@@ -32,9 +31,6 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
   const [siteDescription, setSiteDescription] = useState(initialData.siteDescription ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(initialData.ogImageUrl ?? "");
   const [faviconUrl, setFaviconUrl] = useState(initialData.faviconUrl ?? "");
-  const [communityEnabled, setCommunityEnabled] = useState(
-    typeof initialData.communityEnabled === "boolean" ? initialData.communityEnabled : true
-  );
   const [headerStyle, setHeaderStyle] = useState<HeaderStyle>(
     (initialData.headerStyle as HeaderStyle) || "classic"
   );
@@ -98,7 +94,6 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
         siteDescription: siteDescription.trim() || null,
         ogImageUrl: ogImageUrl.trim() || null,
         faviconUrl: faviconUrl.trim() || null,
-        communityEnabled,
         headerStyle,
         headerScrollEffect,
       };
@@ -277,35 +272,6 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
               <img src={faviconUrl} alt="파비콘 미리보기" className="h-8 object-contain" />
             </div>
           )}
-        </div>
-      </div>
-
-      {/* 커뮤니티 기능 */}
-      <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors">
-        <div className={`p-2.5 rounded-lg ${communityEnabled ? "bg-purple-50 text-purple-600" : "bg-gray-100 text-gray-400"}`}>
-          <Users className="w-5 h-5" />
-        </div>
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">커뮤니티 기능</label>
-            <button
-              type="button"
-              onClick={() => setCommunityEnabled(!communityEnabled)}
-              disabled={isPending}
-              className={`relative w-11 h-6 rounded-full transition-colors ${
-                communityEnabled ? "bg-purple-500" : "bg-gray-300"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  communityEnabled ? "translate-x-5" : ""
-                }`}
-              />
-            </button>
-          </div>
-          <p className="text-xs text-gray-400">
-            비활성화하면 커뮤니티 메뉴와 게시판이 숨겨집니다.
-          </p>
         </div>
       </div>
 

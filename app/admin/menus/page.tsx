@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { MenuManager } from "@/components/admin/menu-manager";
 import { DEFAULT_MAIN_MENU } from "@/lib/menus";
-import { getSiteSettings } from "@/lib/site-settings";
 
 const seedMenuItems = async (menuId: string, items: typeof DEFAULT_MAIN_MENU) => {
   for (const [index, item] of items.entries()) {
@@ -83,14 +82,11 @@ const ensureCategoryMenuItems = async (menuId: string) => {
 };
 
 export default async function AdminMenusPage() {
-  const [mainMenu, siteSettings] = await Promise.all([
-    prisma.menu.upsert({
-      where: { key: "main" },
-      update: {},
-      create: { key: "main", name: "Main" },
-    }),
-    getSiteSettings(),
-  ]);
+  const mainMenu = await prisma.menu.upsert({
+    where: { key: "main" },
+    update: {},
+    create: { key: "main", name: "Main" },
+  });
 
   const mainCount = await prisma.menuItem.count({ where: { menuId: mainMenu.id } });
 
@@ -171,7 +167,6 @@ export default async function AdminMenusPage() {
               items: mainItems,
             },
           ]}
-          communityEnabled={siteSettings.communityEnabled}
         />
     </div>
   );

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getBoards, getBoardsByMenuItemId } from "@/lib/boards";
 import { getCommunityGroupBySlug } from "@/lib/community";
-import { getSiteSettings } from "@/lib/site-settings";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -11,11 +10,6 @@ export async function GET(req: NextRequest) {
   const menuItemId = searchParams.get("menuItemId") || undefined;
   const session = await auth();
   const isAdmin = session?.user?.role === "ADMIN";
-  const settings = await getSiteSettings();
-
-  if (!settings.communityEnabled && !isAdmin) {
-    return NextResponse.json({ error: "커뮤니티 기능이 비활성화되어 있습니다." }, { status: 403 });
-  }
 
   if (group) {
     const community = await getCommunityGroupBySlug(group, {

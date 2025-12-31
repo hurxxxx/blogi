@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { getSiteSettings } from "@/lib/site-settings";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -10,7 +9,6 @@ interface RouteParams {
 // GET: Get a single post
 export async function GET(req: NextRequest, { params }: RouteParams) {
     const session = await auth();
-    const settings = await getSiteSettings();
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const shouldIncrement =
@@ -36,10 +34,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 
     const isAdmin = session?.user?.role === "ADMIN";
-    if (!settings.communityEnabled && !isAdmin) {
-        return NextResponse.json({ error: "커뮤니티 기능이 비활성화되어 있습니다." }, { status: 403 });
-    }
-
     const isAuthor = session?.user?.id === post.authorId;
     if (post.isSecret && !isAuthor && !isAdmin) {
         return NextResponse.json({ error: "비밀글입니다", isSecret: true }, { status: 403 });
@@ -86,10 +80,6 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
-    }
-    const settings = await getSiteSettings();
-    if (!settings.communityEnabled && session.user.role !== "ADMIN") {
-        return NextResponse.json({ error: "커뮤니티 기능이 비활성화되어 있습니다." }, { status: 403 });
     }
     const currentUser = await prisma.user.findUnique({ where: { id: session.user.id } });
     if (!currentUser) {

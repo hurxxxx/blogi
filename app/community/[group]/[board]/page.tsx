@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth } from "@/auth";
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PostListView } from "@/app/community/post-list-view";
 import { getCommunityGroupBySlug } from "@/lib/community";
-import { getSiteSettings } from "@/lib/site-settings";
 
 async function PostList({
   boardId,
@@ -120,17 +119,12 @@ interface CommunityBoardPageProps {
 
 export default async function CommunityBoardPage({ params, searchParams }: CommunityBoardPageProps) {
   const session = await auth();
-  const settings = await getSiteSettings();
   const isAdmin = session?.user?.role === "ADMIN";
   const { group, board } = await params;
   const queryParams = await searchParams;
   const query = (queryParams.q || "").trim();
   const page = Math.max(1, Number(queryParams.page || 1));
   const pageSize = 10;
-
-  if (!settings.communityEnabled && !isAdmin) {
-    redirect("/community");
-  }
 
   const community = await getCommunityGroupBySlug(group, {
     includeHiddenBoards: isAdmin,

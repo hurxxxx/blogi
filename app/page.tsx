@@ -132,10 +132,10 @@ export default async function Home() {
     }));
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col flex-1">
       {/* Mobile: Category Grid Landing */}
-      <section className="md:hidden px-3 py-2 bg-[#f6f1e8]">
-        <div className="grid grid-cols-3 gap-2">
+      <section className="md:hidden flex-1 flex items-center justify-center px-3 py-2 bg-[#f6f1e8]">
+        <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
           {categories.map((category) => (
             <Link
               key={category.label}

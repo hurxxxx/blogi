@@ -25,7 +25,6 @@ interface HeaderClientProps {
     slug: string;
     boards: { id: string; key: string; slug: string; name: string }[];
   }[];
-  communityEnabled: boolean;
   headerStyle?: HeaderStyle;
   headerScrollEffect?: boolean;
 }
@@ -36,7 +35,6 @@ export const HeaderClient = ({
   siteLogoUrl,
   siteTagline,
   communityGroups,
-  communityEnabled,
   headerStyle = "classic",
   headerScrollEffect = true,
 }: HeaderClientProps) => {
@@ -148,9 +146,7 @@ export const HeaderClient = ({
     setIsSidebarOpen(false);
     setOpenCommunityId(null);
   };
-  const visibleMenuItems = communityEnabled
-    ? menuItems
-    : menuItems.filter((item) => item.linkType !== "community");
+  const visibleMenuItems = menuItems;
 
   const handleProtectedClick = (event: React.MouseEvent, href: string) => {
     if (session) return;
@@ -215,7 +211,6 @@ export const HeaderClient = ({
   };
 
   const renderCommunityMenu = (route: MenuItemData, isMobile = false) => {
-    if (!communityEnabled) return null;
     const group = route.id ? groupMap.get(route.id) : undefined;
     const communityHref = group?.href || route.href || "/community";
     const isActive = communityHref

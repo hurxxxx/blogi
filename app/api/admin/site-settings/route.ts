@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
     siteDescription,
     ogImageUrl,
     faviconUrl,
-    communityEnabled,
     headerStyle,
     headerScrollEffect,
   } = body;
@@ -41,7 +40,6 @@ export async function POST(req: NextRequest) {
         : null,
     ogImageUrl: typeof ogImageUrl === "string" && ogImageUrl.trim() ? ogImageUrl.trim() : null,
     faviconUrl: typeof faviconUrl === "string" && faviconUrl.trim() ? faviconUrl.trim() : null,
-    communityEnabled: typeof communityEnabled === "boolean" ? communityEnabled : undefined,
   };
 
   // 헤더 스타일 설정 추가

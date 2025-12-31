@@ -16,7 +16,6 @@ type MenuSection = {
 
 interface MenuManagerProps {
   menus: MenuSection[];
-  communityEnabled?: boolean;
 }
 
 const blankItem: {
@@ -235,7 +234,7 @@ const CategoryEditor = ({
   );
 };
 
-export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps) => {
+export const MenuManager = ({ menus }: MenuManagerProps) => {
   const { showToast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [dragState, setDragState] = useState<{
@@ -734,16 +733,11 @@ export const MenuManager = ({ menus, communityEnabled = true }: MenuManagerProps
                   {/* 커뮤니티 하위 게시판 */}
                   {item.linkType === "community" && item.id && (
                     <div className="px-4 pb-4 pt-2 bg-slate-50/50 border-t border-dashed border-gray-200">
-                      {!communityEnabled && (
-                        <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                          커뮤니티 기능이 비활성화되어 있습니다.
-                        </div>
-                      )}
                       <BoardManager
                         boards={item.boards ?? []}
                         menuItemId={item.id}
                         groupSlug={getCommunitySlug(item.href, item.label)}
-                        disabled={isPending || !communityEnabled}
+                        disabled={isPending}
                       />
                     </div>
                   )}

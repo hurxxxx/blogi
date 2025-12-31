@@ -18,7 +18,6 @@ export const Header = async () => {
       siteLogoUrl={footerSettings.siteLogoUrl || "/logo.png"}
       siteTagline={siteSettings.siteTagline || ""}
       communityGroups={communityGroups}
-      communityEnabled={siteSettings.communityEnabled}
       headerStyle={siteSettings.headerStyle}
       headerScrollEffect={siteSettings.headerScrollEffect}
     />

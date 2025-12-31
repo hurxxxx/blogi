@@ -19,6 +19,7 @@ interface ProductCardSectionProps {
   currentPage?: number;
   totalPages?: number;
   showPagination?: boolean;
+  label?: string | null;
 }
 
 export const ProductCardSection = ({
@@ -28,11 +29,15 @@ export const ProductCardSection = ({
   currentPage = 1,
   totalPages = 1,
   showPagination = false,
+  label,
 }: ProductCardSectionProps) => {
   if (products.length === 0) return null;
 
   return (
     <div>
+      {label && (
+        <h2 className="font-display text-xl md:text-2xl mb-4">{label}</h2>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
         {products.map((product) => (
           <ProductCard

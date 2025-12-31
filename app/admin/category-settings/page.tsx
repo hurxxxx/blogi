@@ -11,8 +11,10 @@ export default async function AdminCategorySettingsPage() {
       slug: true,
       listViewEnabled: true,
       listViewCount: true,
+      listViewLabel: true,
       cardViewEnabled: true,
       cardViewCount: true,
+      cardViewLabel: true,
       displayOrder: true,
     },
   });

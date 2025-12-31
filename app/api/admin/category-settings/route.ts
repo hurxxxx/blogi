@@ -23,8 +23,10 @@ export async function POST(req: NextRequest) {
     applyToAll, // 전체 적용 플래그
     listViewEnabled,
     listViewCount,
+    listViewLabel,
     cardViewEnabled,
     cardViewCount,
+    cardViewLabel,
     displayOrder,
   } = body;
 
@@ -39,8 +41,10 @@ export async function POST(req: NextRequest) {
   const updateData = {
     listViewEnabled: Boolean(listViewEnabled),
     listViewCount: Math.max(0, Number(listViewCount) || 0),
+    listViewLabel: listViewLabel?.trim() || null,
     cardViewEnabled: Boolean(cardViewEnabled),
     cardViewCount: Math.max(0, Number(cardViewCount) || 0),
+    cardViewLabel: cardViewLabel?.trim() || null,
     displayOrder: displayOrder === "list" ? "list" : "card",
   };
 
@@ -93,8 +97,10 @@ export async function GET() {
       slug: true,
       listViewEnabled: true,
       listViewCount: true,
+      listViewLabel: true,
       cardViewEnabled: true,
       cardViewCount: true,
+      cardViewLabel: true,
       displayOrder: true,
     },
   });

@@ -70,8 +70,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     const {
         listViewEnabled,
         listViewCount,
+        listViewLabel,
         cardViewEnabled,
         cardViewCount,
+        cardViewLabel,
         displayOrder,
     } = category;
 
@@ -157,6 +159,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                             currentPage={listCurrentPage}
                             totalPages={listTotalPages}
                             showPagination={showListPagination}
+                            label={listViewLabel}
                         />
                     </Suspense>
                 </div>
@@ -175,6 +178,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                             currentPage={cardCurrentPage}
                             totalPages={cardTotalPages}
                             showPagination={showCardPagination}
+                            label={cardViewLabel}
                         />
                     </Suspense>
                 </div>

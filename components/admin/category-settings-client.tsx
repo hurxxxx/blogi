@@ -19,8 +19,10 @@ interface CategoryData {
   slug: string;
   listViewEnabled: boolean;
   listViewCount: number;
+  listViewLabel: string | null;
   cardViewEnabled: boolean;
   cardViewCount: number;
+  cardViewLabel: string | null;
   displayOrder: string;
 }
 
@@ -40,8 +42,10 @@ export const CategorySettingsClient = ({
   const [bulkSettings, setBulkSettings] = useState({
     listViewEnabled: false,
     listViewCount: 10,
+    listViewLabel: "",
     cardViewEnabled: true,
     cardViewCount: 0,
+    cardViewLabel: "",
     displayOrder: "card",
   });
 
@@ -74,8 +78,10 @@ export const CategorySettingsClient = ({
           ...cat,
           listViewEnabled: bulkSettings.listViewEnabled,
           listViewCount: bulkSettings.listViewCount,
+          listViewLabel: bulkSettings.listViewLabel || null,
           cardViewEnabled: bulkSettings.cardViewEnabled,
           cardViewCount: bulkSettings.cardViewCount,
+          cardViewLabel: bulkSettings.cardViewLabel || null,
           displayOrder: bulkSettings.displayOrder,
         }))
       );
@@ -183,8 +189,10 @@ const CategorySettingsItem = ({
   const [settings, setSettings] = useState({
     listViewEnabled: category.listViewEnabled,
     listViewCount: category.listViewCount,
+    listViewLabel: category.listViewLabel || "",
     cardViewEnabled: category.cardViewEnabled,
     cardViewCount: category.cardViewCount,
+    cardViewLabel: category.cardViewLabel || "",
     displayOrder: category.displayOrder,
   });
 
@@ -193,8 +201,10 @@ const CategorySettingsItem = ({
     setSettings({
       listViewEnabled: category.listViewEnabled,
       listViewCount: category.listViewCount,
+      listViewLabel: category.listViewLabel || "",
       cardViewEnabled: category.cardViewEnabled,
       cardViewCount: category.cardViewCount,
+      cardViewLabel: category.cardViewLabel || "",
       displayOrder: category.displayOrder,
     });
   }, [category]);
@@ -251,8 +261,10 @@ const CategorySettingsItem = ({
 interface SettingsData {
   listViewEnabled: boolean;
   listViewCount: number;
+  listViewLabel: string;
   cardViewEnabled: boolean;
   cardViewCount: number;
+  cardViewLabel: string;
   displayOrder: string;
 }
 
@@ -298,18 +310,32 @@ const SettingsPanel = ({
           </button>
         </div>
         {settings.listViewEnabled && (
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-sm text-gray-600">표시 개수:</span>
-            <Input
-              type="number"
-              min={0}
-              value={settings.listViewCount}
-              onChange={(e) =>
-                onChange({ ...settings, listViewCount: Number(e.target.value) })
-              }
-              className="w-20 h-8 text-sm"
-            />
-            <span className="text-xs text-gray-400">(0 = 전체, 페이징 적용)</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm text-gray-600">표시 개수:</span>
+              <Input
+                type="number"
+                min={0}
+                value={settings.listViewCount}
+                onChange={(e) =>
+                  onChange({ ...settings, listViewCount: Number(e.target.value) })
+                }
+                className="w-20 h-8 text-sm"
+              />
+              <span className="text-xs text-gray-400">(0 = 전체, 페이징 적용)</span>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm text-gray-600">섹션 제목:</span>
+              <Input
+                type="text"
+                value={settings.listViewLabel}
+                onChange={(e) =>
+                  onChange({ ...settings, listViewLabel: e.target.value })
+                }
+                placeholder="비어있으면 표시 안함"
+                className="flex-1 h-8 text-sm max-w-[200px]"
+              />
+            </div>
           </div>
         )}
       </div>
@@ -338,18 +364,32 @@ const SettingsPanel = ({
           </button>
         </div>
         {settings.cardViewEnabled && (
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-sm text-gray-600">표시 개수:</span>
-            <Input
-              type="number"
-              min={0}
-              value={settings.cardViewCount}
-              onChange={(e) =>
-                onChange({ ...settings, cardViewCount: Number(e.target.value) })
-              }
-              className="w-20 h-8 text-sm"
-            />
-            <span className="text-xs text-gray-400">(0 = 전체, 페이징 적용)</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm text-gray-600">표시 개수:</span>
+              <Input
+                type="number"
+                min={0}
+                value={settings.cardViewCount}
+                onChange={(e) =>
+                  onChange({ ...settings, cardViewCount: Number(e.target.value) })
+                }
+                className="w-20 h-8 text-sm"
+              />
+              <span className="text-xs text-gray-400">(0 = 전체, 페이징 적용)</span>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm text-gray-600">섹션 제목:</span>
+              <Input
+                type="text"
+                value={settings.cardViewLabel}
+                onChange={(e) =>
+                  onChange({ ...settings, cardViewLabel: e.target.value })
+                }
+                placeholder="비어있으면 표시 안함"
+                className="flex-1 h-8 text-sm max-w-[200px]"
+              />
+            </div>
           </div>
         )}
       </div>

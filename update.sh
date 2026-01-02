@@ -36,6 +36,9 @@ npx prisma generate
 echo "Run DB migrations..."
 npm run db:deploy
 
+echo "Clean previous build..."
+rm -rf .next
+
 echo "Build..."
 npm run build
 

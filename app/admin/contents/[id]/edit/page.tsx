@@ -16,6 +16,7 @@ type CategoryOption = {
     id: string;
     name: string;
     slug: string;
+    isVisible?: boolean;
 };
 
 export default function EditContentPage() {
@@ -216,12 +217,19 @@ export default function EditContentPage() {
                                 disabled={saving || categoryLoading || categories.length === 0}
                             >
                                 <option value="">카테고리 선택</option>
-                                {categories.map((cat) => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.name}
-                                    </option>
-                                ))}
+                                {categories
+                                    .filter((cat) => cat.isVisible !== false || cat.id === categoryId)
+                                    .map((cat) => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.name}{cat.isVisible === false ? " (숨김)" : ""}
+                                        </option>
+                                    ))}
                             </select>
+                            {categories.find((c) => c.id === categoryId)?.isVisible === false && (
+                                <p className="text-xs text-amber-600">
+                                    현재 선택된 카테고리는 숨김 상태입니다. 다른 카테고리로 변경하는 것을 권장합니다.
+                                </p>
+                            )}
                             {categories.length === 0 && !categoryLoading && (
                                 <p className="text-xs text-amber-600">
                                     메뉴 관리에서 콘텐츠 카테고리를 먼저 추가해주세요.

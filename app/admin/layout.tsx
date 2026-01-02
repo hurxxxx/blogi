@@ -45,9 +45,15 @@ export default async function AdminLayout({
                     <Link href="/admin/footer" className="block p-2 hover:bg-gray-800 rounded">
                         푸터 설정
                     </Link>
-                    <Link href="/admin/trash" className="block p-2 hover:bg-gray-800 rounded">
-                        휴지통
-                    </Link>
+                    <div className="space-y-1">
+                        <span className="block p-2 text-gray-400 text-sm">휴지통</span>
+                        <Link href="/admin/trash" className="block p-2 pl-4 hover:bg-gray-800 rounded text-sm">
+                            삭제된 게시판
+                        </Link>
+                        <Link href="/admin/categories/hidden" className="block p-2 pl-4 hover:bg-gray-800 rounded text-sm">
+                            숨김 카테고리
+                        </Link>
+                    </div>
                     <Link href="/" className="block p-2 text-gray-400 hover:text-white md:mt-8">
                         사이트로 돌아가기
                     </Link>

@@ -36,7 +36,7 @@ export default function NewContentPage() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await fetch("/api/categories?all=true");
+                const res = await fetch("/api/categories");
                 if (res.ok) {
                     const data = await res.json();
                     setCategories(Array.isArray(data) ? data : []);

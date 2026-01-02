@@ -64,10 +64,15 @@ SITE_URL="https://example.com"
 
 아래는 `/uploads/*` 경로를 NFS 마운트 경로로 매핑하는 예시입니다.
 
+**중요**: `^~` 수정자를 사용하여 정규식 location보다 우선 매칭되도록 설정해야 합니다.
+그렇지 않으면 `.jpg` 등의 정규식 패턴이 먼저 매칭되어 Next.js로 프록시될 수 있습니다.
+
 ```nginx
-location /uploads/ {
+# 업로드된 파일 (직접 서빙 - ^~ 로 정규식보다 우선)
+location ^~ /uploads/ {
   alias /mnt/storage1/data/danang_vip/;
   access_log off;
+  expires 1y;
   add_header Cache-Control "public, max-age=31536000, immutable";
 }
 ```
@@ -121,7 +126,29 @@ location /uploads/ {
 - 파일 업로드 후 실제 파일이 NFS에 저장되는지 확인
 - 백업/스냅샷 정책 설정
 
-## 6) 참고
+## 6) Next.js 이미지 최적화 설정
+
+운영 환경에서 `/_next/image` 엔드포인트가 `/uploads/` 이미지를 최적화할 수 있도록
+`next.config.ts`에 `remotePatterns`를 설정해야 합니다.
+
+```typescript
+// next.config.ts
+const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "your-domain.com",  // 실제 도메인으로 변경
+        pathname: "/uploads/**",
+      },
+    ],
+  },
+};
+```
+
+설정 변경 후 반드시 `npm run build`로 재빌드해야 적용됩니다.
+
+## 7) 참고
 
 - 개발/운영 모두 동일한 `UPLOADS_URL`(`/uploads`)을 사용하도록 설계되어 있습니다.
 - 실제 도메인이 생기면 CDN이나 프록시에서 동일 경로를 유지하면 됩니다.

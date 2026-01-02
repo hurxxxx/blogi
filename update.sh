@@ -24,7 +24,7 @@ ensure_app_running() {
   pm2 save
   local elapsed=0
   local timeout=30
-  while ! ss -lptn | rg -q ":${PORT}\\b"; do
+  while ! port_listening; do
     if [ "$elapsed" -ge "$timeout" ]; then
       echo "Port $PORT is not listening after restart."
       echo "Check pm2 logs: pm2 logs $APP_NAME --lines 200 --nostream"
@@ -33,6 +33,15 @@ ensure_app_running() {
     sleep 1
     elapsed=$((elapsed + 1))
   done
+}
+
+port_listening() {
+  if command -v rg >/dev/null 2>&1; then
+    ss -lptn | rg -q ":${PORT}\\b"
+    return $?
+  fi
+
+  ss -lptn | grep -q ":${PORT}[[:space:]]"
 }
 
 ensure_pm2
@@ -55,13 +64,6 @@ rm -rf .next
 
 echo "Build..."
 npm run build
-
-echo "Sync standalone assets..."
-mkdir -p .next/standalone/.next
-rm -rf .next/standalone/.next/static
-cp -R .next/static .next/standalone/.next/
-rm -rf .next/standalone/public
-cp -R public .next/standalone/public
 
 echo "Restart app..."
 ensure_app_running

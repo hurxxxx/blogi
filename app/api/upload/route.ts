@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { writeFile, mkdir } from "fs/promises";
+import { mkdir, open, stat } from "fs/promises";
 import path from "path";
 import { existsSync } from "fs";
 
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
         // Create scoped date directory if it doesn't exist
         const uploadsRoot =
-            process.env.UPLOADS_DIR || path.join(process.cwd(), "public", "uploads");
+            process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
         const now = new Date();
         const yyyy = String(now.getFullYear());
         const mm = String(now.getMonth() + 1).padStart(2, "0");
@@ -56,11 +56,33 @@ export async function POST(req: NextRequest) {
         const ext = path.extname(file.name) || `.${file.type.split("/")[1]}`;
         const filename = `${timestamp}-${randomString}${ext}`;
 
-        // Save file
+        // Save file with fsync for NFS reliability
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
         const filePath = path.join(scopedDir, filename);
-        await writeFile(filePath, buffer);
+        const fileHandle = await open(filePath, "w");
+        try {
+            await fileHandle.writeFile(buffer);
+            await fileHandle.sync(); // Ensure data is flushed to NFS storage
+        } finally {
+            await fileHandle.close();
+        }
+
+        // Verify file is readable (NFS sync check)
+        const maxRetries = 3;
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                const fileStat = await stat(filePath);
+                if (fileStat.size === buffer.length) {
+                    break;
+                }
+            } catch {
+                if (i === maxRetries - 1) {
+                    throw new Error("File verification failed after write");
+                }
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+        }
 
         // Return URL
         const baseUrl = (process.env.UPLOADS_URL || "/uploads").replace(/\/+$/, "");

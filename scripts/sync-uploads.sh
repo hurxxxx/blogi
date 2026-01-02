@@ -7,9 +7,9 @@ set -euo pipefail
 SERVER_HOST="${SERVER_HOST:-103.167.151.104}"
 SERVER_PORT="${SERVER_PORT:-22}"
 SERVER_USER="${SERVER_USER:-root}"
-REMOTE_UPLOADS_DIR="${REMOTE_UPLOADS_DIR:-/projects/danang-vip/public/uploads}"
+REMOTE_UPLOADS_DIR="${REMOTE_UPLOADS_DIR:-/data/danang-vip/uploads}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-LOCAL_DIR="${LOCAL_DIR:-${SCRIPT_DIR}/../public/uploads}"
+LOCAL_DIR="${LOCAL_DIR:-${SCRIPT_DIR}/../uploads}"
 ENV_FILE="${ENV_FILE:-${SCRIPT_DIR}/../.env}"
 
 # Set this to avoid prompts, or leave blank to be loaded from .env or prompted.

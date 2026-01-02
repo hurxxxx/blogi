@@ -45,41 +45,67 @@ npm run db:migrate
 npm run dev
 ```
 
-## 3) 운영 환경 (NFS 마운트 사용)
+## 3) 운영 환경 (gc.lumejs.com)
 
-운영에서는 NFS로 마운트된 경로에 이미지를 저장하고,
-Nginx에서 정적 서빙하도록 구성합니다.
+### 배포 방식
 
-### 운영 환경 변수 예시 (.env.production)
+- **실행 방식**: `next start` (PM2로 관리)
+- **파일 서빙**: Next.js가 직접 처리 (`app/uploads/[[...path]]/route.ts`)
+- **Nginx 역할**: SSL 종료, 리버스 프록시만 담당
+
+### 현재 운영 설정
+
+| 항목 | 값 |
+|------|-----|
+| 업로드 저장 경로 | `/data/danang-vip/uploads` (NFS 마운트) |
+| 업로드 URL | `/uploads` |
+| PM2 앱 이름 | `danang-vip` |
+| 포트 | 3010 |
+
+### 운영 환경 변수 (.env)
 
 ```env
 DATABASE_URL="postgresql://danang_vip_user:<PASSWORD>@localhost:5432/danang_vip?schema=public"
 AUTH_SECRET="<운영용 시크릿 키>"
-UPLOADS_DIR="/mnt/storage1/data/danang_vip"
-UPLOADS_URL="/uploads"
-SITE_URL="https://example.com"
+AUTH_TRUST_HOST=true
+AUTH_URL="https://gc.lumejs.com"
+
+# Uploads
+UPLOADS_DIR=/data/danang-vip/uploads
+UPLOADS_URL=/uploads
+
+# Pexels
+PEXELS_API_KEY="<API 키>"
+IMAGE_REMOTE_HOST="gc.lumejs.com"
 ```
 
-### Nginx 정적 서빙 설정
+### Nginx 설정 (SSL/프록시 전용)
 
-아래는 `/uploads/*` 경로를 NFS 마운트 경로로 매핑하는 예시입니다.
-
-**중요**: `^~` 수정자를 사용하여 정규식 location보다 우선 매칭되도록 설정해야 합니다.
-그렇지 않으면 `.jpg` 등의 정규식 패턴이 먼저 매칭되어 Next.js로 프록시될 수 있습니다.
+파일: `/etc/nginx/sites-available/gc.lumejs.com`
 
 ```nginx
-# 업로드된 파일 (직접 서빙 - ^~ 로 정규식보다 우선)
-location ^~ /uploads/ {
-  alias /mnt/storage1/data/danang_vip/;
-  access_log off;
-  expires 1y;
-  add_header Cache-Control "public, max-age=31536000, immutable";
+server {
+    server_name gc.lumejs.com;
+    client_max_body_size 10M;
+
+    location / {
+        proxy_pass http://localhost:3010;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
 
 ### 디렉토리 권한
 
-앱 서버가 `/mnt/storage1/data/danang_vip` 경로에 쓰기 권한을 가져야 합니다.
+앱 서버(PM2)가 `/data/danang-vip/uploads` 경로에 쓰기 권한을 가져야 합니다.
+
+```bash
+chmod -R 755 /data/danang-vip/uploads
+```
 
 ## 4) 업로드 동작 확인
 
@@ -91,13 +117,14 @@ location ^~ /uploads/ {
 클라이언트에서 서버 업로드 파일을 내려받아 동기화할 때는 아래 스크립트를 사용합니다.
 
 - 스크립트: `scripts/sync-uploads.sh`
-- 기본 경로: `/projects/danang-vip/public/uploads`
-- 운영에서 `UPLOADS_DIR`를 사용 중이면 `REMOTE_UPLOADS_DIR`를 해당 경로로 변경
+- 운영 서버 경로: `/data/danang-vip/uploads`
+- 로컬 경로: `./uploads`
 
 사용 방법:
 
 ```bash
-./scripts/sync-uploads.sh
+./scripts/sync-uploads.sh --pull   # 서버에서 로컬로 다운로드
+./scripts/sync-uploads.sh --push   # 로컬에서 서버로 업로드
 ```
 
 `sshpass`가 설치되어 있으면 스크립트에 비밀번호를 입력한 뒤 비대화식으로 동기화할 수 있습니다.
@@ -116,15 +143,16 @@ location ^~ /uploads/ {
 /uploads/posts/2025/12/22/1700000000-xyz789.webp
 ```
 
-## 5) 운영 체크리스트 (NFS 업로드)
+## 5) 운영 체크리스트
 
-- NFS 마운트 경로가 부팅 시 자동 마운트되는지 확인 (`/etc/fstab`)
-- `/mnt/storage1/data/danang_vip` 디렉토리 생성 및 쓰기 권한 확인
-- 앱 프로세스가 해당 경로에 쓰기 가능한지 확인
-- Nginx에서 `/uploads/` 정적 서빙 설정 적용 및 재시작
-- 캐시 헤더가 정상 적용되는지 확인
-- 파일 업로드 후 실제 파일이 NFS에 저장되는지 확인
-- 백업/스냅샷 정책 설정
+- [ ] `/data/danang-vip/uploads` 디렉토리 생성 및 권한 확인 (`chmod 755`)
+- [ ] `.env`에 `UPLOADS_DIR=/data/danang-vip/uploads` 설정
+- [ ] Nginx `client_max_body_size 10M` 설정
+- [ ] `nginx -t && systemctl reload nginx`
+- [ ] `npm run build`
+- [ ] `pm2 delete danang-vip && pm2 start ecosystem.config.cjs && pm2 save`
+- [ ] 파일 업로드 테스트
+- [ ] 업로드 후 `/data/danang-vip/uploads/`에 파일 저장 확인
 
 ## 6) Next.js 이미지 최적화 설정
 
@@ -148,7 +176,26 @@ const nextConfig: NextConfig = {
 
 설정 변경 후 반드시 `npm run build`로 재빌드해야 적용됩니다.
 
-## 7) 참고
+## 7) 파일 서빙 구조
 
-- 개발/운영 모두 동일한 `UPLOADS_URL`(`/uploads`)을 사용하도록 설계되어 있습니다.
-- 실제 도메인이 생기면 CDN이나 프록시에서 동일 경로를 유지하면 됩니다.
+Next.js가 모든 `/uploads/...` 요청을 직접 처리합니다.
+
+- `app/uploads/[[...path]]/route.ts` - 파일 서빙 담당
+- `UPLOADS_DIR` 환경변수 경로에서 파일을 읽어서 응답
+- Nginx 없이도 완전히 독립적으로 동작
+
+### Nginx 역할
+
+| 역할 | 설명 |
+|------|------|
+| SSL 종료 | HTTPS 인증서 처리 |
+| 리버스 프록시 | localhost:3010으로 요청 전달 |
+| 업로드 크기 제한 | `client_max_body_size 10M` |
+
+**파일 서빙은 Next.js가 담당하므로 Nginx alias 설정 불필요**
+
+## 8) 참고
+
+- 개발/운영 모두 동일한 `UPLOADS_URL`(`/uploads`)을 사용
+- 모든 요청은 Next.js가 처리 (Nginx 의존성 없음)
+- 배포 방식: `next start` (standalone 모드 사용 안함)

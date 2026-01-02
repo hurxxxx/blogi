@@ -176,30 +176,42 @@ npx prisma studio
 
 ---
 
-## Nginx 설정
+## 업로드 설정
+
+### 환경변수
+
+```env
+# 업로드 파일 저장 경로 (기본값: ./uploads)
+UPLOADS_DIR=/data/danang-vip/uploads
+
+# 업로드 URL 프리픽스 (기본값: /uploads)
+UPLOADS_URL=/uploads
+```
+
+### Nginx 설정 (SSL/프록시 전용)
+
+Nginx는 SSL 종료와 프록시 역할만 담당합니다. 파일 서빙은 Next.js가 직접 처리합니다.
 
 파일: `/etc/nginx/sites-available/gc.lumejs.com`
 
 ```nginx
 server {
-    listen 80;
     server_name gc.lumejs.com;
+    client_max_body_size 10M;
 
     location / {
         proxy_pass http://localhost:3010;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
     }
 }
 ```
 
-SSL 인증서:
-```bash
-sudo certbot --nginx -d gc.lumejs.com
-```
+---
+
+## 상세 문서
+
+- [설치 및 운영 가이드](docs/install.md) - 환경 설정, 업로드 설정, 체크리스트

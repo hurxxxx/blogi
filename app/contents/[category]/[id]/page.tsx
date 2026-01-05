@@ -7,7 +7,7 @@ import { RichTextViewer } from "@/components/editor/rich-text-viewer";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
-import { extractContentId, buildContentHref, getContentPlainText, truncateText } from "@/lib/contents";
+import { extractContentId, buildContentHref, getContentPlainText, truncateText, hasLexicalRichNodes } from "@/lib/contents";
 import { getSiteSettings } from "@/lib/site-settings";
 import { markdownToHtml } from "@/lib/markdown";
 import type { Metadata } from "next";
@@ -111,6 +111,7 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
         ? await markdownToHtml(content.contentMarkdown)
         : "";
     const htmlContent = content.htmlContent || markdownHtml;
+    const preferLexical = hasLexicalRichNodes(content.content);
 
     return (
         <div className="container mx-auto px-4 py-10 max-w-5xl">
@@ -145,7 +146,7 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
 
             {/* Content (Rich Text) */}
             {canViewCategory ? (
-                htmlContent ? (
+                !preferLexical && htmlContent ? (
                     <div
                         className="blog-content min-h-[220px] rounded-3xl border border-black/5 bg-white/90 px-5 sm:px-8 py-6 sm:py-8 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.45)]"
                         dangerouslySetInnerHTML={{ __html: htmlContent }}

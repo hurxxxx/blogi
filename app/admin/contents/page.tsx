@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { ConfirmForm, type ConfirmActionState } from "@/components/admin/confirm-form";
 import { auth } from "@/auth";
 import { Eye, EyeOff, Pencil, Trash2, ImageIcon, Plus, Filter } from "lucide-react";
+import { buildContentIndexUrl, isPublicIndexable, submitIndexNow } from "@/lib/indexnow";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,14 @@ async function toggleVisibility(_: ConfirmActionState, formData: FormData): Prom
       return { error: "유효하지 않은 콘텐츠입니다." };
     }
 
+    const existing = await prisma.content.findUnique({
+      where: { id: contentId },
+      include: { categoryRef: true },
+    });
+    if (!existing) {
+      return { error: "유효하지 않은 콘텐츠입니다." };
+    }
+
     await prisma.content.update({
       where: { id: contentId },
       data: { isVisible: nextVisible },
@@ -28,6 +37,21 @@ async function toggleVisibility(_: ConfirmActionState, formData: FormData): Prom
 
     revalidatePath("/admin/contents");
     revalidatePath("/sitemap.xml");
+    const wasPublic = isPublicIndexable({
+      isVisible: existing.isVisible,
+      isDeleted: existing.isDeleted,
+      categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+      categoryIsVisible: existing.categoryRef?.isVisible ?? true,
+    });
+    const isPublic = isPublicIndexable({
+      isVisible: nextVisible,
+      isDeleted: existing.isDeleted,
+      categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+      categoryIsVisible: existing.categoryRef?.isVisible ?? true,
+    });
+    if ((wasPublic || isPublic) && existing.categoryRef?.slug) {
+      await submitIndexNow([buildContentIndexUrl(existing.categoryRef.slug, existing.id)]);
+    }
     return { success: true };
   } catch {
     return { error: "노출 상태 변경 중 오류가 발생했습니다." };
@@ -46,6 +70,14 @@ async function deleteContent(_: ConfirmActionState, formData: FormData): Promise
       return { error: "유효하지 않은 콘텐츠입니다." };
     }
 
+    const existing = await prisma.content.findUnique({
+      where: { id: contentId },
+      include: { categoryRef: true },
+    });
+    if (!existing) {
+      return { error: "유효하지 않은 콘텐츠입니다." };
+    }
+
     // Soft delete: 휴지통으로 이동
     await prisma.content.update({
       where: { id: contentId },
@@ -59,6 +91,17 @@ async function deleteContent(_: ConfirmActionState, formData: FormData): Promise
     revalidatePath("/admin/contents");
     revalidatePath("/admin/trash");
     revalidatePath("/sitemap.xml");
+    if (
+      isPublicIndexable({
+        isVisible: existing.isVisible,
+        isDeleted: existing.isDeleted,
+        categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+        categoryIsVisible: existing.categoryRef?.isVisible ?? true,
+      }) &&
+      existing.categoryRef?.slug
+    ) {
+      await submitIndexNow([buildContentIndexUrl(existing.categoryRef.slug, existing.id)]);
+    }
     return { success: true };
   } catch {
     return { error: "삭제 처리 중 오류가 발생했습니다." };

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { buildContentIndexUrl, isPublicIndexable, submitIndexNow } from "@/lib/indexnow";
 
 const requireAdmin = async () => {
   const session = await auth();
@@ -25,7 +26,10 @@ export async function POST(req: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: "ID가 필요합니다" }, { status: 400 });
     }
-    const existing = await prisma.content.findUnique({ where: { id } });
+    const existing = await prisma.content.findUnique({
+      where: { id },
+      include: { categoryRef: true },
+    });
     if (!existing) {
       return NextResponse.json({ error: "콘텐츠를 찾을 수 없습니다" }, { status: 404 });
     }
@@ -40,6 +44,17 @@ export async function POST(req: NextRequest) {
     revalidatePath("/admin/contents");
     revalidatePath("/admin/trash");
     revalidatePath("/sitemap.xml");
+    if (
+      isPublicIndexable({
+        isVisible: true,
+        isDeleted: false,
+        categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+        categoryIsVisible: existing.categoryRef?.isVisible ?? true,
+      }) &&
+      existing.categoryRef?.slug
+    ) {
+      await submitIndexNow([buildContentIndexUrl(existing.categoryRef.slug, existing.id)]);
+    }
     return NextResponse.json({ success: true, message: "콘텐츠가 복구되었습니다." });
   }
 
@@ -48,7 +63,10 @@ export async function POST(req: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: "ID가 필요합니다" }, { status: 400 });
     }
-    const existing = await prisma.content.findUnique({ where: { id } });
+    const existing = await prisma.content.findUnique({
+      where: { id },
+      include: { categoryRef: true },
+    });
     if (!existing) {
       return NextResponse.json({ error: "콘텐츠를 찾을 수 없습니다" }, { status: 404 });
     }
@@ -59,6 +77,17 @@ export async function POST(req: NextRequest) {
     revalidatePath("/admin/contents");
     revalidatePath("/admin/trash");
     revalidatePath("/sitemap.xml");
+    if (
+      isPublicIndexable({
+        isVisible: existing.isVisible,
+        isDeleted: existing.isDeleted,
+        categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+        categoryIsVisible: existing.categoryRef?.isVisible ?? true,
+      }) &&
+      existing.categoryRef?.slug
+    ) {
+      await submitIndexNow([buildContentIndexUrl(existing.categoryRef.slug, existing.id)]);
+    }
     return NextResponse.json({ success: true, message: "콘텐츠가 영구 삭제되었습니다." });
   }
 

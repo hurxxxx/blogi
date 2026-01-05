@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { markdownToHtml } from "@/lib/markdown";
+import { buildContentIndexUrl, isPublicIndexable, submitIndexNow } from "@/lib/indexnow";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -44,6 +45,14 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
+    const existing = await prisma.content.findUnique({
+        where: { id },
+        include: { categoryRef: true },
+    });
+    if (!existing) {
+        return NextResponse.json({ error: "콘텐츠를 찾을 수 없습니다" }, { status: 404 });
+    }
+
     const body = await req.json();
     const { title, content, contentMarkdown, categoryId, price, imageUrl, isVisible } = body;
 
@@ -82,9 +91,28 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     const updated = await prisma.content.update({
         where: { id },
         data: updateData,
+        include: { categoryRef: true },
     });
 
     revalidatePath("/sitemap.xml");
+    const wasPublic = isPublicIndexable({
+        isVisible: existing.isVisible,
+        isDeleted: existing.isDeleted,
+        categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+        categoryIsVisible: existing.categoryRef?.isVisible ?? true,
+    });
+    const isPublic = isPublicIndexable({
+        isVisible: updated.isVisible,
+        isDeleted: updated.isDeleted,
+        categoryRequiresAuth: updated.categoryRef?.requiresAuth ?? false,
+        categoryIsVisible: updated.categoryRef?.isVisible ?? true,
+    });
+    if (wasPublic || isPublic) {
+        const categorySlug = updated.categoryRef?.slug ?? existing.categoryRef?.slug;
+        if (categorySlug) {
+            await submitIndexNow([buildContentIndexUrl(categorySlug, updated.id)]);
+        }
+    }
 
     return NextResponse.json(updated);
 }
@@ -97,6 +125,13 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
+    const existing = await prisma.content.findUnique({
+        where: { id },
+        include: { categoryRef: true },
+    });
+    if (!existing) {
+        return NextResponse.json({ error: "콘텐츠를 찾을 수 없습니다" }, { status: 404 });
+    }
 
     // Soft delete: 휴지통으로 이동
     await prisma.content.update({
@@ -109,6 +144,19 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     });
 
     revalidatePath("/sitemap.xml");
+    if (
+        isPublicIndexable({
+            isVisible: existing.isVisible,
+            isDeleted: existing.isDeleted,
+            categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+            categoryIsVisible: existing.categoryRef?.isVisible ?? true,
+        })
+    ) {
+        const categorySlug = existing.categoryRef?.slug;
+        if (categorySlug) {
+            await submitIndexNow([buildContentIndexUrl(categorySlug, existing.id)]);
+        }
+    }
 
     return NextResponse.json({
         success: true,

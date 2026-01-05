@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { markdownToHtml } from "@/lib/markdown";
+import { buildContentIndexUrl, isPublicIndexable, submitIndexNow } from "@/lib/indexnow";
 
 // GET: List contents
 export async function GET(req: NextRequest) {
@@ -78,6 +79,16 @@ export async function POST(req: NextRequest) {
     });
 
     revalidatePath("/sitemap.xml");
+    if (
+        isPublicIndexable({
+            isVisible: createdContent.isVisible,
+            isDeleted: createdContent.isDeleted,
+            categoryRequiresAuth: categoryRef.requiresAuth ?? false,
+            categoryIsVisible: categoryRef.isVisible ?? true,
+        })
+    ) {
+        await submitIndexNow([buildContentIndexUrl(categoryRef.slug, createdContent.id)]);
+    }
 
     return NextResponse.json(createdContent, { status: 201 });
 }

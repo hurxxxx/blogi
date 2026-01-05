@@ -146,7 +146,11 @@ export const HeaderClient = ({
     setIsSidebarOpen(false);
     setOpenCommunityId(null);
   };
-  const visibleMenuItems = menuItems;
+
+  // 로그인 필요한 메뉴는 로그인하지 않으면 숨김
+  const visibleMenuItems = menuItems.filter(
+    (item) => !item.requiresAuth || session
+  );
 
   const handleProtectedClick = (event: React.MouseEvent, href: string) => {
     if (session) return;

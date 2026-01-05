@@ -34,8 +34,6 @@ export default async function Home() {
 
   const menuCategories = menu.items
     .filter((item) => item.linkType === "category" && item.href)
-    // 로그인 필요한 메뉴는 로그인하지 않으면 숨김
-    .filter((item) => !item.requiresAuth || canViewRestricted)
     .map((item, index) => {
       const href = item.href ?? "";
       const slug = href.startsWith("/contents/")
@@ -47,6 +45,7 @@ export default async function Home() {
         slug,
         href,
         order: item.order ?? index + 1,
+        requiresAuth: item.requiresAuth ?? false,
       };
     })
     .filter((item) => item.slug);
@@ -95,14 +94,13 @@ export default async function Home() {
   // 커뮤니티 메뉴 (후기, 자유게시판 등)
   const communityMenus = menu.items
     .filter((item) => item.linkType === "community" && item.href)
-    // 로그인 필요한 메뉴는 로그인하지 않으면 숨김
-    .filter((item) => !item.requiresAuth || canViewRestricted)
     .map((item, index) => ({
       id: item.id,
       label: item.label,
       href: item.href ?? "",
       order: item.order ?? index + 1,
       thumbnailUrl: item.thumbnailUrl ?? null,
+      requiresAuth: item.requiresAuth ?? false,
     }));
 
   // 메인 페이지 대시보드 데이터: 메인 노출 설정된 카테고리

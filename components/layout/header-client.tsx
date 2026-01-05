@@ -147,10 +147,8 @@ export const HeaderClient = ({
     setOpenCommunityId(null);
   };
 
-  // 로그인 필요한 메뉴는 로그인하지 않으면 숨김
-  const visibleMenuItems = menuItems.filter(
-    (item) => !item.requiresAuth || session
-  );
+  // 메뉴는 모두 보이고, 클릭 시 로그인 필요 여부 체크
+  const visibleMenuItems = menuItems;
 
   const handleProtectedClick = (event: React.MouseEvent, href: string) => {
     if (session) return;

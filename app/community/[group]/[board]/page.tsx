@@ -2,12 +2,11 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { auth } from "@/auth";
 import { notFound, redirect } from "next/navigation";
 import { PostListView } from "@/app/community/post-list-view";
 import { getCommunityGroupBySlug } from "@/lib/community";
-import { MessageSquare, Check } from "lucide-react";
+import { PenLine, Search } from "lucide-react";
 
 async function PostList({
   boardId,
@@ -141,87 +140,68 @@ export default async function CommunityBoardPage({ params, searchParams }: Commu
   }
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-5xl">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Community</p>
-          <h1 className="font-display text-3xl sm:text-4xl">{community.label}</h1>
-        </div>
-        <Button asChild>
-          <Link href={`/community/${community.slug}/${currentBoard.slug}/write`}>글쓰기</Link>
-        </Button>
+    <div className="container mx-auto px-4 py-6 md:py-10 max-w-5xl">
+      {/* 헤더: 제목 */}
+      <div className="mb-4">
+        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Community</p>
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl">{community.label}</h1>
       </div>
 
-      <form
-        className="mb-6 rounded-2xl border border-black/5 bg-white/80 p-4 shadow-[0_18px_50px_-32px_rgba(15,23,42,0.35)]"
-        action={`/community/${community.slug}/${currentBoard.slug}`}
-        method="get"
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="q">검색어</Label>
-            <Input id="q" name="q" placeholder="제목/내용 검색" defaultValue={query} />
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2 justify-end">
-          <Button type="submit">검색</Button>
-          <Button type="reset" variant="outline" asChild>
-            <Link href={`/community/${community.slug}/${currentBoard.slug}`}>초기화</Link>
-          </Button>
-        </div>
-      </form>
-
-      {/* 게시판 선택 카드 그리드 */}
+      {/* 1. 게시판 선택 탭 (게시판이 2개 이상일 때만) */}
       {community.boards.length > 1 && (
-        <div className="mb-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="mb-4">
+          <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
             {community.boards.map((boardItem) => {
-              const search = new URLSearchParams();
-              if (query) search.set("q", query);
-              search.set("page", "1");
-              const href = `/community/${community.slug}/${boardItem.slug}?${search.toString()}`;
+              const href = `/community/${community.slug}/${boardItem.slug}`;
               const isActive = boardItem.slug === currentBoard.slug;
               return (
                 <Link
                   key={boardItem.id}
                   href={href}
-                  className={`relative flex flex-col items-center p-4 rounded-xl border-2 transition-all ${
+                  className={`flex-shrink-0 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
                     isActive
-                      ? "border-[#0b1320] bg-[#0b1320] text-white shadow-lg"
-                      : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                      ? "bg-[#0b1320] text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
-                  {/* 선택 체크 표시 */}
-                  {isActive && (
-                    <div className="absolute top-2 right-2">
-                      <Check className="w-4 h-4" />
-                    </div>
-                  )}
-
-                  {/* 아이콘 */}
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                    isActive ? "bg-white/20" : "bg-gray-100"
-                  }`}>
-                    <MessageSquare className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-500"}`} />
-                  </div>
-
-                  {/* 게시판 이름 */}
-                  <span className="font-semibold text-sm text-center">{boardItem.name}</span>
-
-                  {/* 설명 (있는 경우) */}
-                  {boardItem.description && (
-                    <span className={`text-xs mt-1 text-center line-clamp-2 ${
-                      isActive ? "text-white/70" : "text-gray-400"
-                    }`}>
-                      {boardItem.description}
-                    </span>
-                  )}
+                  {boardItem.name}
                 </Link>
               );
             })}
           </div>
         </div>
       )}
+
+      {/* 2. 액션바: 글쓰기 + 검색 */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-3">
+        {/* 글쓰기 버튼 */}
+        <Button asChild className="sm:order-2">
+          <Link href={`/community/${community.slug}/${currentBoard.slug}/write`}>
+            <PenLine className="w-4 h-4 mr-1.5" />
+            글쓰기
+          </Link>
+        </Button>
+
+        {/* 검색 폼 */}
+        <form
+          className="flex-1 flex gap-2 sm:order-1"
+          action={`/community/${community.slug}/${currentBoard.slug}`}
+          method="get"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              name="q"
+              placeholder="검색..."
+              defaultValue={query}
+              className="pl-9 bg-white"
+            />
+          </div>
+          <Button type="submit" variant="outline">
+            검색
+          </Button>
+        </form>
+      </div>
 
       <PostList
         boardId={currentBoard.id}

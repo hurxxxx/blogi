@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
+import { buildContentHref } from "@/lib/contents";
 
 interface ContentListItemProps {
   id: string;
@@ -19,7 +20,7 @@ export const ContentListItem = ({
 }: ContentListItemProps) => {
   return (
     <Link
-      href={`/contents/${categorySlug}/${id}`}
+      href={buildContentHref(categorySlug, id, title)}
       className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
     >
       {/* 썸네일 (모바일 컴팩트) */}

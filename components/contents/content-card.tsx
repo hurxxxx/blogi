@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { buildContentHref } from "@/lib/contents";
 
 interface ContentCardProps {
     id: string;
@@ -24,7 +25,7 @@ export const ContentCard = ({
     createdAt
 }: ContentCardProps) => {
     return (
-        <Link href={`/contents/${categorySlug}/${id}`}>
+        <Link href={buildContentHref(categorySlug, id, title)}>
             <Card className="h-full overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <div className="aspect-[4/3] relative bg-gradient-to-br from-slate-100 via-white to-amber-50">
                     {imageUrl ? (

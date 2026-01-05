@@ -7,6 +7,7 @@ import { RichTextViewer } from "@/components/editor/rich-text-viewer";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
+import { extractContentId } from "@/lib/contents";
 
 interface ContentDetailPageProps {
     params: Promise<{
@@ -16,12 +17,13 @@ interface ContentDetailPageProps {
 }
 
 export default async function ContentDetailPage({ params }: ContentDetailPageProps) {
-    const { id, category } = await params;
+    const { id: idParam, category } = await params;
+    const contentId = extractContentId(idParam);
     const session = await auth();
 
     const content = await prisma.content.findUnique({
         where: {
-            id,
+            id: contentId,
         },
         include: {
             categoryRef: true,
@@ -82,7 +84,7 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
                         로그인 후 확인할 수 있습니다.
                     </p>
                     <Button asChild>
-                        <Link href={`/login?callbackUrl=${encodeURIComponent(`/contents/${category}/${id}`)}`}>
+                        <Link href={`/login?callbackUrl=${encodeURIComponent(`/contents/${category}/${idParam}`)}`}>
                             로그인하기
                         </Link>
                     </Button>

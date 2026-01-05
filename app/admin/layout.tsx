@@ -50,6 +50,9 @@ export default async function AdminLayout({
                     </Link>
                     <div className="space-y-1">
                         <span className="block p-2 text-gray-400 text-sm">휴지통</span>
+                        <Link href="/admin/contents/trash" className="block p-2 pl-4 hover:bg-gray-800 rounded text-sm">
+                            삭제된 콘텐츠
+                        </Link>
                         <Link href="/admin/trash" className="block p-2 pl-4 hover:bg-gray-800 rounded text-sm">
                             삭제된 게시판
                         </Link>

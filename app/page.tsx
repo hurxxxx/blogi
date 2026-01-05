@@ -7,6 +7,7 @@ import { getMenuByKey } from "@/lib/menus";
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { buildContentHref } from "@/lib/contents";
 
 // 항상 동적으로 렌더링 (사용자 수 체크를 위해)
 export const dynamic = "force-dynamic";
@@ -351,7 +352,7 @@ export default async function Home() {
                     {contents.map((content) => (
                       <Link
                         key={content.id}
-                        href={`/contents/${category.slug}/${content.id}`}
+                        href={buildContentHref(category.slug, content.id, content.title)}
                         className="group rounded-2xl border border-black/5 bg-white/90 overflow-hidden shadow-sm hover:shadow-md transition"
                       >
                         {content.imageUrl && (

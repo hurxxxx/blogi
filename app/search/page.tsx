@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { auth } from "@/auth";
 import { BackButton } from "@/components/ui/back-button";
 import { FileText } from "lucide-react";
+import { buildContentHref } from "@/lib/contents";
 
 interface SearchPageProps {
     searchParams: Promise<{
@@ -68,7 +69,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     {contents.map((content) => (
                         <Link
                             key={content.id}
-                            href={`/contents/${content.categoryRef?.slug ?? "unknown"}/${content.id}`}
+                            href={buildContentHref(content.categoryRef?.slug ?? "unknown", content.id, content.title)}
                             className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors"
                         >
                             {/* 썸네일 */}

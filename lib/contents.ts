@@ -1,20 +1,20 @@
-import { slugify } from "@/lib/slug";
 import { lexicalJsonToPlainText } from "@/lib/lexical";
-
-export const buildContentSlug = (title: string) => slugify(title || "");
-
-export const buildContentIdParam = (id: string, title?: string | null) => {
-  const slug = title ? buildContentSlug(title) : "";
-  return slug ? `${id}-${slug}` : id;
-};
 
 export const buildContentHref = (
   categorySlug: string,
   id: string,
-  title?: string | null
-) => `/contents/${categorySlug}/${buildContentIdParam(id, title)}`;
+  _title?: string | null
+) => `/contents/${categorySlug}/${id}`;
 
-export const extractContentId = (idParam: string) => idParam.split("-")[0];
+const UUID_PREFIX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
+
+export const extractContentId = (idParam: string) => {
+  if (!idParam) return idParam;
+  const uuidMatch = idParam.match(UUID_PREFIX);
+  if (uuidMatch) return uuidMatch[0];
+  const [first] = idParam.split("-");
+  return first || idParam;
+};
 
 export const getContentPlainText = (
   content: string,

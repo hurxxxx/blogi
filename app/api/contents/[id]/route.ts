@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
+import { markdownToHtml } from "@/lib/markdown";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -58,6 +60,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         title: string;
         content: string;
         contentMarkdown?: string | null;
+        htmlContent?: string | null;
         price?: string | null;
         imageUrl?: string | null;
         isVisible: boolean;
@@ -71,13 +74,17 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         categoryId: categoryRef.id,
     };
     if (typeof contentMarkdown === "string") {
-        updateData.contentMarkdown = contentMarkdown.trim() || null;
+        const trimmedMarkdown = contentMarkdown.trim();
+        updateData.contentMarkdown = trimmedMarkdown || null;
+        updateData.htmlContent = trimmedMarkdown ? await markdownToHtml(trimmedMarkdown) : null;
     }
 
     const updated = await prisma.content.update({
         where: { id },
         data: updateData,
     });
+
+    revalidatePath("/sitemap.xml");
 
     return NextResponse.json(updated);
 }
@@ -100,6 +107,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
             isVisible: false,
         },
     });
+
+    revalidatePath("/sitemap.xml");
 
     return NextResponse.json({
         success: true,

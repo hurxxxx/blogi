@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { extractContentId, buildContentHref, getContentPlainText, truncateText } from "@/lib/contents";
 import { getSiteSettings } from "@/lib/site-settings";
+import { markdownToHtml } from "@/lib/markdown";
 import type { Metadata } from "next";
 
 interface ContentDetailPageProps {
@@ -45,8 +46,7 @@ export async function generateMetadata({ params }: ContentDetailPageProps): Prom
     const ogImage = content.imageUrl || settings.ogImageUrl || settings.siteLogoUrl || undefined;
     const canonicalPath = buildContentHref(
         content.categoryRef?.slug ?? category,
-        content.id,
-        content.title
+        content.id
     );
     const baseUrl = process.env.SITE_URL || "http://localhost:3000";
     const shouldNoIndex =
@@ -89,15 +89,6 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
     }
 
     const contentCategorySlug = content.categoryRef?.slug ?? category;
-    const canonicalHref = buildContentHref(
-        contentCategorySlug || category,
-        content.id,
-        content.title
-    );
-    const currentHref = `/contents/${category}/${idParam}`;
-    if (currentHref !== canonicalHref) {
-        redirect(canonicalHref);
-    }
     const contentCategoryLabel = content.categoryRef?.name ?? category;
     const isAdmin = session?.user?.role === "ADMIN";
     const requiresAuth = content.categoryRef?.requiresAuth ?? false;
@@ -107,10 +98,19 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
         notFound();
     }
 
-    const seoText = truncateText(
-        getContentPlainText(content.content, content.contentMarkdown),
-        2000
+    const canonicalHref = buildContentHref(
+        contentCategorySlug || category,
+        content.id
     );
+    const currentHref = `/contents/${category}/${idParam}`;
+    if (currentHref !== canonicalHref) {
+        redirect(canonicalHref);
+    }
+
+    const markdownHtml = canViewCategory && !content.htmlContent && content.contentMarkdown
+        ? await markdownToHtml(content.contentMarkdown)
+        : "";
+    const htmlContent = content.htmlContent || markdownHtml;
 
     return (
         <div className="container mx-auto px-4 py-10 max-w-5xl">
@@ -145,14 +145,14 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
 
             {/* Content (Rich Text) */}
             {canViewCategory ? (
-                <>
-                    {seoText ? (
-                        <div className="sr-only">
-                            <p>{seoText}</p>
-                        </div>
-                    ) : null}
+                htmlContent ? (
+                    <div
+                        className="blog-content min-h-[220px] rounded-3xl border border-black/5 bg-white/90 px-5 sm:px-8 py-6 sm:py-8 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.45)]"
+                        dangerouslySetInnerHTML={{ __html: htmlContent }}
+                    />
+                ) : (
                     <RichTextViewer content={content.content} />
-                </>
+                )
             ) : (
                 <div className="rounded-2xl border border-black/5 bg-white/80 px-6 py-10 text-center shadow-[0_18px_50px_-32px_rgba(15,23,42,0.35)]">
                     <p className="text-gray-500 text-base mb-6">

@@ -27,6 +27,7 @@ async function toggleVisibility(_: ConfirmActionState, formData: FormData): Prom
     });
 
     revalidatePath("/admin/contents");
+    revalidatePath("/sitemap.xml");
     return { success: true };
   } catch {
     return { error: "노출 상태 변경 중 오류가 발생했습니다." };
@@ -57,6 +58,7 @@ async function deleteContent(_: ConfirmActionState, formData: FormData): Promise
 
     revalidatePath("/admin/contents");
     revalidatePath("/admin/trash");
+    revalidatePath("/sitemap.xml");
     return { success: true };
   } catch {
     return { error: "삭제 처리 중 오류가 발생했습니다." };

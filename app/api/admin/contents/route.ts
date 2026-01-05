@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     });
     revalidatePath("/admin/contents");
     revalidatePath("/admin/trash");
+    revalidatePath("/sitemap.xml");
     return NextResponse.json({ success: true, message: "콘텐츠가 복구되었습니다." });
   }
 
@@ -57,6 +58,7 @@ export async function POST(req: NextRequest) {
     await prisma.content.delete({ where: { id } });
     revalidatePath("/admin/contents");
     revalidatePath("/admin/trash");
+    revalidatePath("/sitemap.xml");
     return NextResponse.json({ success: true, message: "콘텐츠가 영구 삭제되었습니다." });
   }
 

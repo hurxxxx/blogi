@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
+import { markdownToHtml } from "@/lib/markdown";
 
 // GET: List contents
 export async function GET(req: NextRequest) {
@@ -56,6 +58,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "카테고리를 찾을 수 없습니다" }, { status: 400 });
     }
 
+    const htmlContent =
+        typeof contentMarkdown === "string" && contentMarkdown.trim()
+            ? await markdownToHtml(contentMarkdown.trim())
+            : null;
+
     const createdContent = await prisma.content.create({
         data: {
             title,
@@ -63,11 +70,14 @@ export async function POST(req: NextRequest) {
             contentMarkdown: typeof contentMarkdown === "string" && contentMarkdown.trim()
                 ? contentMarkdown.trim()
                 : null,
+            htmlContent,
             categoryId: categoryRef.id,
             price: price || null,
             imageUrl: imageUrl || null,
         },
     });
+
+    revalidatePath("/sitemap.xml");
 
     return NextResponse.json(createdContent, { status: 201 });
 }

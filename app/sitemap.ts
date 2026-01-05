@@ -1,6 +1,7 @@
 import { getCommunityGroups } from "@/lib/community";
 import { prisma } from "@/lib/prisma";
 import { buildContentHref } from "@/lib/contents";
+import { getRestrictedCategoryIdsFromMenu } from "@/lib/category-auth";
 
 const baseUrl = process.env.SITE_URL || "http://localhost:3000";
 
@@ -8,17 +9,28 @@ export const revalidate = 3600;
 
 export default async function sitemap() {
   const staticRoutes = ["/", "/community", "/search"];
+  const restrictedCategoryIds = await getRestrictedCategoryIdsFromMenu();
   const [communityGroups, categories, contents] = await Promise.all([
     getCommunityGroups(),
     prisma.category.findMany({
-      where: { isVisible: true, requiresAuth: false },
-      select: { slug: true, updatedAt: true },
+      where: {
+        isVisible: true,
+        requiresAuth: false,
+        ...(restrictedCategoryIds.length ? { id: { notIn: restrictedCategoryIds } } : {}),
+      },
+      select: { id: true, slug: true, updatedAt: true },
     }),
     prisma.content.findMany({
       where: {
         isVisible: true,
         isDeleted: false,
-        categoryRef: { is: { requiresAuth: false, isVisible: true } },
+        categoryRef: {
+          is: {
+            requiresAuth: false,
+            isVisible: true,
+            ...(restrictedCategoryIds.length ? { id: { notIn: restrictedCategoryIds } } : {}),
+          },
+        },
       },
       select: {
         id: true,
@@ -29,12 +41,14 @@ export default async function sitemap() {
     }),
   ]);
 
-  const communityRoutes = communityGroups.flatMap((group) =>
-    group.boards.map((board) => ({
-      url: `${baseUrl}/community/${group.slug}/${board.slug}`,
-      lastModified: new Date(),
-    }))
-  );
+  const communityRoutes = communityGroups
+    .filter((group) => !group.requiresAuth)
+    .flatMap((group) =>
+      group.boards.map((board) => ({
+        url: `${baseUrl}/community/${group.slug}/${board.slug}`,
+        lastModified: new Date(),
+      }))
+    );
 
   const categoryRoutes = categories.map((category) => ({
     url: `${baseUrl}/contents/${category.slug}`,

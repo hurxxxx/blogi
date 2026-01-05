@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Lock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getMenuByKey } from "@/lib/menus";
 import { format } from "date-fns";
@@ -51,6 +51,9 @@ export default async function Home() {
       };
     })
     .filter((item) => item.slug);
+  const menuAuthBySlug = new Map(
+    menuCategories.map((item) => [item.slug, item.requiresAuth ?? false])
+  );
 
   const categoryRecords = menuCategories.length
     ? await prisma.category.findMany({
@@ -142,6 +145,7 @@ export default async function Home() {
           label: true,
           href: true,
           order: true,
+          requiresAuth: true,
         },
       },
     },
@@ -153,9 +157,44 @@ export default async function Home() {
     : sessionUserId
       ? { OR: [{ isSecret: false }, { authorId: sessionUserId }] }
       : { isSecret: false };
-  const [categoryContentsEntries, boardPostsEntries] = await Promise.all([
+
+  type CategoryDisplay =
+    | { type: "locked"; count: number }
+    | {
+        type: "contents";
+        items: {
+          id: string;
+          title: string;
+          imageUrl: string | null;
+          createdAt: Date;
+        }[];
+      };
+
+  type BoardDisplay =
+    | { type: "locked" }
+    | {
+        type: "posts";
+        items: {
+          id: string;
+          title: string;
+          createdAt: Date;
+          isPinned: boolean;
+          isSecret: boolean;
+          viewCount: number;
+          author: { name: string | null };
+        }[];
+      };
+
+  const [categoryDisplayEntries, boardDisplayEntries] = await Promise.all([
     Promise.all(
       homeCategories.map(async (category) => {
+        const menuRequiresAuth = menuAuthBySlug.get(category.slug) ?? false;
+        const effectiveRequiresAuth = Boolean(category.requiresAuth || menuRequiresAuth);
+        const canViewCategory = !effectiveRequiresAuth || canViewRestricted || isAdmin;
+        if (!canViewCategory) {
+          const count = Math.max(1, category.homeItemCount ?? 0);
+          return [category.id, { type: "locked", count } as CategoryDisplay] as const;
+        }
         const contents = await prisma.content.findMany({
           where: {
             categoryId: category.id,
@@ -171,12 +210,16 @@ export default async function Home() {
             createdAt: true,
           },
         });
-
-        return [category.id, contents] as const;
+        return [category.id, { type: "contents", items: contents } as CategoryDisplay] as const;
       })
     ),
     Promise.all(
       homeBoards.map(async (board) => {
+        const requiresAuth = board.menuItem?.requiresAuth ?? false;
+        const canViewBoard = !requiresAuth || canViewRestricted || isAdmin;
+        if (!canViewBoard) {
+          return [board.id, { type: "locked" } as BoardDisplay] as const;
+        }
         const posts = await prisma.post.findMany({
           where: {
             boardId: board.id,
@@ -188,16 +231,20 @@ export default async function Home() {
             author: { select: { name: true } },
           },
         });
-
-        return [board.id, posts] as const;
+        return [board.id, { type: "posts", items: posts } as BoardDisplay] as const;
       })
     ),
   ]);
-  const categoryContentsMap = new Map(
-    categoryContentsEntries.filter(([, contents]) => contents.length > 0)
+
+  const categoryDisplayMap = new Map(
+    categoryDisplayEntries.filter(([, display]) =>
+      display.type === "locked" ? display.count > 0 : display.items.length > 0
+    )
   );
-  const boardPostsMap = new Map(
-    boardPostsEntries.filter(([, posts]) => posts.length > 0)
+  const boardDisplayMap = new Map(
+    boardDisplayEntries.filter(([, display]) =>
+      display.type === "locked" ? true : display.items.length > 0
+    )
   );
 
   // board.key에서 그룹 슬러그 추출 (예: "reviews__review-board" → "reviews")
@@ -271,9 +318,17 @@ export default async function Home() {
 
           {/* 카테고리별 최신 콘텐츠 */}
           {homeCategories
-            .filter((cat) => categoryContentsMap.has(cat.id))
+            .filter((cat) => categoryDisplayMap.has(cat.id))
             .map((category) => {
-              const contents = categoryContentsMap.get(category.id) ?? [];
+              const display = categoryDisplayMap.get(category.id);
+              const isLocked = display?.type === "locked";
+              const contents = display?.type === "contents" ? display.items : [];
+              const lockedCount = display?.type === "locked" ? display.count : 0;
+              const menuRequiresAuth = menuAuthBySlug.get(category.slug) ?? false;
+              const effectiveRequiresAuth = Boolean(category.requiresAuth || menuRequiresAuth);
+              const canViewCategory = !effectiveRequiresAuth || canViewRestricted || isAdmin;
+              const categoryHref = `/contents/${category.slug}`;
+              const loginHref = `/login?callbackUrl=${encodeURIComponent(categoryHref)}`;
 
               return (
                 <div key={category.id}>
@@ -287,24 +342,34 @@ export default async function Home() {
                       </h2>
                     </div>
                     <Button variant="outline" size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4" asChild>
-                      <Link href={`/contents/${category.slug}`}>
+                      <Link href={canViewCategory ? categoryHref : loginHref}>
                         더 보기 <ArrowRight className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4" />
                       </Link>
                     </Button>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 md:gap-4 md:grid-cols-3">
-                    {contents.map((content) => (
-                      <ProtectedContentCard
-                        key={content.id}
-                        id={content.id}
-                        title={content.title}
-                        imageUrl={content.imageUrl}
-                        createdAt={content.createdAt}
-                        href={buildContentHref(category.slug, content.id, content.title)}
-                        requiresAuth={category.requiresAuth}
-                      />
-                    ))}
+                    {isLocked
+                      ? Array.from({ length: lockedCount }).map((_, index) => (
+                          <ProtectedContentCard
+                            key={`${category.id}-locked-${index}`}
+                            href={categoryHref}
+                            requiresAuth
+                            isLoggedIn={canViewRestricted}
+                            lockedLabel="회원가입 전용"
+                          />
+                        ))
+                      : contents.map((content) => (
+                          <ProtectedContentCard
+                            key={content.id}
+                            title={content.title}
+                            imageUrl={content.imageUrl}
+                            createdAt={content.createdAt}
+                            href={buildContentHref(category.slug, content.id, content.title)}
+                            requiresAuth={effectiveRequiresAuth}
+                            isLoggedIn={canViewRestricted}
+                          />
+                        ))}
                   </div>
                 </div>
               );
@@ -312,10 +377,15 @@ export default async function Home() {
 
           {/* 게시판별 최신 글 */}
           {homeBoards
-            .filter((board) => boardPostsMap.has(board.id))
+            .filter((board) => boardDisplayMap.has(board.id))
             .map((board) => {
-              const posts = boardPostsMap.get(board.id) ?? [];
+              const display = boardDisplayMap.get(board.id);
               const groupSlug = extractGroupSlug(board.key);
+              const requiresAuth = board.menuItem?.requiresAuth ?? false;
+              const canViewBoard = !requiresAuth || canViewRestricted || isAdmin;
+              const posts = display?.type === "posts" ? display.items : [];
+              const boardHref = `/community/${groupSlug}/${board.slug}`;
+              const loginHref = `/login?callbackUrl=${encodeURIComponent(boardHref)}`;
 
               return (
                 <div key={board.id}>
@@ -329,44 +399,58 @@ export default async function Home() {
                       </h2>
                     </div>
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/community/${groupSlug}/${board.slug}`}>
+                      <Link href={canViewBoard ? boardHref : loginHref}>
                         더 보기 <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
                   </div>
 
-                  <div className="rounded-2xl border border-black/5 bg-white/90 overflow-hidden shadow-sm">
-                    <div className="divide-y divide-gray-100">
-                      {posts.map((post) => (
-                        <Link
-                          key={post.id}
-                          href={`/community/${groupSlug}/${board.slug}/${post.id}`}
-                          className="block p-4 hover:bg-gray-50 transition"
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium line-clamp-1 mb-1">
-                                {post.isPinned && (
-                                  <span className="inline-block mr-2 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
-                                    공지
-                                  </span>
-                                )}
-                                {post.title}
-                              </h3>
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                <span>{post.author.name || "익명"}</span>
-                                <span>•</span>
-                                <span>{format(post.createdAt, "yyyy.MM.dd")}</span>
+                  {canViewBoard ? (
+                    <div className="rounded-2xl border border-black/5 bg-white/90 overflow-hidden shadow-sm">
+                      <div className="divide-y divide-gray-100">
+                        {posts.map((post) => (
+                          <Link
+                            key={post.id}
+                            href={`/community/${groupSlug}/${board.slug}/${post.id}`}
+                            className="block p-4 hover:bg-gray-50 transition"
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-medium line-clamp-1 mb-1">
+                                  {post.isPinned && (
+                                    <span className="inline-block mr-2 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                                      공지
+                                    </span>
+                                  )}
+                                  {post.title}
+                                </h3>
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                  <span>{post.author.name || "익명"}</span>
+                                  <span>•</span>
+                                  <span>{format(post.createdAt, "yyyy.MM.dd")}</span>
+                                </div>
+                              </div>
+                              <div className="text-xs text-muted-foreground shrink-0">
+                                조회 {post.viewCount}
                               </div>
                             </div>
-                            <div className="text-xs text-muted-foreground shrink-0">
-                              조회 {post.viewCount}
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="rounded-2xl border border-black/5 bg-white/90 shadow-sm">
+                      <div className="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center">
+                        <div className="inline-flex items-center gap-2 text-slate-600 text-sm">
+                          <Lock className="h-4 w-4 text-slate-400" />
+                          <span>회원 전용 게시판입니다</span>
+                        </div>
+                        <Button size="sm" asChild>
+                          <Link href={loginHref}>로그인 후 보기</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

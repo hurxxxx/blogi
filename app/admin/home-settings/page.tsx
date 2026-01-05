@@ -63,12 +63,12 @@ export default async function AdminHomeSettingsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-        <h1 className="font-display text-2xl">메인화면 노출 설정</h1>
+        <h1 className="font-display text-2xl">홈 노출 설정</h1>
         <p className="text-sm text-gray-500 mt-2">
-          메인 페이지에 표시할 카테고리와 게시판을 설정합니다.
+          홈 페이지에 표시할 카테고리와 게시판을 설정합니다.
         </p>
         <p className="text-sm text-gray-400 mt-1">
-          카테고리 화면 구성은 콘텐츠 표시 설정에서 관리합니다.
+          카테고리 화면 구성은 카테고리 설정에서 관리합니다.
         </p>
       </div>
 

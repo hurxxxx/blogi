@@ -41,9 +41,9 @@ export default async function AdminCommunitySettingsPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm md:p-6">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl">커뮤니티 관리</h1>
+          <h1 className="font-display text-2xl md:text-3xl">게시판 관리</h1>
           <p className="text-sm text-gray-500 mt-2">
-            커뮤니티 그룹 썸네일과 게시판 구성을 관리합니다.
+            그룹 썸네일과 게시판 구성을 관리합니다.
           </p>
           <p className="text-sm text-gray-400 mt-1">
             그룹 생성/정렬은 메뉴 관리에서 진행합니다.

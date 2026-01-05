@@ -5,6 +5,7 @@ import { ContentListSection } from "@/components/contents/content-list-section";
 import { ContentCardSection } from "@/components/contents/content-card-section";
 import { getSiteSettings } from "@/lib/site-settings";
 import type { Metadata } from "next";
+import { getMenuCategoryRequiresAuth } from "@/lib/category-auth";
 
 interface CategoryPageProps {
     params: Promise<{
@@ -39,7 +40,11 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     const description = category.description || settings.siteDescription || settings.siteTagline || "";
     const ogImage = category.thumbnailUrl || settings.ogImageUrl || settings.siteLogoUrl || undefined;
     const canonicalPath = `/contents/${category.slug}`;
-    const shouldNoIndex = category.requiresAuth || !category.isVisible;
+    const menuRequiresAuth = await getMenuCategoryRequiresAuth({
+        categoryId: category.id,
+        categorySlug: category.slug,
+    });
+    const shouldNoIndex = category.requiresAuth || menuRequiresAuth || !category.isVisible;
 
     return {
         title,
@@ -68,7 +73,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         where: { slug: categorySlug },
     });
 
-    const requiresAuth = category?.requiresAuth ?? false;
+    const menuRequiresAuth = await getMenuCategoryRequiresAuth({
+        categoryId: category?.id,
+        categorySlug,
+    });
+    const requiresAuth = Boolean(category?.requiresAuth || menuRequiresAuth);
     const canViewCategory = !requiresAuth || Boolean(session);
 
     // 로그인 필요 화면

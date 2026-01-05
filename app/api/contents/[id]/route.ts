@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { markdownToHtml } from "@/lib/markdown";
 import { buildContentIndexUrl, isPublicIndexable, submitIndexNow } from "@/lib/indexnow";
+import { getMenuCategoryRequiresAuth } from "@/lib/category-auth";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -27,7 +28,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: "콘텐츠를 찾을 수 없습니다" }, { status: 404 });
     }
 
-    if (content.categoryRef?.requiresAuth && !session) {
+    const menuRequiresAuth = await getMenuCategoryRequiresAuth({
+        categoryId: content.categoryRef?.id,
+        categorySlug: content.categoryRef?.slug,
+    });
+    if ((content.categoryRef?.requiresAuth || menuRequiresAuth) && !session) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
@@ -95,16 +100,24 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     });
 
     revalidatePath("/sitemap.xml");
+    const existingMenuRequiresAuth = await getMenuCategoryRequiresAuth({
+        categoryId: existing.categoryRef?.id,
+        categorySlug: existing.categoryRef?.slug,
+    });
+    const updatedMenuRequiresAuth = await getMenuCategoryRequiresAuth({
+        categoryId: updated.categoryRef?.id,
+        categorySlug: updated.categoryRef?.slug,
+    });
     const wasPublic = isPublicIndexable({
         isVisible: existing.isVisible,
         isDeleted: existing.isDeleted,
-        categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+        categoryRequiresAuth: Boolean(existing.categoryRef?.requiresAuth || existingMenuRequiresAuth),
         categoryIsVisible: existing.categoryRef?.isVisible ?? true,
     });
     const isPublic = isPublicIndexable({
         isVisible: updated.isVisible,
         isDeleted: updated.isDeleted,
-        categoryRequiresAuth: updated.categoryRef?.requiresAuth ?? false,
+        categoryRequiresAuth: Boolean(updated.categoryRef?.requiresAuth || updatedMenuRequiresAuth),
         categoryIsVisible: updated.categoryRef?.isVisible ?? true,
     });
     if (wasPublic || isPublic) {
@@ -144,11 +157,15 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     });
 
     revalidatePath("/sitemap.xml");
+    const menuRequiresAuth = await getMenuCategoryRequiresAuth({
+        categoryId: existing.categoryRef?.id,
+        categorySlug: existing.categoryRef?.slug,
+    });
     if (
         isPublicIndexable({
             isVisible: existing.isVisible,
             isDeleted: existing.isDeleted,
-            categoryRequiresAuth: existing.categoryRef?.requiresAuth ?? false,
+            categoryRequiresAuth: Boolean(existing.categoryRef?.requiresAuth || menuRequiresAuth),
             categoryIsVisible: existing.categoryRef?.isVisible ?? true,
         })
     ) {

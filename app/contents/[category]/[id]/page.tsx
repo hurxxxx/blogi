@@ -11,6 +11,7 @@ import { extractContentId, buildContentHref, getContentPlainText, truncateText, 
 import { getSiteSettings } from "@/lib/site-settings";
 import { markdownToHtml } from "@/lib/markdown";
 import type { Metadata } from "next";
+import { getMenuCategoryRequiresAuth } from "@/lib/category-auth";
 
 interface ContentDetailPageProps {
     params: Promise<{
@@ -49,8 +50,15 @@ export async function generateMetadata({ params }: ContentDetailPageProps): Prom
         content.id
     );
     const baseUrl = process.env.SITE_URL || "http://localhost:3000";
+    const menuRequiresAuth = await getMenuCategoryRequiresAuth({
+        categoryId: content.categoryRef?.id,
+        categorySlug: content.categoryRef?.slug ?? category,
+    });
     const shouldNoIndex =
-        !content.isVisible || content.isDeleted || (content.categoryRef?.requiresAuth ?? false);
+        !content.isVisible ||
+        content.isDeleted ||
+        (content.categoryRef?.requiresAuth ?? false) ||
+        menuRequiresAuth;
 
     return {
         title,
@@ -91,7 +99,11 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
     const contentCategorySlug = content.categoryRef?.slug ?? category;
     const contentCategoryLabel = content.categoryRef?.name ?? category;
     const isAdmin = session?.user?.role === "ADMIN";
-    const requiresAuth = content.categoryRef?.requiresAuth ?? false;
+    const menuRequiresAuth = await getMenuCategoryRequiresAuth({
+        categoryId: content.categoryRef?.id,
+        categorySlug: contentCategorySlug,
+    });
+    const requiresAuth = Boolean(content.categoryRef?.requiresAuth || menuRequiresAuth);
     const canViewCategory = !requiresAuth || Boolean(session);
     const showDate = content.categoryRef?.showDate ?? true;
 

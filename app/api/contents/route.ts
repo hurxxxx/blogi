@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { markdownToHtml } from "@/lib/markdown";
 import { buildContentIndexUrl, isPublicIndexable, submitIndexNow } from "@/lib/indexnow";
+import { getMenuCategoryRequiresAuth, getRestrictedCategoryIdsFromMenu } from "@/lib/category-auth";
 
 // GET: List contents
 export async function GET(req: NextRequest) {
@@ -14,10 +15,26 @@ export async function GET(req: NextRequest) {
     const categoryRecord = category
         ? await prisma.category.findUnique({ where: { slug: category } })
         : null;
+    const menuRequiresAuth = categoryRecord
+        ? await getMenuCategoryRequiresAuth({
+            categoryId: categoryRecord.id,
+            categorySlug: categoryRecord.slug,
+        })
+        : false;
 
-    if (categoryRecord?.requiresAuth && !session) {
+    if ((categoryRecord?.requiresAuth || menuRequiresAuth) && !session) {
         return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
+
+    const restrictedCategoryIds = !session ? await getRestrictedCategoryIdsFromMenu() : [];
+    const unauthFilters = session
+        ? []
+        : [
+            { NOT: { categoryRef: { is: { requiresAuth: true } } } },
+            ...(restrictedCategoryIds.length
+                ? [{ NOT: { categoryId: { in: restrictedCategoryIds } } }]
+                : []),
+        ];
 
     const contents = await prisma.content.findMany({
         where: category
@@ -31,7 +48,7 @@ export async function GET(req: NextRequest) {
             : {
                 isVisible: isAdmin ? undefined : true,
                 isDeleted: false,
-                ...(session ? {} : { NOT: { categoryRef: { is: { requiresAuth: true } } } }),
+                ...(unauthFilters.length ? { AND: unauthFilters } : {}),
             },
         orderBy: { createdAt: "desc" },
         include: { categoryRef: true },

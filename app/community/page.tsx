@@ -20,5 +20,11 @@ export default async function CommunityIndexPage() {
     );
   }
 
+  const requiresAuth = target.group.requiresAuth ?? false;
+  if (requiresAuth && !session) {
+    const callbackUrl = `/community/${target.group.slug}/${target.board.slug}`;
+    redirect(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+  }
+
   redirect(`/community/${target.group.slug}/${target.board.slug}`);
 }

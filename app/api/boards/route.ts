@@ -19,6 +19,9 @@ export async function GET(req: NextRequest) {
     if (!community) {
       return NextResponse.json({ error: "커뮤니티 그룹을 찾을 수 없습니다." }, { status: 404 });
     }
+    if (community.requiresAuth && !session) {
+      return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
+    }
     return NextResponse.json(community.boards);
   }
 

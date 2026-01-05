@@ -18,6 +18,12 @@ export default async function CommunityGroupPage({ params }: CommunityGroupPageP
   if (!community) {
     notFound();
   }
+
+  const requiresAuth = community.requiresAuth ?? false;
+  if (requiresAuth && !session) {
+    const callbackUrl = `/community/${community.slug}`;
+    redirect(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+  }
   const board = community.boards[0];
   if (!board) {
     return (

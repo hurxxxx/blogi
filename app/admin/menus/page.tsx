@@ -126,8 +126,8 @@ export default async function AdminMenusPage() {
             </p>
           </div>
           <div className="text-xs text-gray-500 space-y-1">
-            <div>커뮤니티 게시판/그룹 썸네일은 커뮤니티 관리에서 설정합니다.</div>
-            <div>카테고리 썸네일/설명은 콘텐츠 표시 설정에서 관리합니다.</div>
+            <div>게시판/그룹 썸네일은 게시판 관리에서 설정합니다.</div>
+            <div>카테고리 썸네일/설명은 카테고리 설정에서 관리합니다.</div>
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@ export default async function AdminSiteSettingsPage() {
       <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm md:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h1 className="font-display text-3xl">사이트 정보</h1>
+            <h1 className="font-display text-3xl">사이트 설정</h1>
             <p className="text-sm text-gray-500 mt-2">
               로고와 사이트 이름을 변경하면 헤더/사이드바/푸터에 반영됩니다.
             </p>

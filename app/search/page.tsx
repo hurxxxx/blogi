@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { BackButton } from "@/components/ui/back-button";
 import { FileText } from "lucide-react";
 import { buildContentHref } from "@/lib/contents";
+import { getRestrictedCategoryIdsFromMenu } from "@/lib/category-auth";
 
 interface SearchPageProps {
     searchParams: Promise<{
@@ -17,6 +18,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const { q } = await searchParams;
     const query = (q || "").trim();
     const session = await auth();
+    const restrictedCategoryIds = !session ? await getRestrictedCategoryIdsFromMenu() : [];
+    const unauthFilters = session
+        ? []
+        : [
+            { NOT: { categoryRef: { is: { requiresAuth: true } } } },
+            ...(restrictedCategoryIds.length
+                ? [{ NOT: { categoryId: { in: restrictedCategoryIds } } }]
+                : []),
+        ];
 
     if (!query) {
         return (
@@ -34,7 +44,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         where: {
             isVisible: true,
             isDeleted: false,
-            ...(session ? {} : { NOT: { categoryRef: { is: { requiresAuth: true } } } }),
+            ...(unauthFilters.length ? { AND: unauthFilters } : {}),
             OR: [
                 { title: { contains: query, mode: "insensitive" } },
                 { contentMarkdown: { contains: query, mode: "insensitive" } },

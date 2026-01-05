@@ -139,6 +139,12 @@ export default async function CommunityBoardPage({ params, searchParams }: Commu
     redirect(`/community/${community.slug}`);
   }
 
+  const requiresAuth = community.requiresAuth ?? false;
+  if (requiresAuth && !session) {
+    const callbackUrl = `/community/${community.slug}/${currentBoard.slug}`;
+    redirect(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+  }
+
   return (
     <div className="container mx-auto px-4 py-6 md:py-10 max-w-5xl">
       {/* 헤더: 제목 */}

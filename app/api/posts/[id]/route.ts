@@ -25,12 +25,20 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
                 orderBy: { createdAt: "asc" },
             },
             attachments: true,
-            board: true,
+            board: {
+                include: {
+                    menuItem: true,
+                },
+            },
         },
     });
 
     if (!post) {
         return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
+    }
+
+    if (post.board?.menuItem?.requiresAuth && !session) {
+        return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
     const isAdmin = session?.user?.role === "ADMIN";

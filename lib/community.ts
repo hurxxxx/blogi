@@ -9,6 +9,7 @@ export type CommunityGroup = {
   slug: string;
   order: number;
   isVisible: boolean;
+  requiresAuth: boolean;
   boards: BoardData[];
 };
 
@@ -59,6 +60,7 @@ export const getCommunityGroups = async ({
         slug,
         order: item.order,
         isVisible: item.isVisible,
+        requiresAuth: item.requiresAuth ?? false,
         boards: item.boards
           .filter((board) => !board.isDeleted) // 삭제된 게시판 제외
           .filter((board) => (includeHiddenBoards ? true : board.isVisible))

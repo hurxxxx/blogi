@@ -10,8 +10,27 @@ export async function GET(req: NextRequest) {
     const sessionUserId = session?.user?.id || null;
     const isAdmin = session?.user?.role === "ADMIN";
 
+    const board = boardId
+        ? await prisma.board.findUnique({
+            where: { id: boardId },
+            include: { menuItem: true },
+        })
+        : null;
+    if (boardId && !board) {
+        return NextResponse.json([]);
+    }
+    if (board?.menuItem?.requiresAuth && !session) {
+        return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
+    }
+
+    const baseWhere = boardId
+        ? { boardId }
+        : !session && !isAdmin
+            ? { board: { menuItem: { requiresAuth: false } } }
+            : undefined;
+
     const posts = await prisma.post.findMany({
-        where: boardId ? { boardId } : undefined,
+        where: baseWhere,
         include: {
             author: { select: { name: true } },
             _count: { select: { comments: true } },
@@ -55,6 +74,10 @@ export async function POST(req: NextRequest) {
     }
     if (!board.isVisible && session.user.role !== "ADMIN") {
         return NextResponse.json({ error: "비공개 게시판입니다." }, { status: 403 });
+    }
+    const menuItem = await prisma.menuItem.findUnique({ where: { id: board.menuItemId } });
+    if (menuItem?.requiresAuth && !session) {
+        return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
     const post = await prisma.post.create({

@@ -17,6 +17,7 @@ interface ContentListSectionProps {
   totalPages?: number;
   showPagination?: boolean;
   label?: string | null;
+  showDate?: boolean;
 }
 
 export const ContentListSection = ({
@@ -26,6 +27,7 @@ export const ContentListSection = ({
   totalPages = 1,
   showPagination = false,
   label,
+  showDate = true,
 }: ContentListSectionProps) => {
   if (contents.length === 0) return null;
 
@@ -43,6 +45,7 @@ export const ContentListSection = ({
             categorySlug={categorySlug}
             imageUrl={content.imageUrl}
             createdAt={content.createdAt}
+            showDate={showDate}
           />
         ))}
       </div>

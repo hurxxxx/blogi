@@ -2,9 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { getMenuByKey } from "@/lib/menus";
 import BoardHomeSettingsClient from "@/components/admin/board-home-settings-client";
 import CategoryHomeSettingsClient from "@/components/admin/category-home-settings-client";
+import MobileDashboardToggle from "@/components/admin/mobile-dashboard-toggle";
 
 export default async function AdminHomeSettingsPage() {
-  const [categories, menu] = await Promise.all([
+  const [categories, menu, siteSettings] = await Promise.all([
     prisma.category.findMany({
       where: { isVisible: true },
       orderBy: { order: "asc" },
@@ -18,6 +19,10 @@ export default async function AdminHomeSettingsPage() {
       },
     }),
     getMenuByKey("main"),
+    prisma.siteSettings.findUnique({
+      where: { key: "default" },
+      select: { showHomeDashboardOnMobile: true },
+    }),
   ]);
 
   const communityItems = menu.items.filter(
@@ -60,13 +65,16 @@ export default async function AdminHomeSettingsPage() {
       <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
         <h1 className="font-display text-2xl">메인화면 노출 설정</h1>
         <p className="text-sm text-gray-500 mt-2">
-          메인 페이지에 표시할 카테고리와 게시판을 설정합니다. 모바일에서는 최신 정보
-          대시보드가 숨겨집니다.
+          메인 페이지에 표시할 카테고리와 게시판을 설정합니다.
         </p>
         <p className="text-sm text-gray-400 mt-1">
           카테고리 화면 구성은 콘텐츠 표시 설정에서 관리합니다.
         </p>
       </div>
+
+      <MobileDashboardToggle
+        initialValue={siteSettings?.showHomeDashboardOnMobile ?? true}
+      />
 
       <section className="space-y-4">
         <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">

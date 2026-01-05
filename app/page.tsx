@@ -320,9 +320,9 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Desktop: Latest Content Dashboard */}
-      <section className="hidden md:block pt-0 pb-14 sm:pb-20 bg-[#f6f1e8]">
-        <div className="container mx-auto px-4 space-y-12">
+      {/* Latest Content Dashboard */}
+      <section className={`${siteSettings?.showHomeDashboardOnMobile ? '' : 'hidden md:block'} pt-0 pb-8 md:pb-14 lg:pb-20 bg-[#f6f1e8]`}>
+        <div className="container mx-auto px-3 md:px-4 space-y-6 md:space-y-12">
 
           {/* 카테고리별 최신 콘텐츠 */}
           {homeCategories
@@ -332,43 +332,43 @@ export default async function Home() {
 
               return (
                 <div key={category.id}>
-                  <div className="flex items-end justify-between mb-6">
+                  <div className="flex items-end justify-between mb-3 md:mb-6">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] text-muted-foreground">
                         {category.slug.replace(/-/g, " ")}
                       </p>
-                      <h2 className="font-display text-2xl sm:text-3xl">
+                      <h2 className="font-display text-lg md:text-2xl lg:text-3xl">
                         {category.name}
                       </h2>
                     </div>
-                    <Button variant="outline" size="sm" asChild>
+                    <Button variant="outline" size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4" asChild>
                       <Link href={`/contents/${category.slug}`}>
-                        더 보기 <ArrowRight className="ml-2 h-4 w-4" />
+                        더 보기 <ArrowRight className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4" />
                       </Link>
                     </Button>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-2 md:gap-4 md:grid-cols-3">
                     {contents.map((content) => (
                       <Link
                         key={content.id}
                         href={buildContentHref(category.slug, content.id, content.title)}
-                        className="group rounded-2xl border border-black/5 bg-white/90 overflow-hidden shadow-sm hover:shadow-md transition"
+                        className="group rounded-xl md:rounded-2xl border border-black/5 bg-white/90 overflow-hidden shadow-sm hover:shadow-md transition"
                       >
                         {content.imageUrl && (
-                          <div className="relative aspect-video overflow-hidden">
+                          <div className="relative aspect-[4/3] md:aspect-video overflow-hidden">
                             <Image
                               src={content.imageUrl}
                               alt={content.title}
                               fill
                               className="object-cover transition-transform group-hover:scale-105"
-                              sizes="(max-width: 768px) 100vw, 33vw"
+                              sizes="(max-width: 768px) 50vw, 33vw"
                             />
                           </div>
                         )}
-                        <div className="p-4">
-                          <h3 className="font-medium line-clamp-2">{content.title}</h3>
-                          <p className="text-xs text-muted-foreground mt-2">
+                        <div className="p-2 md:p-4">
+                          <h3 className="font-medium text-xs md:text-base line-clamp-2">{content.title}</h3>
+                          <p className="text-[10px] md:text-xs text-muted-foreground mt-1 md:mt-2">
                             {format(content.createdAt, "yyyy.MM.dd")}
                           </p>
                         </div>

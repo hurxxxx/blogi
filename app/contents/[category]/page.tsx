@@ -118,6 +118,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         cardViewCount,
         cardViewLabel,
         displayOrder,
+        showDate,
     } = category;
 
     // 전체 콘텐츠 조회
@@ -204,6 +205,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                             totalPages={listTotalPages}
                             showPagination={showListPagination}
                             label={listViewLabel}
+                            showDate={showDate}
                         />
                     </Suspense>
                 </div>
@@ -223,6 +225,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                             totalPages={cardTotalPages}
                             showPagination={showCardPagination}
                             label={cardViewLabel}
+                            showDate={showDate}
                         />
                     </Suspense>
                 </div>

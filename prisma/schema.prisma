@@ -202,6 +202,8 @@ model SiteSettings {
   socialIconStyle        String   @default("branded")
   showSocialLabels       Boolean  @default(false)
   socialAlignment        String   @default("center")
+  // 메인 대시보드 모바일 노출 설정
+  showHomeDashboardOnMobile Boolean @default(true)
 }
 
 model User {

@@ -20,6 +20,7 @@ interface ContentCardSectionProps {
   totalPages?: number;
   showPagination?: boolean;
   label?: string | null;
+  showDate?: boolean;
 }
 
 export const ContentCardSection = ({
@@ -30,6 +31,7 @@ export const ContentCardSection = ({
   totalPages = 1,
   showPagination = false,
   label,
+  showDate = true,
 }: ContentCardSectionProps) => {
   if (contents.length === 0) return null;
 
@@ -49,6 +51,7 @@ export const ContentCardSection = ({
             imageUrl={content.imageUrl}
             price={content.price}
             createdAt={content.createdAt}
+            showDate={showDate}
           />
         ))}
       </div>

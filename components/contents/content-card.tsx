@@ -13,6 +13,7 @@ interface ContentCardProps {
     imageUrl: string | null;
     price: string | null;
     createdAt: Date;
+    showDate?: boolean;
 }
 
 export const ContentCard = ({
@@ -22,7 +23,8 @@ export const ContentCard = ({
     categoryLabel,
     imageUrl,
     price,
-    createdAt
+    createdAt,
+    showDate = true
 }: ContentCardProps) => {
     return (
         <Link href={buildContentHref(categorySlug, id, title)}>
@@ -51,9 +53,11 @@ export const ContentCard = ({
                     <h3 className="font-display text-sm md:text-lg leading-tight line-clamp-2 mb-1.5 md:mb-2">
                         {title}
                     </h3>
-                    <p className="text-xs md:text-sm text-gray-500">
-                        {format(createdAt, "yyyy.MM.dd")}
-                    </p>
+                    {showDate && (
+                        <p className="text-xs md:text-sm text-gray-500">
+                            {format(createdAt, "yyyy.MM.dd")}
+                        </p>
+                    )}
                 </CardContent>
                 {price && (
                     <CardFooter className="p-2.5 md:p-4 pt-0">

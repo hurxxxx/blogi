@@ -9,6 +9,7 @@ interface ContentListItemProps {
   categorySlug: string;
   imageUrl: string | null;
   createdAt: Date;
+  showDate?: boolean;
 }
 
 export const ContentListItem = ({
@@ -17,6 +18,7 @@ export const ContentListItem = ({
   categorySlug,
   imageUrl,
   createdAt,
+  showDate = true,
 }: ContentListItemProps) => {
   return (
     <Link
@@ -46,9 +48,11 @@ export const ContentListItem = ({
         <h3 className="font-medium text-sm line-clamp-2 text-gray-900">
           {title}
         </h3>
-        <p className="text-xs text-gray-400 mt-1">
-          {format(createdAt, "yyyy.MM.dd")}
-        </p>
+        {showDate && (
+          <p className="text-xs text-gray-400 mt-1">
+            {format(createdAt, "yyyy.MM.dd")}
+          </p>
+        )}
       </div>
     </Link>
   );

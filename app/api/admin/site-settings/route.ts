@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { isValidHeaderStyle } from "@/lib/header-styles";
 
 const requireAdmin = async () => {
   const session = await auth();
@@ -26,7 +25,6 @@ export async function POST(req: NextRequest) {
     siteDescription,
     ogImageUrl,
     faviconUrl,
-    headerStyle,
     headerScrollEffect,
     hideSearch,
     logoSize,
@@ -45,10 +43,6 @@ export async function POST(req: NextRequest) {
     faviconUrl: typeof faviconUrl === "string" && faviconUrl.trim() ? faviconUrl.trim() : null,
   };
 
-  // 헤더 스타일 설정 추가
-  if (typeof headerStyle === "string" && isValidHeaderStyle(headerStyle)) {
-    data.headerStyle = headerStyle;
-  }
   if (typeof headerScrollEffect === "boolean") {
     data.headerScrollEffect = headerScrollEffect;
   }

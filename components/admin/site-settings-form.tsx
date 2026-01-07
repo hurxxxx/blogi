@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
-import { FileText, Globe, Image, ImageIcon, Tag, Upload, Palette, MousePointer2, Check, Crop, SearchX, Maximize2 } from "lucide-react";
+import { FileText, Globe, Image, ImageIcon, Tag, Upload, MousePointer2, Check, Crop, SearchX, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { HeaderStyle, HEADER_STYLES } from "@/lib/header-styles";
 import { ImageCropper } from "@/components/admin/image-cropper";
 import type { LogoSize, SiteNamePosition } from "@/lib/site-settings";
 
@@ -33,7 +32,6 @@ interface SiteSettingsFormProps {
     siteDescription?: string | null;
     ogImageUrl?: string | null;
     faviconUrl?: string | null;
-    headerStyle?: string | null;
     headerScrollEffect?: boolean | null;
     hideSearch?: boolean | null;
     logoSize?: string | null;
@@ -50,9 +48,6 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
   const [siteDescription, setSiteDescription] = useState(initialData.siteDescription ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(initialData.ogImageUrl ?? "");
   const [faviconUrl, setFaviconUrl] = useState(initialData.faviconUrl ?? "");
-  const [headerStyle, setHeaderStyle] = useState<HeaderStyle>(
-    (initialData.headerStyle as HeaderStyle) || "classic"
-  );
   const [headerScrollEffect, setHeaderScrollEffect] = useState(
     typeof initialData.headerScrollEffect === "boolean" ? initialData.headerScrollEffect : true
   );
@@ -179,7 +174,6 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
         siteDescription: siteDescription.trim() || null,
         ogImageUrl: ogImageUrl.trim() || null,
         faviconUrl: faviconUrl.trim() || null,
-        headerStyle,
         headerScrollEffect,
         hideSearch,
         logoSize,
@@ -399,53 +393,6 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
           }}
         />
       )}
-
-      {/* 헤더 스타일 */}
-      <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/50">
-        <div className="p-2.5 rounded-lg bg-cyan-50 text-cyan-600">
-          <Palette className="w-5 h-5" />
-        </div>
-        <div className="flex-1 space-y-4">
-          <div>
-            <label className="text-sm font-medium">헤더 스타일</label>
-            <p className="text-xs text-gray-400 mt-1">2025-2026 트렌드를 반영한 헤더 디자인을 선택하세요.</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {(Object.entries(HEADER_STYLES) as [HeaderStyle, typeof HEADER_STYLES[HeaderStyle]][]).map(
-              ([key, config]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setHeaderStyle(key)}
-                  disabled={isPending}
-                  className={cn(
-                    "relative p-4 rounded-xl border-2 text-left transition-all",
-                    headerStyle === key
-                      ? "border-cyan-500 bg-cyan-50/50"
-                      : "border-gray-200 hover:border-gray-300 bg-white"
-                  )}
-                >
-                  {headerStyle === key && (
-                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                  {/* 미리보기 영역 */}
-                  <div className={cn(
-                    "h-10 rounded-lg mb-3 flex items-center justify-center text-xs",
-                    config.preview.bg,
-                    config.preview.text
-                  )}>
-                    헤더 미리보기
-                  </div>
-                  <div className="font-medium text-sm">{config.label}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{config.description}</div>
-                </button>
-              )
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* 스크롤 효과 */}
       <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors">

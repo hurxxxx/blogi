@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { HeaderStyle, isValidHeaderStyle } from "@/lib/header-styles";
+import { HeaderStyle } from "@/lib/header-styles";
 
 export type LogoSize = "small" | "medium" | "large" | "xlarge" | "xxlarge" | "xxxlarge";
 export type SiteNamePosition = "logo" | "header1";
@@ -25,11 +25,7 @@ export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
     where: { key: "default" },
   });
 
-  // headerStyle 유효성 검사
-  const headerStyle =
-    settings?.headerStyle && isValidHeaderStyle(settings.headerStyle)
-      ? settings.headerStyle
-      : "classic";
+  const headerStyle: HeaderStyle = "classic";
 
   // logoSize 유효성 검사
   const validLogoSizes: LogoSize[] = ["small", "medium", "large", "xlarge", "xxlarge", "xxxlarge"];

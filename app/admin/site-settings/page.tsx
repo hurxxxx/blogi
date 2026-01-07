@@ -28,7 +28,6 @@ export default async function AdminSiteSettingsPage() {
             siteDescription: settings?.siteDescription ?? "",
             ogImageUrl: settings?.ogImageUrl ?? "",
             faviconUrl: settings?.faviconUrl ?? "",
-            headerStyle: settings?.headerStyle ?? "classic",
             headerScrollEffect: settings?.headerScrollEffect ?? true,
             hideSearch: settings?.hideSearch ?? false,
             logoSize: settings?.logoSize ?? "medium",

@@ -38,7 +38,12 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
     const title = `${category.name} | ${siteName}`;
     const description = category.description || settings.siteDescription || settings.siteTagline || "";
-    const ogImage = category.thumbnailUrl || settings.ogImageUrl || settings.siteLogoUrl || undefined;
+    const ogImage =
+      category.thumbnailUrl ||
+      settings.ogImageUrl ||
+      settings.siteBannerUrl ||
+      settings.siteLogoUrl ||
+      "/default-logo.svg";
     const canonicalPath = `/contents/${category.slug}`;
     const menuRequiresAuth = await getMenuCategoryRequiresAuth({
         categoryId: category.id,

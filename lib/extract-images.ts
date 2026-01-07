@@ -128,12 +128,15 @@ export async function getAllReferencedImages(): Promise<Set<string>> {
 
     // 6. SiteSettings 이미지들
     const siteSettings = await prisma.siteSettings.findFirst({
-        select: { siteLogoUrl: true, ogImageUrl: true, faviconUrl: true },
+        select: { siteLogoUrl: true, siteBannerUrl: true, ogImageUrl: true, faviconUrl: true },
     });
 
     if (siteSettings) {
         if (siteSettings.siteLogoUrl) {
             referencedUrls.add(normalizeImageUrl(siteSettings.siteLogoUrl));
+        }
+        if (siteSettings.siteBannerUrl) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.siteBannerUrl));
         }
         if (siteSettings.ogImageUrl) {
             referencedUrls.add(normalizeImageUrl(siteSettings.ogImageUrl));

@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
   const {
     siteName,
     siteLogoUrl,
+    siteBannerUrl,
     siteTagline,
     siteDescription,
     ogImageUrl,
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
   const data: Record<string, unknown> = {
     siteName: typeof siteName === "string" && siteName.trim() ? siteName.trim() : null,
     siteLogoUrl: typeof siteLogoUrl === "string" && siteLogoUrl.trim() ? siteLogoUrl.trim() : null,
+    siteBannerUrl: typeof siteBannerUrl === "string" && siteBannerUrl.trim() ? siteBannerUrl.trim() : null,
     siteTagline: typeof siteTagline === "string" && siteTagline.trim() ? siteTagline.trim() : null,
     siteDescription:
       typeof siteDescription === "string" && siteDescription.trim()

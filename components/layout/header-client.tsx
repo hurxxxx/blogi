@@ -18,6 +18,7 @@ interface HeaderClientProps {
   menuItems: MenuItemData[];
   siteName: string;
   siteLogoUrl: string;
+  siteBannerUrl: string;
   siteTagline?: string;
   communityGroups: {
     menuItemId: string;
@@ -78,6 +79,7 @@ export const HeaderClient = ({
   menuItems,
   siteName,
   siteLogoUrl,
+  siteBannerUrl,
   siteTagline,
   communityGroups,
   headerStyle = "classic",
@@ -422,7 +424,7 @@ export const HeaderClient = ({
                   </div>
                 )}
 
-                {/* 배너 이미지 */}
+                {/* 로고 이미지 */}
                 <Link
                   href="/"
                   className={cn(
@@ -434,7 +436,7 @@ export const HeaderClient = ({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={siteLogoUrl}
-                    alt={`${siteName} 배너`}
+                    alt={`${siteName} 로고`}
                     className={cn("object-contain", getLogoSizeClasses(logoSize).desktop)}
                   />
                   {siteNamePosition === "logo" && (
@@ -559,7 +561,7 @@ export const HeaderClient = ({
                 <Menu className="w-6 h-6" />
               </button>
 
-              {/* 배너 이미지 */}
+              {/* 로고 이미지 */}
               <Link href="/" className={cn(
                 "flex items-center gap-3",
                 hideSearch && "justify-center"
@@ -567,7 +569,7 @@ export const HeaderClient = ({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={siteLogoUrl}
-                  alt={`${siteName} 배너`}
+                  alt={`${siteName} 로고`}
                   className={cn(
                     "transition-all duration-300 object-contain",
                     getLogoSizeClasses(logoSize).desktop
@@ -725,14 +727,14 @@ export const HeaderClient = ({
           {/* Row 2: Banner Image (image only) */}
           <div className="flex items-center justify-center py-3">
             <Link href="/" className="flex items-center">
-              <Image
-                src={siteLogoUrl}
-                alt={`${siteName} 배너`}
-                width={240}
-                height={140}
-                className={cn("w-auto object-contain", getLogoSizeClasses(logoSize).mobile)}
-                unoptimized
-              />
+                <Image
+                  src={siteBannerUrl}
+                  alt={`${siteName} 로고`}
+                  width={240}
+                  height={140}
+                  className={cn("w-auto object-contain", getLogoSizeClasses(logoSize).mobile)}
+                  unoptimized
+                />
             </Link>
           </div>
         </>
@@ -805,7 +807,7 @@ export const HeaderClient = ({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={siteLogoUrl}
-              alt={`${siteName} 배너`}
+              alt={`${siteName} 로고`}
               className="h-12 w-auto object-contain"
             />
           </Link>

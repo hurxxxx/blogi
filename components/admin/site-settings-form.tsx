@@ -29,6 +29,7 @@ interface SiteSettingsFormProps {
   initialData: {
     siteName?: string | null;
     siteLogoUrl?: string | null;
+    siteBannerUrl?: string | null;
     siteTagline?: string | null;
     siteDescription?: string | null;
     ogImageUrl?: string | null;
@@ -47,6 +48,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
   const [isPending, startTransition] = useTransition();
   const [siteName, setSiteName] = useState(initialData.siteName ?? "");
   const [siteLogoUrl, setSiteLogoUrl] = useState(initialData.siteLogoUrl ?? "");
+  const [siteBannerUrl, setSiteBannerUrl] = useState(initialData.siteBannerUrl ?? "");
   const [siteTagline, setSiteTagline] = useState(initialData.siteTagline ?? "");
   const [siteDescription, setSiteDescription] = useState(initialData.siteDescription ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(initialData.ogImageUrl ?? "");
@@ -70,9 +72,9 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
   );
   const [uploading, setUploading] = useState(false);
   const [cropperImage, setCropperImage] = useState<string | null>(null);
-  const [cropTarget, setCropTarget] = useState<"logo" | "og" | "favicon" | null>(null);
+  const [cropTarget, setCropTarget] = useState<"logo" | "banner" | "og" | "favicon" | null>(null);
 
-  // 크롭 없이 직접 업로드 (배너 등 비정사각형 이미지용)
+  // 크롭 없이 직접 업로드 (배너/로고 등 비정사각형 이미지용)
   const createDirectUploadHandler =
     (setter: (value: string) => void, successMessage: string, failMessage: string) =>
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,7 +106,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
 
   // 크롭 모달을 여는 핸들러
   const createCropHandler =
-    (target: "logo" | "og" | "favicon") =>
+    (target: "logo" | "banner" | "og" | "favicon") =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
@@ -147,6 +149,9 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
 
       if (cropTarget === "logo") {
         setSiteLogoUrl(data.url);
+        showToast("로고 이미지가 업로드되었습니다.", "success");
+      } else if (cropTarget === "banner") {
+        setSiteBannerUrl(data.url);
         showToast("배너 이미지가 업로드되었습니다.", "success");
       } else if (cropTarget === "og") {
         setOgImageUrl(data.url);
@@ -165,10 +170,16 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
 
   const handleLogoUpload = createDirectUploadHandler(
     setSiteLogoUrl,
+    "로고 이미지가 업로드되었습니다.",
+    "로고 이미지 업로드에 실패했습니다."
+  );
+  const handleLogoCrop = createCropHandler("logo");
+  const handleBannerUpload = createDirectUploadHandler(
+    setSiteBannerUrl,
     "배너 이미지가 업로드되었습니다.",
     "배너 이미지 업로드에 실패했습니다."
   );
-  const handleLogoCrop = createCropHandler("logo");
+  const handleBannerCrop = createCropHandler("banner");
   const handleOgCrop = createCropHandler("og");
   const handleFaviconCrop = createCropHandler("favicon");
 
@@ -178,6 +189,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
       const payload = {
         siteName: siteName.trim() || null,
         siteLogoUrl: siteLogoUrl.trim() || null,
+        siteBannerUrl: siteBannerUrl.trim() || null,
         siteTagline: siteTagline.trim() || null,
         siteDescription: siteDescription.trim() || null,
         ogImageUrl: ogImageUrl.trim() || null,
@@ -277,8 +289,8 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
         <div className="flex-1 space-y-2">
           <label className="text-sm font-medium">배너 이미지 URL</label>
           <Input
-            value={siteLogoUrl}
-            onChange={(event) => setSiteLogoUrl(event.target.value)}
+            value={siteBannerUrl}
+            onChange={(event) => setSiteBannerUrl(event.target.value)}
             placeholder="https://example.com/banner.jpg"
             disabled={isPending}
             className="bg-white"
@@ -290,7 +302,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleLogoUpload}
+                onChange={handleBannerUpload}
                 disabled={isPending || uploading}
                 className="hidden"
               />
@@ -301,7 +313,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleLogoCrop}
+                onChange={handleBannerCrop}
                 disabled={isPending || uploading}
                 className="hidden"
               />
@@ -309,9 +321,9 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
             {uploading && <span className="text-xs text-gray-500">업로드 중...</span>}
           </div>
           <p className="text-xs text-gray-400">배너 이미지로 사용됩니다. 원본: 비율 유지 / 크롭: 1:1 정사각형</p>
-          {siteLogoUrl && (
+          {siteBannerUrl && (
             <div className="mt-2 p-2 bg-white rounded-lg border border-gray-100">
-              <img src={siteLogoUrl} alt="배너 미리보기" className="h-10 object-contain" />
+              <img src={siteBannerUrl} alt="배너 미리보기" className="h-10 object-contain" />
             </div>
           )}
         </div>
@@ -351,6 +363,54 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* 로고 이미지 URL */}
+      <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors">
+        <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-600">
+          <Image className="w-5 h-5" />
+        </div>
+        <div className="flex-1 space-y-2">
+          <label className="text-sm font-medium">로고 이미지 URL</label>
+          <Input
+            value={siteLogoUrl}
+            onChange={(event) => setSiteLogoUrl(event.target.value)}
+            placeholder="https://example.com/logo.png"
+            disabled={isPending}
+            className="bg-white"
+          />
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <Upload className="w-3.5 h-3.5" />
+              원본 업로드
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                disabled={isPending || uploading}
+                className="hidden"
+              />
+            </label>
+            <label className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <Crop className="w-3.5 h-3.5" />
+              크롭 업로드
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoCrop}
+                disabled={isPending || uploading}
+                className="hidden"
+              />
+            </label>
+            {uploading && <span className="text-xs text-gray-500">업로드 중...</span>}
+          </div>
+          <p className="text-xs text-gray-400">사이드바/스플래시 등 로고로 사용됩니다.</p>
+          {siteLogoUrl && (
+            <div className="mt-2 p-2 bg-white rounded-lg border border-gray-100">
+              <img src={siteLogoUrl} alt="로고 미리보기" className="h-10 object-contain" />
+            </div>
+          )}
         </div>
       </div>
 

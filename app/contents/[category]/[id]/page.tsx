@@ -44,7 +44,12 @@ export async function generateMetadata({ params }: ContentDetailPageProps): Prom
     const description =
         truncateText(descriptionSource || settings.siteDescription || settings.siteTagline || "");
     const title = `${content.title} | ${siteName}`;
-    const ogImage = content.imageUrl || settings.ogImageUrl || settings.siteLogoUrl || undefined;
+    const ogImage =
+      content.imageUrl ||
+      settings.ogImageUrl ||
+      settings.siteBannerUrl ||
+      settings.siteLogoUrl ||
+      "/logo.png";
     const canonicalPath = buildContentHref(
         content.categoryRef?.slug ?? category,
         content.id

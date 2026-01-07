@@ -3,6 +3,7 @@ import { getMenuByKey } from "@/lib/menus";
 import { getFooterSettings } from "@/lib/footer-settings";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getCommunityGroups } from "@/lib/community";
+import { DEFAULT_BANNER_URL, DEFAULT_LOGO_URL } from "@/lib/branding";
 
 export const Header = async () => {
   const menu = await getMenuByKey("main");
@@ -15,7 +16,8 @@ export const Header = async () => {
     <HeaderClient
       menuItems={menu.items}
       siteName={footerSettings.siteName || "사이트"}
-      siteLogoUrl={footerSettings.siteLogoUrl || "/logo.png"}
+      siteLogoUrl={footerSettings.siteLogoUrl || DEFAULT_LOGO_URL}
+      siteBannerUrl={siteSettings.siteBannerUrl || DEFAULT_BANNER_URL}
       siteTagline={siteSettings.siteTagline || ""}
       communityGroups={communityGroups}
       headerStyle={siteSettings.headerStyle}

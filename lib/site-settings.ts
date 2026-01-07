@@ -9,6 +9,7 @@ export type SplashLogoSize = "small" | "medium" | "large" | "xlarge";
 export type SiteSettingsSnapshot = {
   siteName?: string | null;
   siteLogoUrl?: string | null;
+  siteBannerUrl?: string | null;
   siteTagline?: string | null;
   siteDescription?: string | null;
   ogImageUrl?: string | null;
@@ -60,6 +61,7 @@ export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
   return {
     siteName: settings?.siteName ?? null,
     siteLogoUrl: settings?.siteLogoUrl ?? null,
+    siteBannerUrl: settings?.siteBannerUrl ?? null,
     siteTagline: settings?.siteTagline ?? null,
     siteDescription: settings?.siteDescription ?? null,
     ogImageUrl: settings?.ogImageUrl ?? null,

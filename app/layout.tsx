@@ -10,6 +10,7 @@ import { AuthProvider } from "@/components/providers/session-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { getSiteSettings } from "@/lib/site-settings";
+import { DEFAULT_BANNER_URL, DEFAULT_LOGO_URL } from "@/lib/branding";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-body",
@@ -31,7 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = settings.siteName || "사이트";
   const description =
     settings.siteDescription || settings.siteTagline || "사이트 소개 내용을 입력해주세요.";
-  const ogImage = settings.ogImageUrl || settings.siteLogoUrl || undefined;
+  const ogImage =
+    settings.ogImageUrl || settings.siteBannerUrl || settings.siteLogoUrl || DEFAULT_LOGO_URL;
 
   return {
     title,
@@ -63,7 +65,7 @@ export default async function RootLayout({
   const settings = await getSiteSettings();
 
   // 스플래시 로고: splashLogoUrl → siteLogoUrl → 기본 로고
-  const splashLogoUrl = settings.splashLogoUrl || settings.siteLogoUrl || "/logo.png";
+  const splashLogoUrl = settings.splashLogoUrl || settings.siteLogoUrl || DEFAULT_LOGO_URL;
 
   return (
     <html lang="ko">

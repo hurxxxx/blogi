@@ -189,6 +189,7 @@ model SiteSettings {
   termsContent           String?
   termsContentMarkdown   String?
   siteLogoUrl            String?
+  siteBannerUrl          String?
   siteName               String?
   copyrightText          String?
   showCopyright          Boolean  @default(true)

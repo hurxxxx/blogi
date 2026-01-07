@@ -24,6 +24,7 @@ export default async function AdminSiteSettingsPage() {
           initialData={{
             siteName: settings?.siteName ?? "",
             siteLogoUrl: settings?.siteLogoUrl ?? "",
+            siteBannerUrl: settings?.siteBannerUrl ?? "",
             siteTagline: settings?.siteTagline ?? "",
             siteDescription: settings?.siteDescription ?? "",
             ogImageUrl: settings?.ogImageUrl ?? "",

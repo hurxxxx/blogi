@@ -3,7 +3,7 @@ import { HeaderStyle } from "@/lib/header-styles";
 import { getThemePreset, getDefaultTheme, type ThemeColors } from "@/lib/theme-presets";
 import { DEFAULT_LOGO_URL, DEFAULT_LOGO_INVERSE_URL } from "@/lib/branding";
 
-export type LogoSize = "small" | "medium" | "large" | "xlarge" | "xxlarge" | "xxxlarge";
+export type LogoSize = "xsmall" | "small" | "medium" | "large" | "xlarge" | "xxlarge" | "xxxlarge";
 export type MobileTopSiteNameSize = "sm" | "md" | "lg";
 export type SiteNamePosition = "logo" | "header1";
 export type SplashLogoSize = "small" | "medium" | "large" | "xlarge";
@@ -14,6 +14,7 @@ export type SiteSettingsSnapshot = {
   siteLogoUrlLight?: string | null;
   siteLogoUrlDark?: string | null;
   siteLogoMode: "light" | "dark";
+  siteLogoSize: LogoSize;
   siteBannerUrl?: string | null;
   siteTagline?: string | null;
   siteDescription?: string | null;
@@ -50,12 +51,24 @@ export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
 
   const headerStyle: HeaderStyle = "classic";
 
-  // logoSize 유효성 검사
-  const validLogoSizes: LogoSize[] = ["small", "medium", "large", "xlarge", "xxlarge", "xxxlarge"];
+  // logoSize 유효성 검사 (배너 높이용)
+  const validLogoSizes: LogoSize[] = [
+    "xsmall",
+    "small",
+    "medium",
+    "large",
+    "xlarge",
+    "xxlarge",
+    "xxxlarge",
+  ];
   const logoSize: LogoSize =
     settings?.logoSize && validLogoSizes.includes(settings.logoSize as LogoSize)
       ? (settings.logoSize as LogoSize)
       : "medium";
+  const siteLogoSize: LogoSize =
+    settings?.siteLogoSize && validLogoSizes.includes(settings.siteLogoSize as LogoSize)
+      ? (settings.siteLogoSize as LogoSize)
+      : logoSize;
 
   // siteNamePosition 유효성 검사
   const validPositions: SiteNamePosition[] = ["logo", "header1"];
@@ -81,6 +94,7 @@ export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
     siteLogoUrlLight: settings?.siteLogoUrlLight ?? legacyLogo ?? DEFAULT_LOGO_URL,
     siteLogoUrlDark: settings?.siteLogoUrlDark ?? DEFAULT_LOGO_INVERSE_URL,
     siteLogoMode: logoMode,
+    siteLogoSize,
     siteBannerUrl: settings?.siteBannerUrl ?? null,
     siteTagline: settings?.siteTagline ?? null,
     siteDescription: settings?.siteDescription ?? null,

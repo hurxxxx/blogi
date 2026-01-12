@@ -29,6 +29,7 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; conten
         if (contentType.includes("png")) ext = ".png";
         else if (contentType.includes("gif")) ext = ".gif";
         else if (contentType.includes("webp")) ext = ".webp";
+        else if (contentType.includes("svg")) ext = ".svg";
 
         return { buffer, contentType, ext };
     } catch {
@@ -102,10 +103,10 @@ export async function POST(req: NextRequest) {
         }
 
         // Validate file type
-        const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+        const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
         if (!allowedTypes.includes(file.type)) {
             return NextResponse.json(
-                { error: "지원하지 않는 파일 형식입니다. (JPG, PNG, GIF, WebP만 가능)" },
+                { error: "지원하지 않는 파일 형식입니다. (JPG, PNG, GIF, WebP, SVG만 가능)" },
                 { status: 400 }
             );
         }

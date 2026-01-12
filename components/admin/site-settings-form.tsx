@@ -12,6 +12,7 @@ import { HelpTooltip } from "@/components/ui/help-tooltip";
 import type { LogoSize, MobileTopSiteNameSize } from "@/lib/site-settings";
 
 const LOGO_SIZES: { value: LogoSize; label: string; description: string }[] = [
+  { value: "xsmall", label: "더 작게", description: "24px" },
   { value: "small", label: "작음", description: "32px" },
   { value: "medium", label: "보통", description: "48px" },
   { value: "large", label: "크게", description: "64px" },
@@ -36,6 +37,7 @@ interface SiteSettingsFormProps {
     siteLogoUrlLight?: string | null;
     siteLogoUrlDark?: string | null;
     siteLogoMode?: "light" | "dark" | string | null;
+    siteLogoSize?: string | null;
     siteBannerUrl?: string | null;
     siteTagline?: string | null;
     siteDescription?: string | null;
@@ -73,6 +75,9 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
   const [siteLogoUrlDark, setSiteLogoUrlDark] = useState(resolvedLogoDark);
   const [siteLogoMode, setSiteLogoMode] = useState<"light" | "dark">(
     initialData.siteLogoMode === "dark" ? "dark" : "light"
+  );
+  const [siteLogoSize, setSiteLogoSize] = useState<LogoSize>(
+    (initialData.siteLogoSize as LogoSize) || (initialData.logoSize as LogoSize) || "medium"
   );
   const [siteBannerUrl, setSiteBannerUrl] = useState(initialData.siteBannerUrl ?? "");
   const [siteTagline, setSiteTagline] = useState(initialData.siteTagline ?? "");
@@ -383,6 +388,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
           siteLogoUrl.trim() ||
           null,
         siteLogoMode,
+        siteLogoSize,
         siteBannerUrl: siteBannerUrl.trim() || null,
         siteTagline: siteTagline.trim() || null,
         siteDescription: siteDescription.trim() || null,
@@ -546,7 +552,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
           <div>
             <div className="flex items-center gap-1.5">
               <label className="text-sm font-medium">배너 높이</label>
-              <HelpTooltip content="모바일 화면에서 배너 영역의 높이를 설정합니다. 로고나 배너 이미지 크기에 맞춰 조절하세요." />
+              <HelpTooltip content="모바일 배너 영역의 높이를 선택하세요." />
             </div>
           </div>
           <div className="grid grid-cols-6 gap-2">
@@ -584,7 +590,7 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-1.5">
             <label className="text-sm font-medium">로고 이미지 (라이트/다크)</label>
-            <HelpTooltip content="헤더와 푸터에 표시되는 로고입니다. 밝은 배경용(라이트)과 어두운 배경용(다크) 로고를 각각 등록하면 테마에 맞게 자동 전환됩니다." />
+            <HelpTooltip content="헤더와 푸터에 표시되는 로고입니다. 라이트/다크 로고를 각각 등록하고, 위에서 사용할 로고를 선택하세요." />
           </div>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -692,6 +698,45 @@ export const SiteSettingsForm = ({ initialData }: SiteSettingsFormProps) => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 로고 크기 */}
+      <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+        <div className="p-2.5 rounded-lg bg-purple-50 text-purple-600">
+          <Maximize2 className="w-5 h-5" />
+        </div>
+        <div className="flex-1 space-y-4">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <label className="text-sm font-medium">로고 이미지 크기</label>
+              <HelpTooltip content="헤더/모바일 상단 로고 이미지 크기를 선택합니다." />
+            </div>
+          </div>
+          <div className="grid grid-cols-6 gap-2">
+            {LOGO_SIZES.map((size) => (
+              <button
+                key={size.value}
+                type="button"
+                onClick={() => setSiteLogoSize(size.value)}
+                disabled={isPending}
+                className={cn(
+                  "relative p-3 rounded-xl border-2 text-center transition-all",
+                  siteLogoSize === size.value
+                    ? "border-purple-500 bg-purple-50/50"
+                    : "border-gray-200 hover:border-gray-300 bg-white"
+                )}
+              >
+                {siteLogoSize === size.value && (
+                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-white" />
+                  </div>
+                )}
+                <div className="font-medium text-sm">{size.label}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{size.description}</div>
+              </button>
+            ))}
           </div>
         </div>
       </div>

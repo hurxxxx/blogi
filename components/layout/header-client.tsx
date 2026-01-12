@@ -31,14 +31,17 @@ interface HeaderClientProps {
   headerScrollEffect?: boolean;
   hideSearch?: boolean;
   logoSize?: LogoSize;
+  bannerSize?: LogoSize;
   siteNamePosition?: SiteNamePosition;
   showMobileTopSiteName?: boolean;
   showMobileTopSiteNameSize?: MobileTopSiteNameSize;
 }
 
-// 배너 높이에 따른 클래스 (내부적으로 로고 스케일로 사용)
+// 배너/로고 크기에 따른 클래스 (공통 스케일)
 const getLogoSizeClasses = (size: LogoSize = "medium") => {
   switch (size) {
+    case "xsmall":
+      return { desktop: "h-6", mobile: "h-[32px]" };
     case "small":
       return { desktop: "h-8", mobile: "h-[40px]" };
     case "medium":
@@ -58,6 +61,8 @@ const getLogoSizeClasses = (size: LogoSize = "medium") => {
 
 const getMobileHeaderOffsetPx = (size: LogoSize = "medium") => {
   switch (size) {
+    case "xsmall":
+      return 112;
     case "small":
       return 132;
     case "medium":
@@ -86,6 +91,7 @@ export const HeaderClient = ({
   headerScrollEffect = true,
   hideSearch = false,
   logoSize = "medium",
+  bannerSize = "medium",
   siteNamePosition = "logo",
   showMobileTopSiteName = true,
   showMobileTopSiteNameSize = "md",
@@ -371,7 +377,7 @@ export const HeaderClient = ({
       : showMobileTopSiteNameSize === "lg"
       ? "text-lg"
       : "text-base";
-  const mobileHeaderOffset = getMobileHeaderOffsetPx(logoSize);
+  const mobileHeaderOffset = getMobileHeaderOffsetPx(bannerSize);
 
   // classic 스타일일 때 테마 색상 사용
   const themedHeaderStyle = {
@@ -721,7 +727,7 @@ export const HeaderClient = ({
                   alt={`${siteName} 로고`}
                   width={240}
                   height={140}
-                  className={cn("w-auto object-contain", getLogoSizeClasses(logoSize).mobile)}
+                  className={cn("w-auto object-contain", getLogoSizeClasses(bannerSize).mobile)}
                   unoptimized
                 />
             </Link>
@@ -798,7 +804,7 @@ export const HeaderClient = ({
             <img
               src={siteLogoUrl}
               alt={`${siteName} 로고`}
-              className="h-12 w-auto object-contain"
+              className={cn("w-auto object-contain", getLogoSizeClasses(logoSize).mobile)}
             />
           </Link>
           <button

@@ -27,6 +27,7 @@ export default async function AdminSiteSettingsPage() {
             siteLogoUrlLight: settings?.siteLogoUrlLight ?? "",
             siteLogoUrlDark: settings?.siteLogoUrlDark ?? "",
             siteLogoMode: settings?.siteLogoMode ?? "light",
+            siteLogoSize: settings?.siteLogoSize ?? "",
             siteBannerUrl: settings?.siteBannerUrl ?? "",
             siteTagline: settings?.siteTagline ?? "",
             siteDescription: settings?.siteDescription ?? "",

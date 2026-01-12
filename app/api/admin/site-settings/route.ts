@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     siteLogoUrlLight,
     siteLogoUrlDark,
     siteLogoMode,
+    siteLogoSize,
     siteBannerUrl,
     siteTagline,
     siteDescription,
@@ -94,8 +95,17 @@ export async function POST(req: NextRequest) {
   if (typeof hideSearch === "boolean") {
     data.hideSearch = hideSearch;
   }
-  if (typeof logoSize === "string" && ["small", "medium", "large", "xlarge", "xxlarge", "xxxlarge"].includes(logoSize)) {
+  if (
+    typeof logoSize === "string" &&
+    ["xsmall", "small", "medium", "large", "xlarge", "xxlarge", "xxxlarge"].includes(logoSize)
+  ) {
     data.logoSize = logoSize;
+  }
+  if (
+    typeof siteLogoSize === "string" &&
+    ["xsmall", "small", "medium", "large", "xlarge", "xxlarge", "xxxlarge"].includes(siteLogoSize)
+  ) {
+    data.siteLogoSize = siteLogoSize;
   }
   if (typeof siteNamePosition === "string" && ["logo", "header1"].includes(siteNamePosition)) {
     data.siteNamePosition = siteNamePosition;

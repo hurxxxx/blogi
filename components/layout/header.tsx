@@ -36,7 +36,8 @@ export const Header = async () => {
       headerStyle={siteSettings.headerStyle}
       headerScrollEffect={siteSettings.headerScrollEffect}
       hideSearch={siteSettings.hideSearch}
-      logoSize={siteSettings.logoSize}
+      logoSize={siteSettings.siteLogoSize}
+      bannerSize={siteSettings.logoSize}
       siteNamePosition={siteSettings.siteNamePosition}
       showMobileTopSiteName={siteSettings.showMobileTopSiteName}
       showMobileTopSiteNameSize={siteSettings.showMobileTopSiteNameSize}

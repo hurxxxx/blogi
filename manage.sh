@@ -26,7 +26,7 @@ ensure_pm2() {
 start_app() {
   ensure_pm2
   pm2 delete "$APP_NAME" 2>/dev/null || true
-  pm2 start "$PM2_CONFIG" --update-env
+  PM2_APP_NAME="$APP_NAME" PORT="$PORT" pm2 start "$PM2_CONFIG" --update-env
   pm2 save
 }
 

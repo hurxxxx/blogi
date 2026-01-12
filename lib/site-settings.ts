@@ -93,11 +93,14 @@ function getThemeColors(settings: {
   themePreset?: string;
   customHeaderBg?: string | null;
   customHeaderText?: string | null;
+  customHeaderSiteNameText?: string | null;
+  customHeaderMenuText?: string | null;
   customFooterBg?: string | null;
   customFooterText?: string | null;
   customPrimary?: string | null;
   customAccent?: string | null;
   customContentBg?: string | null;
+  customButtonText?: string | null;
 } | null): ThemeColors {
   const preset = settings?.themePreset
     ? getThemePreset(settings.themePreset)
@@ -108,10 +111,13 @@ function getThemeColors(settings: {
   return {
     headerBg: settings?.customHeaderBg ?? presetColors.headerBg,
     headerText: settings?.customHeaderText ?? presetColors.headerText,
+    headerSiteNameText: settings?.customHeaderSiteNameText ?? presetColors.headerSiteNameText,
+    headerMenuText: settings?.customHeaderMenuText ?? presetColors.headerMenuText,
     footerBg: settings?.customFooterBg ?? settings?.customHeaderBg ?? presetColors.footerBg,
     footerText: settings?.customFooterText ?? settings?.customHeaderText ?? presetColors.footerText,
     primary: settings?.customPrimary ?? presetColors.primary,
     accent: settings?.customAccent ?? presetColors.accent,
     contentBg: settings?.customContentBg ?? presetColors.contentBg,
+    buttonText: settings?.customButtonText ?? presetColors.buttonText,
   };
 }

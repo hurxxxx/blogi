@@ -223,9 +223,12 @@ model SiteSettings {
   customHeaderText         String?
   customFooterBg           String?
   customFooterText         String?
+  customHeaderSiteNameText String?
+  customHeaderMenuText     String?
   customPrimary            String?
   customAccent             String?
   customContentBg          String?
+  customButtonText         String?
 }
 
 model User {

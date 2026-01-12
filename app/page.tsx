@@ -342,7 +342,7 @@ export default async function Home() {
                         {category.name}
                       </h2>
                     </div>
-                    <Button variant="outline" size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4" asChild>
+                    <Button variant="accent" size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4" asChild>
                       <Link href={canViewCategory ? categoryHref : loginHref}>
                         더 보기 <ArrowRight className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4" />
                       </Link>
@@ -399,7 +399,7 @@ export default async function Home() {
                         {board.name}
                       </h2>
                     </div>
-                    <Button variant="outline" size="sm" asChild>
+                    <Button variant="accent" size="sm" asChild>
                       <Link href={canViewBoard ? boardHref : loginHref}>
                         더 보기 <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>

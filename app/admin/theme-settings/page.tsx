@@ -12,17 +12,21 @@ import {
   type ThemeColors,
   getContrastStatus,
   getContrastRatio,
+  prefersLightText,
 } from "@/lib/theme-presets";
 
 interface ThemeSettings {
   themePreset: string;
   customHeaderBg: string | null;
   customHeaderText: string | null;
+  customHeaderSiteNameText: string | null;
+  customHeaderMenuText: string | null;
   customFooterBg: string | null;
   customFooterText: string | null;
   customPrimary: string | null;
   customAccent: string | null;
   customContentBg: string | null;
+  customButtonText: string | null;
 }
 
 export default function ThemeSettingsPage() {
@@ -40,16 +44,21 @@ export default function ThemeSettingsPage() {
     const presetColors = preset?.colors ?? {
       headerBg: "#0b1320",
       headerText: "#ffffff",
+      headerSiteNameText: "#ffffff",
+      headerMenuText: "#ffffff",
       footerBg: "#0b1320",
       footerText: "#ffffff",
       primary: "#3b82f6",
       accent: "#f97316",
       contentBg: "#ffffff",
+      buttonText: "#3b82f6",
     };
 
     return {
       headerBg: customColors.headerBg ?? presetColors.headerBg,
       headerText: customColors.headerText ?? presetColors.headerText,
+      headerSiteNameText: customColors.headerSiteNameText ?? presetColors.headerSiteNameText,
+      headerMenuText: customColors.headerMenuText ?? presetColors.headerMenuText,
       footerBg: useCustomFooter
         ? (customColors.footerBg ?? presetColors.footerBg)
         : (customColors.headerBg ?? presetColors.headerBg),
@@ -59,6 +68,7 @@ export default function ThemeSettingsPage() {
       primary: customColors.primary ?? presetColors.primary,
       accent: customColors.accent ?? presetColors.accent,
       contentBg: customColors.contentBg ?? presetColors.contentBg,
+      buttonText: customColors.buttonText ?? presetColors.buttonText,
     };
   }, [presets, selectedPreset, customColors, useCustomFooter]);
 
@@ -77,11 +87,18 @@ export default function ThemeSettingsPage() {
         const custom: Partial<ThemeColors> = {};
         if (data.settings.customHeaderBg) custom.headerBg = data.settings.customHeaderBg;
         if (data.settings.customHeaderText) custom.headerText = data.settings.customHeaderText;
+        if (data.settings.customHeaderSiteNameText) {
+          custom.headerSiteNameText = data.settings.customHeaderSiteNameText;
+        }
+        if (data.settings.customHeaderMenuText) {
+          custom.headerMenuText = data.settings.customHeaderMenuText;
+        }
         if (data.settings.customFooterBg) custom.footerBg = data.settings.customFooterBg;
         if (data.settings.customFooterText) custom.footerText = data.settings.customFooterText;
         if (data.settings.customPrimary) custom.primary = data.settings.customPrimary;
         if (data.settings.customAccent) custom.accent = data.settings.customAccent;
         if (data.settings.customContentBg) custom.contentBg = data.settings.customContentBg;
+        if (data.settings.customButtonText) custom.buttonText = data.settings.customButtonText;
         setCustomColors(custom);
 
         // 푸터 별도 설정 여부
@@ -129,11 +146,14 @@ export default function ThemeSettingsPage() {
           themePreset: selectedPreset,
           customHeaderBg: customColors.headerBg ?? null,
           customHeaderText: customColors.headerText ?? null,
+          customHeaderSiteNameText: customColors.headerSiteNameText ?? null,
+          customHeaderMenuText: customColors.headerMenuText ?? null,
           customFooterBg: useCustomFooter ? (customColors.footerBg ?? colors.footerBg) : null,
           customFooterText: useCustomFooter ? (customColors.footerText ?? colors.footerText) : null,
           customPrimary: customColors.primary ?? null,
           customAccent: customColors.accent ?? null,
           customContentBg: customColors.contentBg ?? null,
+          customButtonText: customColors.buttonText ?? null,
         }),
       });
 
@@ -157,6 +177,12 @@ export default function ThemeSettingsPage() {
   const currentColors = getCurrentColors();
   const headerContrast = getContrastStatus(currentColors.headerBg, currentColors.headerText);
   const footerContrast = getContrastStatus(currentColors.footerBg, currentColors.footerText);
+  const defaultButtonText = prefersLightText(currentColors.primary) ? "#ffffff" : "#111827";
+  const buttonTextValue =
+    customColors.buttonText ??
+    (currentColors.buttonText || defaultButtonText);
+  const primaryForeground = buttonTextValue;
+  const accentForeground = buttonTextValue;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -285,6 +311,42 @@ export default function ThemeSettingsPage() {
                 (권장 4.5:1 이상)
               </p>
             </div>
+            <div>
+              <Label>사이트 이름 색상</Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  type="color"
+                  value={customColors.headerSiteNameText ?? currentColors.headerSiteNameText}
+                  onChange={(e) => handleColorChange("headerSiteNameText", e.target.value)}
+                  className="w-12 h-10 p-1 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={customColors.headerSiteNameText ?? currentColors.headerSiteNameText}
+                  onChange={(e) => handleColorChange("headerSiteNameText", e.target.value)}
+                  placeholder="#ffffff"
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>메뉴 텍스트 색상</Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  type="color"
+                  value={customColors.headerMenuText ?? currentColors.headerMenuText}
+                  onChange={(e) => handleColorChange("headerMenuText", e.target.value)}
+                  className="w-12 h-10 p-1 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={customColors.headerMenuText ?? currentColors.headerMenuText}
+                  onChange={(e) => handleColorChange("headerMenuText", e.target.value)}
+                  placeholder="#ffffff"
+                  className="flex-1"
+                />
+              </div>
+            </div>
           </div>
 
           {/* 푸터 색상 */}
@@ -397,6 +459,24 @@ export default function ThemeSettingsPage() {
                 />
               </div>
             </div>
+            <div>
+              <Label>버튼 라벨 색상</Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  type="color"
+                  value={buttonTextValue}
+                  onChange={(e) => handleColorChange("buttonText", e.target.value)}
+                  className="w-12 h-10 p-1 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={buttonTextValue}
+                  onChange={(e) => handleColorChange("buttonText", e.target.value)}
+                  placeholder="#3b82f6"
+                  className="flex-1"
+                />
+              </div>
+            </div>
           </div>
 
           {/* 콘텐츠 배경 */}
@@ -432,6 +512,13 @@ export default function ThemeSettingsPage() {
             {
               "--theme-header-bg": currentColors.headerBg,
               "--theme-header-text": currentColors.headerText,
+              "--theme-header-site-name-text": currentColors.headerSiteNameText,
+              "--theme-header-menu-text": currentColors.headerMenuText,
+              "--primary": currentColors.primary,
+              "--primary-foreground": primaryForeground,
+              "--accent": currentColors.accent,
+              "--accent-foreground": accentForeground,
+              "--theme-button-text": buttonTextValue,
             } as React.CSSProperties
           }
         >
@@ -442,8 +529,8 @@ export default function ThemeSettingsPage() {
               backgroundColor: "var(--theme-header-bg)",
             }}
           >
-            <span className="font-semibold text-[color:var(--theme-header-text)]">사이트 이름</span>
-            <div className="flex gap-4 text-sm text-[color:var(--theme-header-text)]">
+            <span className="font-semibold text-[color:var(--theme-header-site-name-text)]">사이트 이름</span>
+            <div className="flex gap-4 text-sm text-[color:var(--theme-header-menu-text)]">
               <span className="opacity-70">메뉴1</span>
               <span className="opacity-70">메뉴2</span>
               <span className="opacity-70">메뉴3</span>
@@ -457,18 +544,12 @@ export default function ThemeSettingsPage() {
           >
             <p className="text-gray-700 mb-4">콘텐츠 영역 미리보기</p>
             <div className="flex gap-3">
-              <button
-                className="px-4 py-2 rounded-lg text-white text-sm font-medium"
-                style={{ backgroundColor: currentColors.primary }}
-              >
+              <Button size="sm">
                 Primary 버튼
-              </button>
-              <button
-                className="px-4 py-2 rounded-lg text-white text-sm font-medium"
-                style={{ backgroundColor: currentColors.accent }}
-              >
+              </Button>
+              <Button size="sm" variant="accent">
                 Accent 버튼
-              </button>
+              </Button>
             </div>
           </div>
 

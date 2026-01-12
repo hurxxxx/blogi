@@ -94,7 +94,7 @@ export const ProfileForm = ({ user }: ProfileFormProps) => {
     };
 
     return (
-        <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-[radial-gradient(800px_500px_at_20%_0%,rgba(14,165,166,0.2),transparent_60%),radial-gradient(700px_420px_at_85%_10%,rgba(255,107,87,0.2),transparent_60%)] py-8 px-4">
+    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-[var(--theme-content-bg)] py-8 px-4">
             <div className="w-full max-w-[600px] mx-4 space-y-6">
                 <Card className="shadow-[0_30px_60px_-40px_rgba(15,23,42,0.4)] border-0 bg-white/90">
                     <CardHeader>

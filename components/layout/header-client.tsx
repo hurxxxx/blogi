@@ -226,15 +226,15 @@ export const HeaderClient = ({
     // 모바일 스타일 (사이드바용 - 항상 다크)
     const mobileLinkClass = cn(
       "block px-6 py-3 text-sm font-semibold transition-colors",
-      "text-[color:var(--theme-header-text)]",
+      "text-[color:var(--theme-header-menu-text)]",
       isActive
-        ? "bg-[color:color-mix(in oklab,var(--theme-header-text)_18%,transparent)] border-l-4 border-[color:color-mix(in oklab,var(--theme-header-text)_60%,transparent)]"
-        : "opacity-80 hover:opacity-100 hover:bg-[color:color-mix(in oklab,var(--theme-header-text)_10%,transparent)]"
+        ? "bg-[color:color-mix(in oklab,var(--theme-header-menu-text)_18%,transparent)] border-l-4 border-[color:color-mix(in oklab,var(--theme-header-menu-text)_60%,transparent)]"
+        : "opacity-80 hover:opacity-100 hover:bg-[color:color-mix(in oklab,var(--theme-header-menu-text)_10%,transparent)]"
     );
 
     // 데스크톱 스타일 (headerStyle에 따라 변경)
     const desktopLinkClass = cn(
-      "px-3 py-2 text-sm font-medium transition-all whitespace-nowrap",
+      "px-3 py-2 text-sm font-medium transition-all whitespace-nowrap text-[color:var(--theme-header-menu-text)]",
       getTextClasses(isActive, true),
       headerStyle === "bento" && "rounded-xl hover:bg-white/50"
     );
@@ -284,10 +284,10 @@ export const HeaderClient = ({
     // 모바일 스타일 (사이드바용 - 항상 다크)
     const mobileLinkClass = cn(
       "block px-6 py-3 text-sm font-semibold transition-colors",
-      "text-[color:var(--theme-header-text)]",
+      "text-[color:var(--theme-header-menu-text)]",
       isActive
-        ? "bg-[color:color-mix(in oklab,var(--theme-header-text)_18%,transparent)] border-l-4 border-[color:color-mix(in oklab,var(--theme-header-text)_60%,transparent)]"
-        : "opacity-80 hover:opacity-100 hover:bg-[color:color-mix(in oklab,var(--theme-header-text)_10%,transparent)]"
+        ? "bg-[color:color-mix(in oklab,var(--theme-header-menu-text)_18%,transparent)] border-l-4 border-[color:color-mix(in oklab,var(--theme-header-menu-text)_60%,transparent)]"
+        : "opacity-80 hover:opacity-100 hover:bg-[color:color-mix(in oklab,var(--theme-header-menu-text)_10%,transparent)]"
     );
 
     // 데스크톱 스타일 (headerStyle에 따라 변경)
@@ -305,7 +305,7 @@ export const HeaderClient = ({
         href={`/community/${group?.slug ?? "community"}/${board.slug}`}
         className={
           isMobile
-            ? "block px-8 py-2 text-sm text-[color:color-mix(in oklab,var(--theme-header-text)_70%,transparent)] hover:text-[color:var(--theme-header-text)]"
+            ? "block px-8 py-2 text-sm text-[color:color-mix(in oklab,var(--theme-header-menu-text)_70%,transparent)] hover:text-[color:var(--theme-header-menu-text)]"
             : "block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
         }
         onClick={() => {
@@ -331,7 +331,7 @@ export const HeaderClient = ({
           {openCommunityId === communityKey && (
             <div className="pb-3">
               {list.length > 0 ? list : (
-                <span className="block px-8 py-2 text-xs text-[color:color-mix(in oklab,var(--theme-header-text)_40%,transparent)]">게시판 없음</span>
+                <span className="block px-8 py-2 text-xs text-[color:color-mix(in oklab,var(--theme-header-menu-text)_40%,transparent)]">게시판 없음</span>
               )}
             </div>
           )}
@@ -427,7 +427,7 @@ export const HeaderClient = ({
                   />
                   {siteNamePosition === "logo" && (
                     <span className={cn(
-                      "font-display tracking-tight",
+                      "font-display tracking-tight text-[color:var(--theme-header-site-name-text)]",
                       hideSearch ? "text-sm" : "text-xl"
                     )}>
                       {siteName}
@@ -439,7 +439,7 @@ export const HeaderClient = ({
                 {!hideSearch ? (
                   <div className={cn("flex items-center gap-3 px-4 py-2", getBentoTileClasses())}>
                     {siteNamePosition === "header1" && (
-                      <span className="font-display text-sm tracking-tight whitespace-nowrap">
+                      <span className="font-display text-sm tracking-tight whitespace-nowrap text-[color:var(--theme-header-site-name-text)]">
                         {siteName}
                       </span>
                     )}
@@ -456,7 +456,7 @@ export const HeaderClient = ({
                 ) : (
                   siteNamePosition === "header1" && (
                     <div className={cn("flex items-center justify-center px-4 py-2", getBentoTileClasses())}>
-                      <span className="font-display text-sm tracking-tight">
+                      <span className="font-display text-sm tracking-tight text-[color:var(--theme-header-site-name-text)]">
                         {siteName}
                       </span>
                     </div>
@@ -562,20 +562,20 @@ export const HeaderClient = ({
                   )}
                 />
                 {siteNamePosition === "logo" && (
-                  <span className={cn(
-                    "font-display tracking-tight",
-                    hideSearch ? "text-sm" : "text-xl"
-                  )}>
-                    {siteName}
-                  </span>
-                )}
+                    <span className={cn(
+                      "font-display tracking-tight text-[color:var(--theme-header-site-name-text)]",
+                      hideSearch ? "text-sm" : "text-xl"
+                    )}>
+                      {siteName}
+                    </span>
+                  )}
               </Link>
 
               {/* 사이트명 (header1 위치일 때) + 검색 폼 */}
               {!hideSearch ? (
                 <div className="hidden md:flex items-center gap-4">
                   {siteNamePosition === "header1" && (
-                    <span className="font-display text-sm tracking-tight whitespace-nowrap">
+                    <span className="font-display text-sm tracking-tight whitespace-nowrap text-[color:var(--theme-header-site-name-text)]">
                       {siteName}
                     </span>
                   )}
@@ -592,7 +592,7 @@ export const HeaderClient = ({
               ) : (
                 /* 검색 숨김일 때 사이트명 header1 위치 표시 */
                 siteNamePosition === "header1" && (
-                  <span className="hidden md:block font-display text-sm tracking-tight">
+                  <span className="hidden md:block font-display text-sm tracking-tight text-[color:var(--theme-header-site-name-text)]">
                     {siteName}
                   </span>
                 )
@@ -676,7 +676,7 @@ export const HeaderClient = ({
             {showTopSiteName && (
               <span
                 className={cn(
-                  "font-display tracking-wide absolute left-1/2 -translate-x-1/2",
+                  "font-display tracking-wide absolute left-1/2 -translate-x-1/2 text-[color:var(--theme-header-site-name-text)]",
                   mobileTopNameSizeClass
                 )}
               >

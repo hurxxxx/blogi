@@ -25,11 +25,14 @@ export async function GET() {
       themePreset: true,
       customHeaderBg: true,
       customHeaderText: true,
+      customHeaderSiteNameText: true,
+      customHeaderMenuText: true,
       customFooterBg: true,
       customFooterText: true,
       customPrimary: true,
       customAccent: true,
       customContentBg: true,
+      customButtonText: true,
     },
   });
 
@@ -38,11 +41,14 @@ export async function GET() {
       themePreset: "classic-navy",
       customHeaderBg: null,
       customHeaderText: null,
+      customHeaderSiteNameText: null,
+      customHeaderMenuText: null,
       customFooterBg: null,
       customFooterText: null,
       customPrimary: null,
       customAccent: null,
       customContentBg: null,
+      customButtonText: null,
     },
     presets: themePresets,
   });
@@ -60,11 +66,14 @@ export async function POST(req: NextRequest) {
     themePreset,
     customHeaderBg,
     customHeaderText,
+    customHeaderSiteNameText,
+    customHeaderMenuText,
     customFooterBg,
     customFooterText,
     customPrimary,
     customAccent,
     customContentBg,
+    customButtonText,
   } = body;
 
   // 유효한 프리셋인지 확인
@@ -91,11 +100,14 @@ export async function POST(req: NextRequest) {
   // 커스텀 색상 (빈 문자열이면 null로 저장하여 프리셋 색상 사용)
   data.customHeaderBg = validateColor(customHeaderBg);
   data.customHeaderText = validateColor(customHeaderText);
+  data.customHeaderSiteNameText = validateColor(customHeaderSiteNameText);
+  data.customHeaderMenuText = validateColor(customHeaderMenuText);
   data.customFooterBg = validateColor(customFooterBg);
   data.customFooterText = validateColor(customFooterText);
   data.customPrimary = validateColor(customPrimary);
   data.customAccent = validateColor(customAccent);
   data.customContentBg = validateColor(customContentBg);
+  data.customButtonText = validateColor(customButtonText);
 
   const settings = await prisma.siteSettings.upsert({
     where: { key: "default" },

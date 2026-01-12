@@ -2,11 +2,14 @@
 export interface ThemeColors {
   headerBg: string;
   headerText: string;
+  headerSiteNameText: string;
+  headerMenuText: string;
   footerBg: string;
   footerText: string;
   primary: string;
   accent: string;
   contentBg: string;
+  buttonText: string;
 }
 
 export interface ThemePreset {
@@ -24,11 +27,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#0b1320",
       headerText: "#ffffff",
+      headerSiteNameText: "#ffffff",
+      headerMenuText: "#ffffff",
       footerBg: "#0b1320",
       footerText: "#ffffff",
       primary: "#3b82f6",
       accent: "#f97316",
       contentBg: "#ffffff",
+      buttonText: "",
     },
   },
   {
@@ -38,11 +44,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#0d4f4f",
       headerText: "#ffffff",
+      headerSiteNameText: "#ffffff",
+      headerMenuText: "#ffffff",
       footerBg: "#0d4f4f",
       footerText: "#ffffff",
       primary: "#14b8a6",
       accent: "#fbbf24",
       contentBg: "#f0fdfa",
+      buttonText: "",
     },
   },
   {
@@ -52,11 +61,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#3d2b1f",
       headerText: "#fef3c7",
+      headerSiteNameText: "#fef3c7",
+      headerMenuText: "#fef3c7",
       footerBg: "#3d2b1f",
       footerText: "#fef3c7",
       primary: "#92400e",
       accent: "#f59e0b",
       contentBg: "#fffbeb",
+      buttonText: "",
     },
   },
   {
@@ -66,11 +78,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#1a3c34",
       headerText: "#ffffff",
+      headerSiteNameText: "#ffffff",
+      headerMenuText: "#ffffff",
       footerBg: "#1a3c34",
       footerText: "#ffffff",
       primary: "#059669",
       accent: "#fbbf24",
       contentBg: "#f0fdf4",
+      buttonText: "",
     },
   },
   {
@@ -80,11 +95,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#4a4063",
       headerText: "#ffffff",
+      headerSiteNameText: "#ffffff",
+      headerMenuText: "#ffffff",
       footerBg: "#4a4063",
       footerText: "#ffffff",
       primary: "#8b5cf6",
       accent: "#ec4899",
       contentBg: "#faf5ff",
+      buttonText: "",
     },
   },
   {
@@ -94,11 +112,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#f5f5f0",
       headerText: "#1f2937",
+      headerSiteNameText: "#1f2937",
+      headerMenuText: "#1f2937",
       footerBg: "#f5f5f0",
       footerText: "#1f2937",
       primary: "#3b82f6",
       accent: "#f43f5e",
       contentBg: "#ffffff",
+      buttonText: "",
     },
   },
   {
@@ -108,11 +129,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#2d3748",
       headerText: "#ffffff",
+      headerSiteNameText: "#ffffff",
+      headerMenuText: "#ffffff",
       footerBg: "#2d3748",
       footerText: "#ffffff",
       primary: "#6366f1",
       accent: "#06b6d4",
       contentBg: "#f8fafc",
+      buttonText: "",
     },
   },
   {
@@ -122,11 +146,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#5c4d3c",
       headerText: "#fef3c7",
+      headerSiteNameText: "#fef3c7",
+      headerMenuText: "#fef3c7",
       footerBg: "#5c4d3c",
       footerText: "#fef3c7",
       primary: "#b45309",
       accent: "#65a30d",
       contentBg: "#fefce8",
+      buttonText: "",
     },
   },
   // 밝은 테마들
@@ -137,11 +164,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#ffffff",
       headerText: "#111827",
+      headerSiteNameText: "#111827",
+      headerMenuText: "#111827",
       footerBg: "#ffffff",
       footerText: "#111827",
       primary: "#2563eb",
       accent: "#dc2626",
       contentBg: "#ffffff",
+      buttonText: "",
     },
   },
   {
@@ -151,11 +181,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#f3f4f6",
       headerText: "#374151",
+      headerSiteNameText: "#374151",
+      headerMenuText: "#374151",
       footerBg: "#e5e7eb",
       footerText: "#374151",
       primary: "#4b5563",
       accent: "#6b7280",
       contentBg: "#f9fafb",
+      buttonText: "",
     },
   },
   {
@@ -165,11 +198,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#faf7f2",
       headerText: "#44403c",
+      headerSiteNameText: "#44403c",
+      headerMenuText: "#44403c",
       footerBg: "#f5f0e8",
       footerText: "#44403c",
       primary: "#a16207",
       accent: "#b45309",
       contentBg: "#fffdf9",
+      buttonText: "",
     },
   },
   {
@@ -179,11 +215,14 @@ export const themePresets: ThemePreset[] = [
     colors: {
       headerBg: "#f0f9ff",
       headerText: "#0c4a6e",
+      headerSiteNameText: "#0c4a6e",
+      headerMenuText: "#0c4a6e",
       footerBg: "#e0f2fe",
       footerText: "#0c4a6e",
       primary: "#0284c7",
       accent: "#0891b2",
       contentBg: "#f8fafc",
+      buttonText: "",
     },
   },
 ];

@@ -92,6 +92,34 @@ print_connection_info() {
   fi
 }
 
+get_port() {
+  local port
+  port="${PORT:-}"
+  if [[ -z "$port" ]]; then
+    port="$(get_env_value "PORT" "$ENV_FILE")"
+  fi
+  if [[ -z "$port" ]]; then
+    port="3010"
+  fi
+  printf '%s' "$port"
+}
+
+force_free_port() {
+  local port="$1"
+  local pids=""
+
+  if command -v lsof >/dev/null 2>&1; then
+    pids="$(lsof -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | tr '\n' ' ')"
+  fi
+
+  if [[ -n "$pids" ]]; then
+    echo "Force stopping processes on port $port (pid(s): $pids)"
+    kill $pids >/dev/null 2>&1 || true
+    sleep 1
+    kill -9 $pids >/dev/null 2>&1 || true
+  fi
+}
+
 is_running() {
   if [[ ! -f "$PID_FILE" ]]; then
     return 1
@@ -133,7 +161,7 @@ stop_dev() {
   if ! is_running; then
     echo "Dev server is not running"
     rm -f "$PID_FILE"
-    exit 0
+    return 0
   fi
 
   local pid
@@ -177,7 +205,11 @@ log_dev() {
 case "${1:-}" in
   start) start_dev ;;
   stop) stop_dev ;;
-  restart) stop_dev; start_dev ;;
+  restart)
+    stop_dev
+    force_free_port "$(get_port)"
+    start_dev
+    ;;
   status) status_dev ;;
   log) log_dev ;;
   *) usage ;;

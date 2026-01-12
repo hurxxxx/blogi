@@ -3,7 +3,7 @@ import { getMenuByKey } from "@/lib/menus";
 import { getFooterSettings } from "@/lib/footer-settings";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getCommunityGroups } from "@/lib/community";
-import { DEFAULT_BANNER_URL, DEFAULT_LOGO_URL } from "@/lib/branding";
+import { getDefaultBannerForBackground, getDefaultLogoForBackground } from "@/lib/branding";
 
 export const Header = async () => {
   const menu = await getMenuByKey("main");
@@ -12,12 +12,15 @@ export const Header = async () => {
     getSiteSettings(),
     getCommunityGroups(),
   ]);
+  const fallbackLogoUrl = getDefaultLogoForBackground(siteSettings.themeColors.headerBg);
+  const fallbackBannerUrl = getDefaultBannerForBackground(siteSettings.themeColors.headerBg);
+
   return (
     <HeaderClient
       menuItems={menu.items}
       siteName={footerSettings.siteName || "사이트"}
-      siteLogoUrl={footerSettings.siteLogoUrl || DEFAULT_LOGO_URL}
-      siteBannerUrl={siteSettings.siteBannerUrl || DEFAULT_BANNER_URL}
+      siteLogoUrl={footerSettings.siteLogoUrl || fallbackLogoUrl}
+      siteBannerUrl={siteSettings.siteBannerUrl || fallbackBannerUrl}
       siteTagline={siteSettings.siteTagline || ""}
       communityGroups={communityGroups}
       headerStyle={siteSettings.headerStyle}

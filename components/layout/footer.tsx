@@ -104,25 +104,25 @@ const getBrandedSmallIcon = (key: string) => {
     }
 };
 
-// 미니멀 스타일 (lucide 아이콘, 배경 없음)
+// 미니멀 스타일 (lucide 아이콘, 배경 없음) - CSS 변수 색상 상속
 const getMinimalIcon = (key: string) => {
     switch (key) {
         case "instagram":
-            return <Instagram className="w-5 h-5 text-white/70 hover:text-white transition" />;
+            return <Instagram className="w-5 h-5 opacity-70 hover:opacity-100 transition" />;
         case "facebook":
-            return <Facebook className="w-5 h-5 text-white/70 hover:text-white transition" />;
+            return <Facebook className="w-5 h-5 opacity-70 hover:opacity-100 transition" />;
         case "youtube":
-            return <Youtube className="w-5 h-5 text-white/70 hover:text-white transition" />;
+            return <Youtube className="w-5 h-5 opacity-70 hover:opacity-100 transition" />;
         case "tiktok":
-            return <FaTiktok className="w-4 h-4 text-white/70" />;
+            return <FaTiktok className="w-4 h-4 opacity-70 hover:opacity-100 transition" />;
         case "telegram":
-            return <Send className="w-5 h-5 text-white/70 hover:text-white transition" />;
+            return <Send className="w-5 h-5 opacity-70 hover:opacity-100 transition" />;
         case "kakao":
-            return <MessageCircle className="w-5 h-5 text-white/70 hover:text-white transition" />;
+            return <MessageCircle className="w-5 h-5 opacity-70 hover:opacity-100 transition" />;
         case "x":
-            return <FaXTwitter className="w-4 h-4 text-white/70" />;
+            return <FaXTwitter className="w-4 h-4 opacity-70 hover:opacity-100 transition" />;
         default:
-            return <Globe className="w-5 h-5 text-white/70 hover:text-white transition" />;
+            return <Globe className="w-5 h-5 opacity-70 hover:opacity-100 transition" />;
     }
 };
 
@@ -154,25 +154,27 @@ export const Footer = async () => {
         return null;
     }
     return (
-        <footer className="relative overflow-hidden bg-[#0b1320] text-white py-5 md:py-10 border-t border-white/10">
-            <div className="absolute inset-0 bg-[radial-gradient(700px_420px_at_90%_0%,rgba(14,165,166,0.2),transparent_60%)]" />
-            <div className="container mx-auto px-4 text-center relative space-y-2 md:space-y-3">
+        <footer
+            className="py-5 md:py-10 border-t border-current/10"
+            style={{ backgroundColor: "var(--theme-footer-bg)", color: "var(--theme-footer-text)" }}
+        >
+            <div className="container mx-auto px-4 text-center space-y-2 md:space-y-3">
                 {(settings.showTerms || settings.showPrivacy) && (
-                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-white/70">
+                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs opacity-70">
                         {settings.showTerms && settings.termsContent && (
-                            <Link href="/terms" className="hover:text-white transition">
+                            <Link href="/terms" className="hover:opacity-100 transition">
                                 이용약관
                             </Link>
                         )}
                         {settings.showPrivacy && settings.privacyContent && (
-                            <Link href="/privacy" className="hover:text-white transition">
+                            <Link href="/privacy" className="hover:opacity-100 transition">
                                 개인정보처리방침
                             </Link>
                         )}
                     </div>
                 )}
                 {settings.showBusinessInfo && settings.businessLines.length > 0 && (
-                    <div className="hidden md:block text-xs text-white/60 space-y-1">
+                    <div className="hidden md:block text-xs opacity-60 space-y-1">
                         {settings.businessLines.map((line, index) => (
                             <div key={`${line}-${index}`}>{line}</div>
                         ))}
@@ -191,14 +193,14 @@ export const Footer = async () => {
                             >
                                 {getSocialIcon(link.key, settings.socialIconStyle)}
                                 {settings.showSocialLabels && (
-                                    <span className="text-[10px] text-white/60">{link.label}</span>
+                                    <span className="text-[10px] opacity-60">{link.label}</span>
                                 )}
                             </Link>
                         ))}
                     </div>
                 )}
                 {settings.showCopyright && (
-                    <p className="text-[10px] md:text-xs text-white/50 uppercase tracking-[0.15em] md:tracking-[0.2em]">
+                    <p className="text-[10px] md:text-xs opacity-50 uppercase tracking-[0.15em] md:tracking-[0.2em]">
                         {settings.copyrightText ||
                           (settings.siteName
                             ? `Copyright © ${settings.siteName}. All rights reserved.`

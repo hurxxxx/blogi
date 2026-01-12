@@ -217,6 +217,15 @@ model SiteSettings {
   splashBackgroundColor    String?
   splashLogoUrl            String?
   splashLogoSize           String  @default("medium")
+  // 테마 설정
+  themePreset              String  @default("classic-navy")
+  customHeaderBg           String?
+  customHeaderText         String?
+  customFooterBg           String?
+  customFooterText         String?
+  customPrimary            String?
+  customAccent             String?
+  customContentBg          String?
 }
 
 model User {

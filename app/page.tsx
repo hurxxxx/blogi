@@ -256,7 +256,7 @@ export default async function Home() {
   return (
     <div className="flex flex-col flex-1">
       {/* Mobile: Category Grid Landing */}
-      <section className="md:hidden flex-1 flex items-center justify-center px-3 py-2 bg-[#f6f1e8]">
+      <section className="md:hidden flex-1 flex items-center justify-center px-3 py-2 bg-[var(--theme-content-bg)]">
         <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
           {categories.map((category) => (
             <ProtectedCategoryLink
@@ -285,7 +285,7 @@ export default async function Home() {
       {/* Desktop: Full Landing Page */}
 
       {/* Categories */}
-      <section className="hidden md:flex flex-1 items-center justify-center px-4 py-8 bg-[#f6f1e8]">
+      <section className="hidden md:flex flex-1 items-center justify-center px-4 py-8 bg-[var(--theme-content-bg)]">
         <div className="w-full max-w-6xl">
           <div className="grid grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {categories.map((category) => (
@@ -314,7 +314,7 @@ export default async function Home() {
       </section>
 
       {/* Latest Content Dashboard */}
-      <section className={`${siteSettings?.showHomeDashboardOnMobile ? '' : 'hidden md:block'} pt-0 pb-8 md:pb-14 lg:pb-20 bg-[#f6f1e8]`}>
+      <section className={`${siteSettings?.showHomeDashboardOnMobile ? '' : 'hidden md:block'} pt-0 pb-8 md:pb-14 lg:pb-20 bg-[var(--theme-content-bg)]`}>
         <div className="container mx-auto px-3 md:px-4 space-y-6 md:space-y-12">
 
           {/* 카테고리별 최신 콘텐츠 */}

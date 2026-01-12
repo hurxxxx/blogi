@@ -7,10 +7,11 @@ import { Footer } from "@/components/layout/footer";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { SplashScreen } from "@/components/layout/splash-screen";
 import { AuthProvider } from "@/components/providers/session-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { getSiteSettings } from "@/lib/site-settings";
-import { DEFAULT_BANNER_URL, DEFAULT_LOGO_URL } from "@/lib/branding";
+import { DEFAULT_LOGO_URL, getDefaultLogoForBackground } from "@/lib/branding";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-body",
@@ -65,7 +66,8 @@ export default async function RootLayout({
   const settings = await getSiteSettings();
 
   // 스플래시 로고: splashLogoUrl → siteLogoUrl → 기본 로고
-  const splashLogoUrl = settings.splashLogoUrl || settings.siteLogoUrl || DEFAULT_LOGO_URL;
+  const splashLogoFallback = getDefaultLogoForBackground(settings.splashBackgroundColor);
+  const splashLogoUrl = settings.splashLogoUrl || settings.siteLogoUrl || splashLogoFallback;
 
   return (
     <html lang="ko">
@@ -75,18 +77,23 @@ export default async function RootLayout({
         <AuthProvider>
           <ToastProvider>
             <ConfirmProvider>
-              <SplashScreen
-                enabled={settings.splashEnabled}
-                backgroundColor={settings.splashBackgroundColor}
-                logoUrl={splashLogoUrl}
-                logoSize={settings.splashLogoSize}
-              />
-              <Header />
-              <main className="flex-1 flex flex-col bg-transparent pt-0">
-                {children}
-              </main>
-              <ScrollToTop />
-              <Footer />
+              <ThemeProvider themeColors={settings.themeColors}>
+                <SplashScreen
+                  enabled={settings.splashEnabled}
+                  backgroundColor={settings.splashBackgroundColor}
+                  logoUrl={splashLogoUrl}
+                  logoSize={settings.splashLogoSize}
+                />
+                <Header />
+                <main
+                  className="flex-1 flex flex-col pt-0"
+                  style={{ backgroundColor: "var(--theme-content-bg)" }}
+                >
+                  {children}
+                </main>
+                <ScrollToTop />
+                <Footer />
+              </ThemeProvider>
             </ConfirmProvider>
           </ToastProvider>
         </AuthProvider>

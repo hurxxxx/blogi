@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { HeaderStyle } from "@/lib/header-styles";
+import { getThemePreset, getDefaultTheme, type ThemeColors } from "@/lib/theme-presets";
 
 export type LogoSize = "small" | "medium" | "large" | "xlarge" | "xxlarge" | "xxxlarge";
 export type MobileTopSiteNameSize = "sm" | "md" | "lg";
@@ -28,6 +29,8 @@ export type SiteSettingsSnapshot = {
   splashBackgroundColor: string;
   splashLogoUrl?: string | null;
   splashLogoSize: SplashLogoSize;
+  // 테마 설정
+  themeColors: ThemeColors;
 };
 
 export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
@@ -80,5 +83,35 @@ export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
     splashLogoSize: (["small", "medium", "large", "xlarge"].includes(settings?.splashLogoSize ?? "")
       ? settings?.splashLogoSize
       : "medium") as SplashLogoSize,
+    // 테마 설정
+    themeColors: getThemeColors(settings),
   };
 };
+
+// 테마 색상 계산 (프리셋 + 커스텀 오버라이드)
+function getThemeColors(settings: {
+  themePreset?: string;
+  customHeaderBg?: string | null;
+  customHeaderText?: string | null;
+  customFooterBg?: string | null;
+  customFooterText?: string | null;
+  customPrimary?: string | null;
+  customAccent?: string | null;
+  customContentBg?: string | null;
+} | null): ThemeColors {
+  const preset = settings?.themePreset
+    ? getThemePreset(settings.themePreset)
+    : getDefaultTheme();
+
+  const presetColors = preset?.colors ?? getDefaultTheme().colors;
+
+  return {
+    headerBg: settings?.customHeaderBg ?? presetColors.headerBg,
+    headerText: settings?.customHeaderText ?? presetColors.headerText,
+    footerBg: settings?.customFooterBg ?? settings?.customHeaderBg ?? presetColors.footerBg,
+    footerText: settings?.customFooterText ?? settings?.customHeaderText ?? presetColors.footerText,
+    primary: settings?.customPrimary ?? presetColors.primary,
+    accent: settings?.customAccent ?? presetColors.accent,
+    contentBg: settings?.customContentBg ?? presetColors.contentBg,
+  };
+}

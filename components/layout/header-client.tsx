@@ -115,7 +115,7 @@ export const HeaderClient = ({
     switch (headerStyle) {
       case "glassmorphism":
         return cn(
-          "sticky top-0 z-40 w-full text-gray-900",
+          "sticky top-0 z-40 w-full text-[color:var(--theme-header-text)]",
           baseTransition,
           isScrolled
             ? "backdrop-blur-xl bg-white/80 shadow-lg border-b border-white/20"
@@ -123,7 +123,7 @@ export const HeaderClient = ({
         );
       case "minimal":
         return cn(
-          "sticky top-0 z-40 w-full text-gray-900",
+          "sticky top-0 z-40 w-full text-[color:var(--theme-header-text)]",
           baseTransition,
           isScrolled
             ? "bg-white shadow-sm border-b border-gray-200/70"
@@ -131,59 +131,54 @@ export const HeaderClient = ({
         );
       case "bento":
         return cn(
-          "sticky top-0 z-40 w-full text-gray-900",
+          "sticky top-0 z-40 w-full text-[color:var(--theme-header-text)]",
           baseTransition,
           isScrolled
             ? "backdrop-blur-lg bg-gray-50/90 shadow-md"
             : "backdrop-blur-md bg-gray-50/70"
         );
       default: // classic
-        return "relative z-40 w-full overflow-visible bg-[#0b1320] text-white";
+        return "relative z-40 w-full overflow-visible";
     }
   };
 
-  // 스타일별 텍스트 클래스
+  // 스타일별 텍스트 클래스 (classic은 CSS 변수 사용)
   const getTextClasses = (isActive: boolean, isNav = false) => {
     if (headerStyle === "classic") {
-      return isActive ? "text-white" : "text-white/70 hover:text-white";
+      // CSS 변수로 색상이 적용되므로 opacity만 조절
+      return isActive ? "opacity-100" : "opacity-70 hover:opacity-100";
     }
-    // 모던 스타일들
+    // 모던 스타일들도 테마 텍스트 색상 기준으로 맞춤
     if (isNav) {
       return isActive
-        ? "text-gray-900 font-semibold"
-        : "text-gray-600 hover:text-gray-900";
+        ? "font-semibold opacity-100"
+        : "opacity-70 hover:opacity-100";
     }
-    return isActive ? "text-gray-900" : "text-gray-600 hover:text-gray-900";
+    return isActive ? "opacity-100" : "opacity-70 hover:opacity-100";
   };
 
-  // 스타일별 배경 오버레이 (classic만 사용)
+  // 스타일별 배경 오버레이 (테마 색상 적용을 위해 제거됨)
   const renderBackgroundOverlay = () => {
-    if (headerStyle !== "classic") return null;
-    return (
-      <>
-        <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_20%_-10%,rgba(14,165,166,0.35),transparent_60%),radial-gradient(700px_420px_at_80%_0%,rgba(255,107,87,0.35),transparent_65%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,10,20,0.85)_0%,rgba(11,19,32,0.6)_45%,rgba(12,28,42,0.9)_100%)]" />
-      </>
-    );
+    return null;
   };
 
   // 스타일별 입력 필드 클래스
   const getInputClasses = () => {
     if (headerStyle === "classic") {
-      return "w-full pl-4 pr-10 bg-white/10 text-white placeholder:text-white/60 border-white/15";
+      return "w-full pl-4 pr-10 bg-black/10 text-[color:var(--theme-header-text)] placeholder:text-[color:color-mix(in oklab,var(--theme-header-text)_55%,transparent)] border-black/15";
     }
     if (headerStyle === "bento") {
-      return "w-full pl-4 pr-10 bg-transparent text-gray-900 placeholder:text-gray-500 border-transparent focus-visible:ring-0 focus-visible:ring-offset-0";
+      return "w-full pl-4 pr-10 bg-transparent text-[color:var(--theme-header-text)] placeholder:text-[color:color-mix(in oklab,var(--theme-header-text)_55%,transparent)] border-transparent focus-visible:ring-0 focus-visible:ring-offset-0";
     }
-    return "w-full pl-4 pr-10 bg-gray-100/80 text-gray-900 placeholder:text-gray-500 border-gray-200/50";
+    return "w-full pl-4 pr-10 bg-gray-100/80 text-[color:var(--theme-header-text)] placeholder:text-[color:color-mix(in oklab,var(--theme-header-text)_55%,transparent)] border-gray-200/50";
   };
 
   // 스타일별 아이콘 색상
   const getIconClasses = () => {
     if (headerStyle === "classic") {
-      return "text-white/60";
+      return "opacity-60";
     }
-    return "text-gray-500";
+    return "opacity-60";
   };
 
   // Bento 스타일 모듈 클래스
@@ -231,9 +226,10 @@ export const HeaderClient = ({
     // 모바일 스타일 (사이드바용 - 항상 다크)
     const mobileLinkClass = cn(
       "block px-6 py-3 text-sm font-semibold transition-colors",
+      "text-[color:var(--theme-header-text)]",
       isActive
-        ? "text-white bg-white/10 border-l-4 border-white/70"
-        : "text-white/70 hover:text-white hover:bg-white/5"
+        ? "bg-[color:color-mix(in oklab,var(--theme-header-text)_18%,transparent)] border-l-4 border-[color:color-mix(in oklab,var(--theme-header-text)_60%,transparent)]"
+        : "opacity-80 hover:opacity-100 hover:bg-[color:color-mix(in oklab,var(--theme-header-text)_10%,transparent)]"
     );
 
     // 데스크톱 스타일 (headerStyle에 따라 변경)
@@ -245,7 +241,7 @@ export const HeaderClient = ({
 
     const linkClass = isMobile ? mobileLinkClass : desktopLinkClass;
 
-    const lockIconClass = headerStyle === "classic" ? "text-white/70" : "text-gray-400";
+  const lockIconClass = headerStyle === "classic" ? "opacity-70" : "opacity-50";
 
     const content = (
       <span className="flex items-center gap-2">
@@ -288,9 +284,10 @@ export const HeaderClient = ({
     // 모바일 스타일 (사이드바용 - 항상 다크)
     const mobileLinkClass = cn(
       "block px-6 py-3 text-sm font-semibold transition-colors",
+      "text-[color:var(--theme-header-text)]",
       isActive
-        ? "text-white bg-white/10 border-l-4 border-white/70"
-        : "text-white/70 hover:text-white hover:bg-white/5"
+        ? "bg-[color:color-mix(in oklab,var(--theme-header-text)_18%,transparent)] border-l-4 border-[color:color-mix(in oklab,var(--theme-header-text)_60%,transparent)]"
+        : "opacity-80 hover:opacity-100 hover:bg-[color:color-mix(in oklab,var(--theme-header-text)_10%,transparent)]"
     );
 
     // 데스크톱 스타일 (headerStyle에 따라 변경)
@@ -308,7 +305,7 @@ export const HeaderClient = ({
         href={`/community/${group?.slug ?? "community"}/${board.slug}`}
         className={
           isMobile
-            ? "block px-8 py-2 text-sm text-white/70 hover:text-white"
+            ? "block px-8 py-2 text-sm text-[color:color-mix(in oklab,var(--theme-header-text)_70%,transparent)] hover:text-[color:var(--theme-header-text)]"
             : "block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
         }
         onClick={() => {
@@ -334,7 +331,7 @@ export const HeaderClient = ({
           {openCommunityId === communityKey && (
             <div className="pb-3">
               {list.length > 0 ? list : (
-                <span className="block px-8 py-2 text-xs text-white/40">게시판 없음</span>
+                <span className="block px-8 py-2 text-xs text-[color:color-mix(in oklab,var(--theme-header-text)_40%,transparent)]">게시판 없음</span>
               )}
             </div>
           )}
@@ -365,8 +362,8 @@ export const HeaderClient = ({
   };
 
   // 스타일별 사이트명/태그라인 색상
-  const taglineClass = headerStyle === "classic" ? "text-white/60" : "text-gray-500";
-  const userNameClass = headerStyle === "classic" ? "text-white/70" : "text-gray-600";
+  const taglineClass = headerStyle === "classic" ? "opacity-60" : "opacity-60";
+  const userNameClass = headerStyle === "classic" ? "opacity-70" : "opacity-70";
   const showTopSiteName = showMobileTopSiteName;
   const mobileTopNameSizeClass =
     showMobileTopSiteNameSize === "sm"
@@ -376,9 +373,15 @@ export const HeaderClient = ({
       : "text-base";
   const mobileHeaderOffset = getMobileHeaderOffsetPx(logoSize);
 
+  // classic 스타일일 때 테마 색상 사용
+  const themedHeaderStyle = {
+    backgroundColor: "var(--theme-header-bg)",
+    color: "var(--theme-header-text)",
+  };
+
   return (
     <>
-      <header className={cn(getHeaderClasses(), "hidden md:block")}>
+      <header className={cn(getHeaderClasses(), "hidden md:block")} style={themedHeaderStyle}>
         {renderBackgroundOverlay()}
         {isBento ? (
           <div className="container mx-auto px-4 relative py-3">
@@ -655,22 +658,25 @@ export const HeaderClient = ({
       </header>
 
       {/* Mobile Header Bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0b1320] shadow-lg pt-2">
+      <div
+        className="md:hidden fixed top-0 left-0 right-0 z-50 shadow-lg pt-2"
+        style={{ backgroundColor: "var(--theme-header-bg)", color: "var(--theme-header-text)" }}
+      >
         <>
           {/* Row 1: Menu + (Site Name) + Search Icon + Login */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 relative">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="w-11 h-11 rounded-lg bg-[#2d5a87] hover:bg-[#3d6a97] transition flex items-center justify-center"
+              className="w-11 h-11 rounded-lg bg-[color:color-mix(in oklab,var(--theme-header-text)_18%,transparent)] hover:bg-[color:color-mix(in oklab,var(--theme-header-text)_28%,transparent)] transition flex items-center justify-center"
               aria-label="메뉴 열기"
             >
-              <Menu className="w-5 h-5 text-white" />
+              <Menu className="w-5 h-5 text-[color:var(--theme-header-text)]" />
             </button>
 
             {showTopSiteName && (
               <span
                 className={cn(
-                  "text-white font-display tracking-wide absolute left-1/2 -translate-x-1/2",
+                  "font-display tracking-wide absolute left-1/2 -translate-x-1/2",
                   mobileTopNameSizeClass
                 )}
               >
@@ -686,20 +692,20 @@ export const HeaderClient = ({
                   aria-label="검색"
                   className="w-11 h-11 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center justify-center"
                 >
-                  <Search className="w-5 h-5 text-white" />
+                  <Search className="w-5 h-5 text-[color:var(--theme-header-text)]" />
                 </button>
               )}
               {session ? (
                 <Link
                   href="/profile"
-                  className="text-white text-sm font-medium px-2 h-11 flex items-center truncate max-w-[96px] hover:text-white/80 transition"
+                  className="text-[color:var(--theme-header-text)] text-sm font-medium px-2 h-11 flex items-center truncate max-w-[96px] opacity-90 hover:opacity-100 transition"
                 >
                   {session.user?.name?.slice(0, 4) || "회원"}
                 </Link>
               ) : (
                 <Link
                   href="/login"
-                  className="text-white text-sm font-semibold whitespace-nowrap px-2 h-11 flex items-center hover:text-white/80 transition"
+                  className="text-[color:var(--theme-header-text)] text-sm font-semibold whitespace-nowrap px-2 h-11 flex items-center opacity-90 hover:opacity-100 transition"
                 >
                   로그인
                 </Link>
@@ -781,9 +787,10 @@ export const HeaderClient = ({
 
       <div
         className={cn(
-          "md:hidden fixed top-0 left-0 h-full w-72 bg-[#0b1320] text-white z-[60] transform transition-transform duration-300 ease-in-out overflow-y-auto",
+          "md:hidden fixed top-0 left-0 h-full w-72 z-[60] transform transition-transform duration-300 ease-in-out overflow-y-auto",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
+        style={{ backgroundColor: "var(--theme-header-bg)", color: "var(--theme-header-text)" }}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <Link href="/" className="flex items-center" onClick={closeSidebar}>
@@ -795,7 +802,7 @@ export const HeaderClient = ({
             />
           </Link>
           <button
-            className="p-2 rounded-full border border-white/10 bg-white/10 hover:bg-white/20 transition"
+            className="p-2 rounded-full border border-white/10 bg-white/10 hover:bg-white/20 transition text-[color:var(--theme-header-text)]"
             onClick={closeSidebar}
             aria-label="메뉴 닫기"
           >
@@ -814,13 +821,13 @@ export const HeaderClient = ({
         <div className="border-t border-white/10 p-4">
           {session ? (
             <div className="space-y-3">
-              <div className="text-white/60 text-sm">
+              <div className="text-[color:color-mix(in oklab,var(--theme-header-text)_60%,transparent)] text-sm">
                 {session.user?.name || session.user?.email}님
               </div>
               <Link
                 href="/profile"
                 onClick={closeSidebar}
-                className="flex items-center gap-2 text-sm hover:text-white transition"
+                className="flex items-center gap-2 text-sm text-[color:var(--theme-header-text)] opacity-80 hover:opacity-100 transition"
               >
                 <User className="w-4 h-4" />
                 프로필
@@ -829,7 +836,7 @@ export const HeaderClient = ({
                 <Link
                   href="/admin"
                   onClick={closeSidebar}
-                  className="flex items-center gap-2 text-sm hover:text-white transition"
+                  className="flex items-center gap-2 text-sm text-[color:var(--theme-header-text)] opacity-80 hover:opacity-100 transition"
                 >
                   <Settings className="w-4 h-4" />
                   관리자
@@ -840,7 +847,7 @@ export const HeaderClient = ({
                   closeSidebar();
                   signOut({ callbackUrl: "/" });
                 }}
-                className="flex items-center gap-2 text-sm hover:text-white transition"
+                className="flex items-center gap-2 text-sm text-[color:var(--theme-header-text)] opacity-80 hover:opacity-100 transition"
               >
                 <LogOut className="w-4 h-4" />
                 로그아웃

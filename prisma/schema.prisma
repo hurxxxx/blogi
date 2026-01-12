@@ -189,6 +189,9 @@ model SiteSettings {
   termsContent           String?
   termsContentMarkdown   String?
   siteLogoUrl            String?
+  siteLogoUrlLight       String?
+  siteLogoUrlDark        String?
+  siteLogoMode           String  @default("light")
   siteBannerUrl          String?
   siteName               String?
   copyrightText          String?
@@ -198,6 +201,12 @@ model SiteSettings {
   siteDescription        String?
   ogImageUrl             String?
   faviconUrl             String?
+  faviconPng16           String?
+  faviconPng32           String?
+  faviconAppleTouch      String?
+  faviconAndroid192      String?
+  faviconAndroid512      String?
+  faviconIco             String?
   headerStyle            String   @default("classic")
   headerScrollEffect     Boolean  @default(true)
   socialIconStyle        String   @default("branded")

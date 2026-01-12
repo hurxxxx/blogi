@@ -128,12 +128,31 @@ export async function getAllReferencedImages(): Promise<Set<string>> {
 
     // 6. SiteSettings 이미지들
     const siteSettings = await prisma.siteSettings.findFirst({
-        select: { siteLogoUrl: true, siteBannerUrl: true, ogImageUrl: true, faviconUrl: true },
+        select: {
+            siteLogoUrl: true,
+            siteLogoUrlLight: true,
+            siteLogoUrlDark: true,
+            siteBannerUrl: true,
+            ogImageUrl: true,
+            faviconUrl: true,
+            faviconPng16: true,
+            faviconPng32: true,
+            faviconAppleTouch: true,
+            faviconAndroid192: true,
+            faviconAndroid512: true,
+            faviconIco: true,
+        },
     });
 
     if (siteSettings) {
         if (siteSettings.siteLogoUrl) {
             referencedUrls.add(normalizeImageUrl(siteSettings.siteLogoUrl));
+        }
+        if (siteSettings.siteLogoUrlLight) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.siteLogoUrlLight));
+        }
+        if (siteSettings.siteLogoUrlDark) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.siteLogoUrlDark));
         }
         if (siteSettings.siteBannerUrl) {
             referencedUrls.add(normalizeImageUrl(siteSettings.siteBannerUrl));
@@ -143,6 +162,24 @@ export async function getAllReferencedImages(): Promise<Set<string>> {
         }
         if (siteSettings.faviconUrl) {
             referencedUrls.add(normalizeImageUrl(siteSettings.faviconUrl));
+        }
+        if (siteSettings.faviconPng16) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.faviconPng16));
+        }
+        if (siteSettings.faviconPng32) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.faviconPng32));
+        }
+        if (siteSettings.faviconAppleTouch) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.faviconAppleTouch));
+        }
+        if (siteSettings.faviconAndroid192) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.faviconAndroid192));
+        }
+        if (siteSettings.faviconAndroid512) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.faviconAndroid512));
+        }
+        if (siteSettings.faviconIco) {
+            referencedUrls.add(normalizeImageUrl(siteSettings.faviconIco));
         }
     }
 

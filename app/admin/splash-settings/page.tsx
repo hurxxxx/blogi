@@ -27,6 +27,9 @@ export default async function AdminSplashSettingsPage() {
             splashLogoUrl: settings?.splashLogoUrl ?? "",
             splashLogoSize: settings?.splashLogoSize ?? "medium",
             siteLogoUrl: settings?.siteLogoUrl ?? "",
+            siteLogoUrlLight: settings?.siteLogoUrlLight ?? "",
+            siteLogoUrlDark: settings?.siteLogoUrlDark ?? "",
+            siteLogoMode: settings?.siteLogoMode ?? "auto",
           }}
         />
       </div>

@@ -11,7 +11,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { getSiteSettings } from "@/lib/site-settings";
-import { DEFAULT_LOGO_URL, getDefaultLogoForBackground } from "@/lib/branding";
+import { DEFAULT_LOGO_INVERSE_URL, DEFAULT_LOGO_URL } from "@/lib/branding";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-body",
@@ -34,7 +34,31 @@ export async function generateMetadata(): Promise<Metadata> {
   const description =
     settings.siteDescription || settings.siteTagline || "사이트 소개 내용을 입력해주세요.";
   const ogImage =
-    settings.ogImageUrl || settings.siteBannerUrl || settings.siteLogoUrl || DEFAULT_LOGO_URL;
+    settings.ogImageUrl ||
+    settings.siteBannerUrl ||
+    settings.siteLogoUrlLight ||
+    settings.siteLogoUrlDark ||
+    settings.siteLogoUrl ||
+    DEFAULT_LOGO_URL;
+
+  const iconEntries: Array<{ url: string; sizes?: string; type?: string } | string> = [];
+  if (settings.faviconIco) {
+    iconEntries.push({ url: settings.faviconIco, type: "image/x-icon" });
+  }
+  if (settings.faviconPng32) {
+    iconEntries.push({ url: settings.faviconPng32, sizes: "32x32", type: "image/png" });
+  }
+  if (settings.faviconPng16) {
+    iconEntries.push({ url: settings.faviconPng16, sizes: "16x16", type: "image/png" });
+  }
+  if (!iconEntries.length && settings.faviconUrl) {
+    iconEntries.push(settings.faviconUrl);
+  }
+  const appleIcons = settings.faviconAppleTouch
+    ? [{ url: settings.faviconAppleTouch, sizes: "180x180", type: "image/png" }]
+    : undefined;
+  const manifest =
+    settings.faviconAndroid192 || settings.faviconAndroid512 ? "/site.webmanifest" : undefined;
 
   return {
     title,
@@ -49,12 +73,14 @@ export async function generateMetadata(): Promise<Metadata> {
           title,
           description,
         },
-    icons: settings.faviconUrl
+    icons: iconEntries.length
       ? {
-          icon: settings.faviconUrl,
-          shortcut: settings.faviconUrl,
+          icon: iconEntries,
+          apple: appleIcons,
+          shortcut: settings.faviconUrl || iconEntries[0],
         }
       : undefined,
+    manifest,
   };
 }
 
@@ -66,8 +92,11 @@ export default async function RootLayout({
   const settings = await getSiteSettings();
 
   // 스플래시 로고: splashLogoUrl → siteLogoUrl → 기본 로고
-  const splashLogoFallback = getDefaultLogoForBackground(settings.splashBackgroundColor);
-  const splashLogoUrl = settings.splashLogoUrl || settings.siteLogoUrl || splashLogoFallback;
+  const splashLogoFallback =
+    settings.siteLogoMode === "dark"
+      ? settings.siteLogoUrlDark || settings.siteLogoUrlLight || settings.siteLogoUrl || DEFAULT_LOGO_INVERSE_URL
+      : settings.siteLogoUrlLight || settings.siteLogoUrlDark || settings.siteLogoUrl || DEFAULT_LOGO_URL;
+  const splashLogoUrl = settings.splashLogoUrl || splashLogoFallback;
 
   return (
     <html lang="ko">

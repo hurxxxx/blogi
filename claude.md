@@ -173,6 +173,37 @@ prisma/
 
 ---
 
+## 공통 UI 컴포넌트
+
+### HelpTooltip (`components/ui/help-tooltip.tsx`)
+
+라벨 옆에 도움말(?) 아이콘을 표시하고 클릭 시 설명 팝오버를 보여주는 컴포넌트입니다.
+
+**사용 예시:**
+```tsx
+import { HelpTooltip } from "@/components/ui/help-tooltip";
+
+// 기본 사용
+<div className="flex items-center gap-1.5">
+  <label className="text-sm font-medium">OG 이미지 URL</label>
+  <HelpTooltip content="카카오톡, 페이스북 등에서 링크 공유 시 미리보기 이미지입니다." />
+</div>
+
+// Props
+// - content: string (필수) - 도움말 내용
+// - iconSize?: number (기본 16) - 아이콘 크기(px)
+// - maxWidth?: number (기본 280) - 팝오버 최대 너비(px)
+// - className?: string - 추가 스타일
+```
+
+**기능:**
+- 클릭 시 팝오버 토글
+- 외부 클릭 시 자동 닫힘
+- 화면 위치에 따라 위/아래 자동 배치
+- 다크 테마 스타일 적용
+
+---
+
 ## 셋업 메모 (2026-01-11)
 
 - `postgres:18`부터는 `/var/lib/postgresql` 마운트가 필요함. `/var/lib/postgresql/data`로 마운트하면 컨테이너가 부팅 실패.

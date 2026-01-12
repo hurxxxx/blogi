@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { Sparkles, Palette, Image, Upload, Trash2, Maximize2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DEFAULT_LOGO_INVERSE_URL, DEFAULT_LOGO_URL } from "@/lib/branding";
 import type { SplashLogoSize } from "@/lib/site-settings";
 
 const SPLASH_LOGO_SIZES: { value: SplashLogoSize; label: string; description: string }[] = [
@@ -22,6 +23,9 @@ interface SplashSettingsFormProps {
     splashLogoUrl: string | null;
     splashLogoSize: string | null;
     siteLogoUrl: string | null;
+    siteLogoUrlLight: string | null;
+    siteLogoUrlDark: string | null;
+    siteLogoMode: "auto" | "light" | "dark" | string | null;
   };
 }
 
@@ -88,7 +92,12 @@ export const SplashSettingsForm = ({ initialData }: SplashSettingsFormProps) => 
     });
   };
 
-  const effectiveLogoUrl = splashLogoUrl || initialData.siteLogoUrl || "/default-logo.svg";
+  const effectiveLogoUrl =
+    splashLogoUrl ||
+    (initialData.siteLogoMode === "dark"
+      ? initialData.siteLogoUrlDark || initialData.siteLogoUrlLight || initialData.siteLogoUrl || DEFAULT_LOGO_INVERSE_URL
+      : initialData.siteLogoUrlLight || initialData.siteLogoUrlDark || initialData.siteLogoUrl || DEFAULT_LOGO_URL) ||
+    DEFAULT_LOGO_URL;
 
   const SaveButton = () => (
     <Button type="submit" disabled={isPending}>

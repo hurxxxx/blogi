@@ -21,11 +21,20 @@ export async function POST(req: NextRequest) {
   const {
     siteName,
     siteLogoUrl,
+    siteLogoUrlLight,
+    siteLogoUrlDark,
+    siteLogoMode,
     siteBannerUrl,
     siteTagline,
     siteDescription,
     ogImageUrl,
     faviconUrl,
+    faviconPng16,
+    faviconPng32,
+    faviconAppleTouch,
+    faviconAndroid192,
+    faviconAndroid512,
+    faviconIco,
     headerScrollEffect,
     hideSearch,
     logoSize,
@@ -34,9 +43,26 @@ export async function POST(req: NextRequest) {
     showMobileTopSiteNameSize,
   } = body;
 
+  const resolvedLogoFallback =
+    (typeof siteLogoUrlLight === "string" && siteLogoUrlLight.trim() ? siteLogoUrlLight.trim() : null) ||
+    (typeof siteLogoUrlDark === "string" && siteLogoUrlDark.trim() ? siteLogoUrlDark.trim() : null) ||
+    (typeof siteLogoUrl === "string" && siteLogoUrl.trim() ? siteLogoUrl.trim() : null);
+
   const data: Record<string, unknown> = {
     siteName: typeof siteName === "string" && siteName.trim() ? siteName.trim() : null,
-    siteLogoUrl: typeof siteLogoUrl === "string" && siteLogoUrl.trim() ? siteLogoUrl.trim() : null,
+    siteLogoUrl: resolvedLogoFallback,
+    siteLogoUrlLight:
+      typeof siteLogoUrlLight === "string" && siteLogoUrlLight.trim()
+        ? siteLogoUrlLight.trim()
+        : null,
+    siteLogoUrlDark:
+      typeof siteLogoUrlDark === "string" && siteLogoUrlDark.trim()
+        ? siteLogoUrlDark.trim()
+        : null,
+    siteLogoMode:
+      typeof siteLogoMode === "string" && ["light", "dark"].includes(siteLogoMode)
+        ? siteLogoMode
+        : "light",
     siteBannerUrl: typeof siteBannerUrl === "string" && siteBannerUrl.trim() ? siteBannerUrl.trim() : null,
     siteTagline: typeof siteTagline === "string" && siteTagline.trim() ? siteTagline.trim() : null,
     siteDescription:
@@ -45,6 +71,21 @@ export async function POST(req: NextRequest) {
         : null,
     ogImageUrl: typeof ogImageUrl === "string" && ogImageUrl.trim() ? ogImageUrl.trim() : null,
     faviconUrl: typeof faviconUrl === "string" && faviconUrl.trim() ? faviconUrl.trim() : null,
+    faviconPng16: typeof faviconPng16 === "string" && faviconPng16.trim() ? faviconPng16.trim() : null,
+    faviconPng32: typeof faviconPng32 === "string" && faviconPng32.trim() ? faviconPng32.trim() : null,
+    faviconAppleTouch:
+      typeof faviconAppleTouch === "string" && faviconAppleTouch.trim()
+        ? faviconAppleTouch.trim()
+        : null,
+    faviconAndroid192:
+      typeof faviconAndroid192 === "string" && faviconAndroid192.trim()
+        ? faviconAndroid192.trim()
+        : null,
+    faviconAndroid512:
+      typeof faviconAndroid512 === "string" && faviconAndroid512.trim()
+        ? faviconAndroid512.trim()
+        : null,
+    faviconIco: typeof faviconIco === "string" && faviconIco.trim() ? faviconIco.trim() : null,
   };
 
   if (typeof headerScrollEffect === "boolean") {
@@ -77,5 +118,6 @@ export async function POST(req: NextRequest) {
 
   revalidatePath("/", "layout");
   revalidatePath("/community");
+  revalidatePath("/site.webmanifest");
   return NextResponse.json(settings);
 }

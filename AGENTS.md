@@ -112,6 +112,35 @@ npx prisma generate
 
 ## 공통 컴포넌트
 
+### HelpTooltip (도움말 툴팁)
+- **경로**: `components/ui/help-tooltip.tsx`
+- **용도**: 라벨 옆에 도움말(?) 아이콘을 표시하고 클릭 시 설명 팝오버 표시
+- **사용법**:
+```tsx
+import { HelpTooltip } from "@/components/ui/help-tooltip";
+
+// 라벨과 함께 사용
+<div className="flex items-center gap-1.5">
+  <label className="text-sm font-medium">OG 이미지 URL</label>
+  <HelpTooltip content="카카오톡, 페이스북 등에서 링크 공유 시 미리보기 이미지입니다." />
+</div>
+
+// 토글 스위치와 함께 사용
+<div className="flex items-center justify-between">
+  <div className="flex items-center gap-1.5">
+    <label className="text-sm font-medium">검색 아이콘 숨김</label>
+    <HelpTooltip content="헤더의 검색 아이콘을 숨깁니다." />
+  </div>
+  <ToggleSwitch />
+</div>
+```
+- **Props**:
+  - `content` (필수): 도움말 텍스트
+  - `iconSize`: 아이콘 크기 (기본 16px)
+  - `maxWidth`: 팝오버 최대 너비 (기본 280px)
+- **기능**: 클릭 토글, 외부 클릭 닫기, 위/아래 자동 배치
+- **적용 위치**: `components/admin/site-settings-form.tsx`의 모든 설정 항목
+
 ### Toast (스낵바)
 - **경로**: `components/ui/toast.tsx`
 - **용도**: 하단에서 슬라이드 업되는 알림 메시지

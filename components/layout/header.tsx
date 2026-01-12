@@ -3,7 +3,11 @@ import { getMenuByKey } from "@/lib/menus";
 import { getFooterSettings } from "@/lib/footer-settings";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getCommunityGroups } from "@/lib/community";
-import { getDefaultBannerForBackground, getDefaultLogoForBackground } from "@/lib/branding";
+import {
+  DEFAULT_LOGO_INVERSE_URL,
+  DEFAULT_LOGO_URL,
+  getDefaultBannerForBackground,
+} from "@/lib/branding";
 
 export const Header = async () => {
   const menu = await getMenuByKey("main");
@@ -12,14 +16,20 @@ export const Header = async () => {
     getSiteSettings(),
     getCommunityGroups(),
   ]);
-  const fallbackLogoUrl = getDefaultLogoForBackground(siteSettings.themeColors.headerBg);
+  const logoFallback = siteSettings.siteLogoUrl || footerSettings.siteLogoUrl;
+  const headerLogoUrl =
+    siteSettings.siteLogoMode === "light"
+      ? siteSettings.siteLogoUrlLight || siteSettings.siteLogoUrlDark || logoFallback || DEFAULT_LOGO_URL
+      : siteSettings.siteLogoMode === "dark"
+      ? siteSettings.siteLogoUrlDark || siteSettings.siteLogoUrlLight || logoFallback || DEFAULT_LOGO_INVERSE_URL
+      : siteSettings.siteLogoUrlLight || siteSettings.siteLogoUrlDark || logoFallback || DEFAULT_LOGO_URL;
   const fallbackBannerUrl = getDefaultBannerForBackground(siteSettings.themeColors.headerBg);
 
   return (
     <HeaderClient
       menuItems={menu.items}
       siteName={footerSettings.siteName || "사이트"}
-      siteLogoUrl={footerSettings.siteLogoUrl || fallbackLogoUrl}
+      siteLogoUrl={headerLogoUrl}
       siteBannerUrl={siteSettings.siteBannerUrl || fallbackBannerUrl}
       siteTagline={siteSettings.siteTagline || ""}
       communityGroups={communityGroups}

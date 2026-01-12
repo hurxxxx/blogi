@@ -42,8 +42,10 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       category.thumbnailUrl ||
       settings.ogImageUrl ||
       settings.siteBannerUrl ||
+      settings.siteLogoUrlLight ||
+      settings.siteLogoUrlDark ||
       settings.siteLogoUrl ||
-      "/default-logo.svg";
+      "/logo.svg";
     const canonicalPath = `/contents/${category.slug}`;
     const menuRequiresAuth = await getMenuCategoryRequiresAuth({
         categoryId: category.id,

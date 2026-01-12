@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { HeaderStyle } from "@/lib/header-styles";
 import { getThemePreset, getDefaultTheme, type ThemeColors } from "@/lib/theme-presets";
+import { DEFAULT_LOGO_URL, DEFAULT_LOGO_INVERSE_URL } from "@/lib/branding";
 
 export type LogoSize = "small" | "medium" | "large" | "xlarge" | "xxlarge" | "xxxlarge";
 export type MobileTopSiteNameSize = "sm" | "md" | "lg";
@@ -10,11 +11,20 @@ export type SplashLogoSize = "small" | "medium" | "large" | "xlarge";
 export type SiteSettingsSnapshot = {
   siteName?: string | null;
   siteLogoUrl?: string | null;
+  siteLogoUrlLight?: string | null;
+  siteLogoUrlDark?: string | null;
+  siteLogoMode: "light" | "dark";
   siteBannerUrl?: string | null;
   siteTagline?: string | null;
   siteDescription?: string | null;
   ogImageUrl?: string | null;
   faviconUrl?: string | null;
+  faviconPng16?: string | null;
+  faviconPng32?: string | null;
+  faviconAppleTouch?: string | null;
+  faviconAndroid192?: string | null;
+  faviconAndroid512?: string | null;
+  faviconIco?: string | null;
   // 헤더 스타일 설정
   headerStyle: HeaderStyle;
   headerScrollEffect: boolean;
@@ -61,14 +71,27 @@ export const getSiteSettings = async (): Promise<SiteSettingsSnapshot> => {
       ? (settings.showMobileTopSiteNameSize as MobileTopSiteNameSize)
       : "md";
 
+  const legacyLogo = settings?.siteLogoUrl ?? null;
+  const logoMode =
+    settings?.siteLogoMode === "dark" ? "dark" : "light";
+
   return {
     siteName: settings?.siteName ?? null,
-    siteLogoUrl: settings?.siteLogoUrl ?? null,
+    siteLogoUrl: legacyLogo ?? DEFAULT_LOGO_URL,
+    siteLogoUrlLight: settings?.siteLogoUrlLight ?? legacyLogo ?? DEFAULT_LOGO_URL,
+    siteLogoUrlDark: settings?.siteLogoUrlDark ?? DEFAULT_LOGO_INVERSE_URL,
+    siteLogoMode: logoMode,
     siteBannerUrl: settings?.siteBannerUrl ?? null,
     siteTagline: settings?.siteTagline ?? null,
     siteDescription: settings?.siteDescription ?? null,
     ogImageUrl: settings?.ogImageUrl ?? null,
     faviconUrl: settings?.faviconUrl ?? null,
+    faviconPng16: settings?.faviconPng16 ?? null,
+    faviconPng32: settings?.faviconPng32 ?? null,
+    faviconAppleTouch: settings?.faviconAppleTouch ?? null,
+    faviconAndroid192: settings?.faviconAndroid192 ?? null,
+    faviconAndroid512: settings?.faviconAndroid512 ?? null,
+    faviconIco: settings?.faviconIco ?? null,
     headerStyle,
     headerScrollEffect: settings?.headerScrollEffect ?? true,
     hideSearch: settings?.hideSearch ?? false,

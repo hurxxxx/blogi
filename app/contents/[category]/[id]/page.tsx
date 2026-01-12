@@ -48,8 +48,10 @@ export async function generateMetadata({ params }: ContentDetailPageProps): Prom
       content.imageUrl ||
       settings.ogImageUrl ||
       settings.siteBannerUrl ||
+      settings.siteLogoUrlLight ||
+      settings.siteLogoUrlDark ||
       settings.siteLogoUrl ||
-      "/default-logo.svg";
+      "/logo.svg";
     const canonicalPath = buildContentHref(
         content.categoryRef?.slug ?? category,
         content.id

@@ -109,8 +109,11 @@ force_free_port() {
   local pids=""
 
   if command -v lsof >/dev/null 2>&1; then
-    pids="$(lsof -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | tr '\n' ' ')"
+    pids="$(lsof -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | tr '\n' ' ' || true)"
   fi
+
+  # 공백만 있는 경우 제거
+  pids="${pids// /}"
 
   if [[ -n "$pids" ]]; then
     echo "Force stopping processes on port $port (pid(s): $pids)"
@@ -191,6 +194,34 @@ stop_dev() {
   echo "Dev server stopped"
 }
 
+# restart용 stop (에러 없이 진행)
+stop_dev_silent() {
+  if ! is_running; then
+    rm -f "$PID_FILE"
+    return 0
+  fi
+
+  local pid
+  pid="$(cat "$PID_FILE")"
+  echo "Stopping dev server (pid $pid)..."
+  kill "$pid" >/dev/null 2>&1 || true
+
+  local elapsed=0
+  local timeout=10
+  while is_running; do
+    if [[ "$elapsed" -ge "$timeout" ]]; then
+      echo "Force killing dev server (pid $pid)"
+      kill -9 "$pid" >/dev/null 2>&1 || true
+      break
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+
+  rm -f "$PID_FILE"
+  echo "Dev server stopped"
+}
+
 status_dev() {
   if is_running; then
     echo "Dev server running (pid $(cat "$PID_FILE"))"
@@ -212,7 +243,7 @@ case "${1:-}" in
   start) start_dev ;;
   stop) stop_dev ;;
   restart)
-    stop_dev
+    stop_dev_silent
     force_free_port "$(get_port)"
     start_dev
     ;;

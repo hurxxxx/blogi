@@ -34,7 +34,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#3b82f6",
       accent: "#f97316",
       contentBg: "#ffffff",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -51,7 +51,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#14b8a6",
       accent: "#fbbf24",
       contentBg: "#f0fdfa",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -68,7 +68,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#92400e",
       accent: "#f59e0b",
       contentBg: "#fffbeb",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -85,7 +85,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#059669",
       accent: "#fbbf24",
       contentBg: "#f0fdf4",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -102,7 +102,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#8b5cf6",
       accent: "#ec4899",
       contentBg: "#faf5ff",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -119,7 +119,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#3b82f6",
       accent: "#f43f5e",
       contentBg: "#ffffff",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -136,7 +136,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#6366f1",
       accent: "#06b6d4",
       contentBg: "#f8fafc",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -153,7 +153,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#b45309",
       accent: "#65a30d",
       contentBg: "#fefce8",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   // 밝은 테마들
@@ -171,7 +171,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#2563eb",
       accent: "#dc2626",
       contentBg: "#ffffff",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -188,7 +188,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#4b5563",
       accent: "#6b7280",
       contentBg: "#f9fafb",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -205,7 +205,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#a16207",
       accent: "#b45309",
       contentBg: "#fffdf9",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
   {
@@ -222,7 +222,7 @@ export const themePresets: ThemePreset[] = [
       primary: "#0284c7",
       accent: "#0891b2",
       contentBg: "#f8fafc",
-      buttonText: "",
+      buttonText: "#ffffff",
     },
   },
 ];

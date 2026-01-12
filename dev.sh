@@ -138,6 +138,9 @@ is_running() {
 start_dev() {
   if is_running; then
     echo "Dev server already running (pid $(cat "$PID_FILE"))"
+    echo ""
+    echo "Following logs (Ctrl+C to stop)..."
+    tail -f "$LOG_FILE"
     exit 0
   fi
 
@@ -151,6 +154,9 @@ start_dev() {
     echo "Dev server started (pid $(cat "$PID_FILE"))"
     print_connection_info
     echo "Logs:       $LOG_FILE"
+    echo ""
+    echo "Following logs (Ctrl+C to stop)..."
+    tail -f "$LOG_FILE"
   else
     echo "Failed to start dev server. Check logs: $LOG_FILE"
     exit 1

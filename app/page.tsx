@@ -94,6 +94,7 @@ export default async function Home() {
       ...item,
       description: category?.description ?? "",
       imageUrl,
+      thumbnailPositionY: category?.thumbnailPositionY ?? 50,
       shortLabel: item.slug.replace(/-/g, " ").toUpperCase(),
     };
   });
@@ -285,6 +286,7 @@ export default async function Home() {
                       requiresAuth={item.data.requiresAuth}
                       variant="mobile"
                       mobileColumns={3}
+                      imagePositionY={item.data.thumbnailPositionY}
                     />
                   ) : (
                     <ProtectedCommunityLink
@@ -347,6 +349,7 @@ export default async function Home() {
                         requiresAuth={item.data.requiresAuth}
                         variant="mobile"
                         mobileColumns={row.cols as 1 | 2 | 3}
+                        imagePositionY={item.data.thumbnailPositionY}
                       />
                     ) : (
                       <ProtectedCommunityLink
@@ -381,6 +384,7 @@ export default async function Home() {
                   imageUrl={category.imageUrl}
                   requiresAuth={category.requiresAuth}
                   variant="desktop"
+                  imagePositionY={category.thumbnailPositionY}
                 />
               </div>
             ))}

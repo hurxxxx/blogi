@@ -5,13 +5,14 @@ export default async function AdminCategorySettingsPage() {
   const categories = await prisma.category.findMany({
     where: { isVisible: true },
     orderBy: { order: "asc" },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      thumbnailUrl: true,
-      description: true,
-      listViewEnabled: true,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        thumbnailUrl: true,
+        thumbnailPositionY: true,
+        description: true,
+        listViewEnabled: true,
       listViewCount: true,
       listViewLabel: true,
       cardViewEnabled: true,

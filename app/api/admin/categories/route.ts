@@ -28,7 +28,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, thumbnailUrl, description } = body;
+    const { id, thumbnailUrl, description, thumbnailPositionY } = body;
 
     if (!id) {
       return NextResponse.json({ error: "카테고리 ID가 필요합니다." }, { status: 400 });
@@ -38,6 +38,9 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: {
         ...(thumbnailUrl !== undefined && { thumbnailUrl }),
+        ...(thumbnailPositionY !== undefined && {
+          thumbnailPositionY: Math.min(100, Math.max(0, Number(thumbnailPositionY) || 0)),
+        }),
         ...(description !== undefined && { description }),
       },
     });
@@ -67,6 +70,12 @@ export async function POST(request: NextRequest) {
         where: { id },
         data: {
           ...(data?.thumbnailUrl !== undefined && { thumbnailUrl: data.thumbnailUrl }),
+          ...(data?.thumbnailPositionY !== undefined && {
+            thumbnailPositionY: Math.min(
+              100,
+              Math.max(0, Number(data.thumbnailPositionY) || 0)
+            ),
+          }),
           ...(data?.description !== undefined && { description: data.description }),
         },
       });

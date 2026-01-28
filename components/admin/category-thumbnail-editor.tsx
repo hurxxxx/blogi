@@ -22,15 +22,17 @@ const CROP_ASPECT_OPTIONS = [
 interface CategoryThumbnailEditorProps {
   categoryId: string;
   thumbnailUrl: string;
+  thumbnailPositionY?: number | null;
   description: string;
   disabled: boolean;
-  onUpdate: (data: { thumbnailUrl?: string; description?: string }) => void;
+  onUpdate: (data: { thumbnailUrl?: string; description?: string; thumbnailPositionY?: number | null }) => void;
   previewLabel?: string;
 }
 
 export const CategoryThumbnailEditor = ({
   categoryId,
   thumbnailUrl,
+  thumbnailPositionY,
   description,
   disabled,
   onUpdate,
@@ -39,6 +41,9 @@ export const CategoryThumbnailEditor = ({
   const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [localThumbnail, setLocalThumbnail] = useState(thumbnailUrl);
+  const [localPositionY, setLocalPositionY] = useState(
+    typeof thumbnailPositionY === "number" ? thumbnailPositionY : 50
+  );
   const [localDescription, setLocalDescription] = useState(description);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -47,8 +52,9 @@ export const CategoryThumbnailEditor = ({
 
   useEffect(() => {
     setLocalThumbnail(thumbnailUrl);
+    setLocalPositionY(typeof thumbnailPositionY === "number" ? thumbnailPositionY : 50);
     setLocalDescription(description);
-  }, [thumbnailUrl, description]);
+  }, [thumbnailUrl, thumbnailPositionY, description]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,6 +111,7 @@ export const CategoryThumbnailEditor = ({
           id: categoryId,
           data: {
             thumbnailUrl: localThumbnail || null,
+            thumbnailPositionY: localPositionY,
             description: localDescription || null,
           },
         }),
@@ -116,7 +123,11 @@ export const CategoryThumbnailEditor = ({
         return;
       }
 
-      onUpdate({ thumbnailUrl: localThumbnail, description: localDescription });
+      onUpdate({
+        thumbnailUrl: localThumbnail,
+        thumbnailPositionY: localPositionY,
+        description: localDescription,
+      });
       showToast("저장되었습니다.", "success");
     } catch {
       showToast("저장에 실패했습니다.", "error");
@@ -166,6 +177,7 @@ export const CategoryThumbnailEditor = ({
                 src={localThumbnail}
                 alt="썸네일"
                 className="w-full h-full object-cover"
+                style={{ objectPosition: `50% ${localPositionY}%` }}
               />
               <button
                 type="button"
@@ -215,6 +227,26 @@ export const CategoryThumbnailEditor = ({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-500">세로 위치</span>
+          <span className="text-xs text-gray-400">{localPositionY}%</span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={localPositionY}
+          onChange={(e) => setLocalPositionY(Number(e.target.value))}
+          disabled={disabled}
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900 disabled:opacity-50"
+        />
+        <p className="text-[11px] text-gray-400">
+          위/아래 크롭 위치를 조절합니다.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-gray-600">미리보기 (1/2/3열)</span>
           <span className="text-[11px] text-gray-400">모바일 홈 그리드 기준</span>
         </div>
@@ -237,6 +269,7 @@ export const CategoryThumbnailEditor = ({
                         src={localThumbnail}
                         alt={`${previewTitle} 미리보기`}
                         className="absolute inset-0 w-full h-full object-cover"
+                        style={{ objectPosition: `50% ${localPositionY}%` }}
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800" />

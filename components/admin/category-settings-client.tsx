@@ -21,6 +21,7 @@ interface CategoryData {
   name: string;
   slug: string;
   thumbnailUrl?: string | null;
+  thumbnailPositionY?: number | null;
   description?: string | null;
   listViewEnabled: boolean;
   listViewCount: number;
@@ -134,7 +135,7 @@ export const CategorySettingsClient = ({
 
   const handleUpdateCategoryMeta = (
     categoryId: string,
-    data: { thumbnailUrl?: string | null; description?: string | null }
+    data: { thumbnailUrl?: string | null; description?: string | null; thumbnailPositionY?: number | null }
   ) => {
     setCategories((prev) =>
       prev.map((cat) => (cat.id === categoryId ? { ...cat, ...data } : cat))
@@ -203,7 +204,7 @@ const CategorySettingsItem = ({
   category: CategoryData;
   isPending: boolean;
   onSave: (settings: Partial<CategoryData>) => void;
-  onUpdateMeta: (data: { thumbnailUrl?: string | null; description?: string | null }) => void;
+  onUpdateMeta: (data: { thumbnailUrl?: string | null; description?: string | null; thumbnailPositionY?: number | null }) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState({
@@ -270,6 +271,7 @@ const CategorySettingsItem = ({
             <CategoryThumbnailEditor
               categoryId={category.id}
               thumbnailUrl={category.thumbnailUrl ?? ""}
+              thumbnailPositionY={category.thumbnailPositionY ?? 50}
               description={category.description ?? ""}
               disabled={isPending}
               previewLabel={category.name}

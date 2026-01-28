@@ -14,6 +14,7 @@ interface ProtectedCategoryLinkProps {
   requiresAuth?: boolean;
   variant?: "mobile" | "desktop";
   mobileColumns?: 1 | 2 | 3;
+  imagePositionY?: number;
 }
 
 const getMobileSizes = (columns?: number) => {
@@ -29,6 +30,7 @@ export function ProtectedCategoryLink({
   requiresAuth = false,
   variant = "mobile",
   mobileColumns,
+  imagePositionY = 50,
 }: ProtectedCategoryLinkProps) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -57,6 +59,7 @@ export function ProtectedCategoryLink({
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes={mobileSizes}
+              style={{ objectPosition: `50% ${imagePositionY}%` }}
               onError={() => setImageError(true)}
             />
           ) : (
@@ -84,6 +87,7 @@ export function ProtectedCategoryLink({
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+            style={{ objectPosition: `50% ${imagePositionY}%` }}
             onError={() => setImageError(true)}
           />
         ) : (

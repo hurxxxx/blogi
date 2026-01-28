@@ -13,7 +13,14 @@ interface ProtectedCategoryLinkProps {
   imageUrl?: string | null;
   requiresAuth?: boolean;
   variant?: "mobile" | "desktop";
+  mobileColumns?: 1 | 2 | 3;
 }
+
+const getMobileSizes = (columns?: number) => {
+  if (columns === 1) return "(max-width: 768px) 100vw";
+  if (columns === 2) return "(max-width: 768px) 50vw";
+  return "(max-width: 768px) 33vw";
+};
 
 export function ProtectedCategoryLink({
   href,
@@ -21,6 +28,7 @@ export function ProtectedCategoryLink({
   imageUrl,
   requiresAuth = false,
   variant = "mobile",
+  mobileColumns,
 }: ProtectedCategoryLinkProps) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -36,18 +44,19 @@ export function ProtectedCategoryLink({
   };
 
   const showImage = imageUrl && !imageError;
+  const mobileSizes = getMobileSizes(mobileColumns);
 
   if (variant === "mobile") {
     return (
       <Link href={href} className="group block w-full" onClick={handleClick}>
-        <div className="relative w-full aspect-square rounded-xl overflow-hidden shadow-md">
+        <div className="relative w-full h-28 rounded-xl overflow-hidden shadow-md">
           {showImage ? (
             <Image
               src={imageUrl}
               alt={label}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 768px) 33vw"
+              sizes={mobileSizes}
               onError={() => setImageError(true)}
             />
           ) : (
@@ -98,12 +107,14 @@ export function ProtectedCommunityLink({
   thumbnailUrl,
   requiresAuth = false,
   variant = "mobile",
+  mobileColumns,
 }: {
   href: string;
   label: string;
   thumbnailUrl?: string | null;
   requiresAuth?: boolean;
   variant?: "mobile" | "desktop";
+  mobileColumns?: 1 | 2 | 3;
 }) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -119,18 +130,19 @@ export function ProtectedCommunityLink({
   };
 
   const showImage = thumbnailUrl && !imageError;
+  const mobileSizes = getMobileSizes(mobileColumns);
 
   if (variant === "mobile") {
     return (
       <Link href={href} className="group block w-full" onClick={handleClick}>
-        <div className="relative w-full aspect-square rounded-xl overflow-hidden shadow-md">
+        <div className="relative w-full h-28 rounded-xl overflow-hidden shadow-md">
           {showImage ? (
             <Image
               src={thumbnailUrl}
               alt={label}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 768px) 33vw"
+              sizes={mobileSizes}
               onError={() => setImageError(true)}
             />
           ) : (

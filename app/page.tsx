@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { buildContentHref } from "@/lib/contents";
+import { cn } from "@/lib/utils";
 import { ProtectedCategoryLink, ProtectedCommunityLink } from "@/components/home/protected-category-link";
 import { ProtectedContentCard } from "@/components/home/protected-content-card";
 import { needsAdminSetup } from "@/lib/admin-setup";
@@ -123,6 +124,7 @@ export default async function Home() {
       slug: true,
       homeItemCount: true,
       requiresAuth: true,
+      cardColumns: true,
     },
   });
 
@@ -257,29 +259,113 @@ export default async function Home() {
     <div className="flex flex-col flex-1">
       {/* Mobile: Category Grid Landing */}
       <section className="md:hidden flex-1 flex items-center justify-center px-3 py-2 bg-[var(--theme-content-bg)]">
-        <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
-          {categories.map((category) => (
-            <ProtectedCategoryLink
-              key={category.label}
-              href={category.href}
-              label={category.label}
-              imageUrl={category.imageUrl}
-              requiresAuth={category.requiresAuth}
-              variant="mobile"
-            />
-          ))}
-          {/* 커뮤니티 메뉴 (후기, 자유게시판) */}
-          {communityMenus.map((menu) => (
-            <ProtectedCommunityLink
-              key={menu.id}
-              href={menu.href}
-              label={menu.label}
-              thumbnailUrl={menu.thumbnailUrl}
-              requiresAuth={menu.requiresAuth}
-              variant="mobile"
-            />
-          ))}
-        </div>
+        {(() => {
+          // 모든 메뉴 아이템을 순서대로 합침
+          type MenuItem = { type: "category"; data: typeof categories[number] } | { type: "community"; data: typeof communityMenus[number] };
+          const allItems: MenuItem[] = [
+            ...categories.map((c) => ({ type: "category" as const, data: c })),
+            ...communityMenus.map((c) => ({ type: "community" as const, data: c })),
+          ];
+
+          // homeGridLayout에서 행별 열 수 가져오기
+          const gridLayout = Array.isArray(siteSettings?.homeGridLayout)
+            ? (siteSettings.homeGridLayout as number[])
+            : null;
+
+          // 레이아웃 미설정: 기존 3열 고정
+          if (!gridLayout || gridLayout.length === 0) {
+            return (
+              <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
+                {allItems.map((item) =>
+                  item.type === "category" ? (
+                    <ProtectedCategoryLink
+                      key={item.data.label}
+                      href={item.data.href}
+                      label={item.data.label}
+                      imageUrl={item.data.imageUrl}
+                      requiresAuth={item.data.requiresAuth}
+                      variant="mobile"
+                      mobileColumns={3}
+                    />
+                  ) : (
+                    <ProtectedCommunityLink
+                      key={item.data.id}
+                      href={item.data.href}
+                      label={item.data.label}
+                      thumbnailUrl={item.data.thumbnailUrl}
+                      requiresAuth={item.data.requiresAuth}
+                      variant="mobile"
+                      mobileColumns={3}
+                    />
+                  )
+                )}
+              </div>
+            );
+          }
+
+          const normalizeCols = (value: number, remaining: number) => {
+            const safeValue = Number.isFinite(value) ? value : 3;
+            const clamped = Math.min(3, Math.max(1, Math.round(safeValue)));
+            return Math.min(clamped, remaining);
+          };
+
+          // 행별로 아이템 분배
+          const rows: { cols: number; items: MenuItem[] }[] = [];
+          let idx = 0;
+          for (const rawCols of gridLayout) {
+            if (idx >= allItems.length) break;
+            const remaining = allItems.length - idx;
+            const cols = normalizeCols(rawCols, remaining);
+            rows.push({ cols, items: allItems.slice(idx, idx + cols) });
+            idx += cols;
+          }
+          // 남은 아이템은 3열로
+          while (idx < allItems.length) {
+            const remaining = allItems.slice(idx, idx + 3);
+            rows.push({ cols: Math.min(3, remaining.length), items: remaining });
+            idx += 3;
+          }
+
+          return (
+            <div className="w-full max-w-sm space-y-2">
+              {rows.map((row, rowIdx) => (
+                <div
+                  key={rowIdx}
+                  className={cn(
+                    "grid gap-2",
+                    row.cols === 1 && "grid-cols-1",
+                    row.cols === 2 && "grid-cols-2",
+                    row.cols === 3 && "grid-cols-3",
+                  )}
+                >
+                  {row.items.map((item) =>
+                    item.type === "category" ? (
+                      <ProtectedCategoryLink
+                        key={item.data.label}
+                        href={item.data.href}
+                        label={item.data.label}
+                        imageUrl={item.data.imageUrl}
+                        requiresAuth={item.data.requiresAuth}
+                        variant="mobile"
+                        mobileColumns={row.cols as 1 | 2 | 3}
+                      />
+                    ) : (
+                      <ProtectedCommunityLink
+                        key={item.data.id}
+                        href={item.data.href}
+                        label={item.data.label}
+                        thumbnailUrl={item.data.thumbnailUrl}
+                        requiresAuth={item.data.requiresAuth}
+                        variant="mobile"
+                        mobileColumns={row.cols as 1 | 2 | 3}
+                      />
+                    )
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </section>
 
       {/* Desktop: Full Landing Page */}
@@ -351,7 +437,12 @@ export default async function Home() {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 md:gap-4">
+                  <div className={cn(
+                    "grid gap-2 md:gap-4",
+                    (category.cardColumns ?? 3) === 1 && "grid-cols-1",
+                    (category.cardColumns ?? 3) === 2 && "grid-cols-2",
+                    (category.cardColumns ?? 3) === 3 && "grid-cols-3",
+                  )}>
                     {isLocked
                       ? Array.from({ length: lockedCount }).map((_, index) => (
                           <ProtectedContentCard

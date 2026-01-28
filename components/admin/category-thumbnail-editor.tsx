@@ -6,6 +6,19 @@ import { useToast } from "@/components/ui/toast";
 import { Crop, ImageIcon, Save, X } from "lucide-react";
 import { ImageCropper } from "@/components/admin/image-cropper";
 
+const GRID_MAX_WIDTH = 384; // max-w-sm
+const GRID_GAP = 8; // gap-2
+const CARD_HEIGHT = 112; // h-28
+
+const getGridAspect = (cols: number) =>
+  (GRID_MAX_WIDTH - GRID_GAP * (cols - 1)) / cols / CARD_HEIGHT;
+
+const CROP_ASPECT_OPTIONS = [
+  { label: "1열", value: getGridAspect(1) },
+  { label: "2열", value: getGridAspect(2) },
+  { label: "3열", value: getGridAspect(3) },
+];
+
 interface CategoryThumbnailEditorProps {
   categoryId: string;
   thumbnailUrl: string;
@@ -186,7 +199,7 @@ export const CategoryThumbnailEditor = ({
               className="hidden"
             />
           </label>
-          <p className="text-xs text-gray-400">1:1 정사각형으로 크롭됩니다</p>
+          <p className="text-xs text-gray-400">선택한 열 비율로 크롭됩니다</p>
         </div>
       </div>
 
@@ -195,6 +208,8 @@ export const CategoryThumbnailEditor = ({
           imageSrc={cropperImage}
           onCropComplete={handleCropComplete}
           onCancel={() => setCropperImage(null)}
+          aspectOptions={CROP_ASPECT_OPTIONS}
+          aspect={CROP_ASPECT_OPTIONS[2].value}
         />
       )}
 

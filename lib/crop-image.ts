@@ -6,7 +6,8 @@ import type { Area } from "react-easy-crop";
 export async function getCroppedImage(
   imageSrc: string,
   pixelCrop: Area,
-  outputSize = 400
+  outputSize = 400,
+  aspect = 1
 ): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -16,9 +17,19 @@ export async function getCroppedImage(
     throw new Error("Canvas context를 생성할 수 없습니다.");
   }
 
-  // 출력 크기 설정 (정사각형)
-  canvas.width = outputSize;
-  canvas.height = outputSize;
+  const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 1;
+  const outputWidth =
+    safeAspect >= 1
+      ? outputSize
+      : Math.max(1, Math.round(outputSize * safeAspect));
+  const outputHeight =
+    safeAspect >= 1
+      ? Math.max(1, Math.round(outputSize / safeAspect))
+      : outputSize;
+
+  // 출력 크기 설정 (비율 유지)
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
 
   // 크롭된 영역을 캔버스에 그리기
   ctx.drawImage(
@@ -29,8 +40,8 @@ export async function getCroppedImage(
     pixelCrop.height,
     0,
     0,
-    outputSize,
-    outputSize
+    outputWidth,
+    outputHeight
   );
 
   // Blob으로 변환

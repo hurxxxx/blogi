@@ -12,6 +12,8 @@ interface ImageCropperProps {
   onCropComplete: (croppedBlob: Blob) => void;
   onCancel: () => void;
   outputSize?: number;
+  aspect?: number;
+  aspectOptions?: { label: string; value: number }[];
 }
 
 export function ImageCropper({
@@ -19,11 +21,15 @@ export function ImageCropper({
   onCropComplete,
   onCancel,
   outputSize = 400,
+  aspect,
+  aspectOptions,
 }: ImageCropperProps) {
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const initialAspect = aspect ?? aspectOptions?.[0]?.value ?? 1;
+  const [currentAspect, setCurrentAspect] = useState(initialAspect);
 
   const onCropChange = useCallback((location: Point) => {
     setCrop(location);
@@ -45,7 +51,12 @@ export function ImageCropper({
 
     setIsProcessing(true);
     try {
-      const croppedBlob = await getCroppedImage(imageSrc, croppedAreaPixels, outputSize);
+      const croppedBlob = await getCroppedImage(
+        imageSrc,
+        croppedAreaPixels,
+        outputSize,
+        currentAspect
+      );
       onCropComplete(croppedBlob);
     } catch (error) {
       console.error("이미지 크롭 실패:", error);
@@ -60,6 +71,12 @@ export function ImageCropper({
 
   const handleZoomOut = () => {
     setZoom((prev) => Math.max(prev - 0.2, 1));
+  };
+
+  const handleAspectChange = (nextAspect: number) => {
+    setCurrentAspect(nextAspect);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
   };
 
   return (
@@ -77,13 +94,40 @@ export function ImageCropper({
           </button>
         </div>
 
+        {aspectOptions && aspectOptions.length > 0 && (
+          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-gray-500">크롭 비율</span>
+              <div className="flex gap-1.5">
+                {aspectOptions.map((option) => {
+                  const isActive = Math.abs(currentAspect - option.value) < 0.01;
+                  return (
+                    <button
+                      key={option.label}
+                      type="button"
+                      onClick={() => handleAspectChange(option.value)}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                        isActive
+                          ? "bg-gray-900 text-white"
+                          : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-100"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 크롭 영역 */}
         <div className="relative h-72 sm:h-80 bg-gray-900">
           <Cropper
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={1}
+            aspect={currentAspect}
             onCropChange={onCropChange}
             onZoomChange={onZoomChange}
             onCropComplete={onCropCompleteCallback}

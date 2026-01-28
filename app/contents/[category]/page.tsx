@@ -6,6 +6,9 @@ import { ContentCardSection } from "@/components/contents/content-card-section";
 import { getSiteSettings } from "@/lib/site-settings";
 import type { Metadata } from "next";
 import { getMenuCategoryRequiresAuth } from "@/lib/category-auth";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 interface CategoryPageProps {
     params: Promise<{
@@ -91,6 +94,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     if (!canViewCategory) {
         return (
             <div className="container mx-auto px-4 py-10">
+                <Button variant="ghost" className="mb-6 -ml-2" asChild>
+                    <Link href="/">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        홈으로
+                    </Link>
+                </Button>
                 <h1 className="font-display text-3xl sm:text-4xl mb-8 capitalize">
                     {category?.name ?? categorySlug.replace(/-/g, " ")}
                 </h1>
@@ -115,6 +124,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     if (!category) {
         return (
             <div className="container mx-auto px-4 py-10">
+                <Button variant="ghost" className="mb-6 -ml-2" asChild>
+                    <Link href="/">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        홈으로
+                    </Link>
+                </Button>
                 <h1 className="font-display text-3xl sm:text-4xl mb-8 capitalize">
                     {categorySlug.replace(/-/g, " ")}
                 </h1>
@@ -152,6 +167,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     if (allContents.length === 0) {
         return (
             <div className="container mx-auto px-4 py-10">
+                <Button variant="ghost" className="mb-6 -ml-2" asChild>
+                    <Link href="/">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        홈으로
+                    </Link>
+                </Button>
                 <h1 className="font-display text-3xl sm:text-4xl mb-8 capitalize">
                     {category.name}
                 </h1>
@@ -260,6 +281,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
     return (
         <div className="container mx-auto px-4 py-10">
+            <Button variant="ghost" className="mb-6 -ml-2" asChild>
+                <Link href="/">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    홈으로
+                </Link>
+            </Button>
             <h1 className="font-display text-3xl sm:text-4xl mb-8 capitalize">
                 {category.name}
             </h1>

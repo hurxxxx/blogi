@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { ArrowLeft, Trash2, Edit, MessageCircle, Heart, Bookmark, Lock } from "lucide-react";
+import { FloatingBackButton } from "@/components/layout/floating-back-button";
 import { RichTextViewer } from "@/components/editor/rich-text-viewer";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/toast";
@@ -468,6 +469,11 @@ export default function PostDetailPage() {
           )}
         </div>
       </div>
+
+      <FloatingBackButton
+        href={listHref}
+        label="목록으로 돌아가기"
+      />
     </div>
   );
 }

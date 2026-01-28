@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { RichTextViewer } from "@/components/editor/rich-text-viewer";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { FloatingBackButton } from "@/components/layout/floating-back-button";
 import { auth } from "@/auth";
 import { extractContentId, buildContentHref, getContentPlainText, truncateText, hasLexicalRichNodes } from "@/lib/contents";
 import { getSiteSettings } from "@/lib/site-settings";
@@ -188,6 +189,11 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
                     </Button>
                 </div>
             )}
+
+            <FloatingBackButton
+                href={`/contents/${contentCategorySlug || category}`}
+                label="목록으로 돌아가기"
+            />
         </div>
     );
 }

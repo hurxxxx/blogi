@@ -29,6 +29,7 @@ export default function NewContentPage() {
     const [imageUrl, setImageUrl] = useState("");
     const [content, setContent] = useState("");
     const [contentMarkdown, setContentMarkdown] = useState("");
+    const [isPinned, setIsPinned] = useState(false);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState("");
@@ -117,7 +118,7 @@ export default function NewContentPage() {
             const res = await fetch("/api/contents", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, categoryId, price, imageUrl, content, contentMarkdown, tagIds: selectedTagIds }),
+                body: JSON.stringify({ title, categoryId, price, imageUrl, content, contentMarkdown, tagIds: selectedTagIds, isPinned }),
             });
 
             if (res.ok) {
@@ -369,6 +370,21 @@ export default function NewContentPage() {
                             onCancel={() => setCropperImage(null)}
                         />
                     )}
+
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="isPinned"
+                            checked={isPinned}
+                            onChange={(e) => setIsPinned(e.target.checked)}
+                            disabled={loading}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <Label htmlFor="isPinned" className="cursor-pointer select-none">
+                            공지글로 고정
+                        </Label>
+                        <span className="text-xs text-gray-400">이 콘텐츠를 카테고리 목록 상단에 고정합니다</span>
+                    </div>
 
                     <div className="space-y-2">
                         <Label>콘텐츠 설명</Label>

@@ -86,6 +86,7 @@ model Content {
   htmlContent     String?
   deletedAt       DateTime?
   isDeleted       Boolean   @default(false)
+  isPinned        Boolean   @default(false)
   categoryRef     Category  @relation("categoryRef", fields: [categoryId], references: [id])
   tags            ContentTag[]
 }

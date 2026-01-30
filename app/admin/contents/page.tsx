@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { ConfirmForm, type ConfirmActionState } from "@/components/admin/confirm-form";
 import { auth } from "@/auth";
-import { Eye, EyeOff, Pencil, Trash2, ImageIcon, Plus, Filter } from "lucide-react";
+import { Eye, EyeOff, Pencil, Trash2, ImageIcon, Plus, Filter, Pin } from "lucide-react";
 import { buildContentIndexUrl, isPublicIndexable, submitIndexNow } from "@/lib/indexnow";
 import { formatPrice } from "@/lib/utils";
 
@@ -337,7 +337,10 @@ export default async function AdminContentsPage({
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm truncate">{content.title}</div>
+                              <div className="font-medium text-sm truncate flex items-center gap-1">
+                              {content.isPinned && <Pin className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />}
+                              {content.title}
+                            </div>
                               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">
                                   {getCategoryLabel(
@@ -444,7 +447,10 @@ export default async function AdminContentsPage({
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">{content.title}</div>
+                            <div className="font-medium text-sm truncate flex items-center gap-1">
+                              {content.isPinned && <Pin className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />}
+                              {content.title}
+                            </div>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">
                                 {getCategoryLabel(
@@ -546,7 +552,10 @@ export default async function AdminContentsPage({
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{content.title}</div>
+                      <div className="font-medium text-sm truncate flex items-center gap-1">
+                              {content.isPinned && <Pin className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />}
+                              {content.title}
+                            </div>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <span
                           className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs ${

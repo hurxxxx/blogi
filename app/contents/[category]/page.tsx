@@ -200,7 +200,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 ? { tags: { some: { tagId: activeTag.id } } }
                 : {}),
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
         include: { categoryRef: true },
     });
 

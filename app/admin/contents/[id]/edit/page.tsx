@@ -31,6 +31,7 @@ export default function EditContentPage() {
     const [imageUrl, setImageUrl] = useState("");
     const [content, setContent] = useState("");
     const [contentMarkdown, setContentMarkdown] = useState("");
+    const [isPinned, setIsPinned] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -55,6 +56,7 @@ export default function EditContentPage() {
                 setContent(data.content || "");
                 setContentMarkdown(data.contentMarkdown || "");
                 setIsVisible(Boolean(data.isVisible));
+                setIsPinned(Boolean(data.isPinned));
                 const loadedCategoryId = data.categoryId || data.categoryRef?.id || "";
                 setInitialCategoryId(loadedCategoryId);
                 // Preload existing tags
@@ -168,6 +170,7 @@ export default function EditContentPage() {
                     content,
                     contentMarkdown,
                     isVisible,
+                    isPinned,
                     tagIds: selectedTagIds,
                 }),
             });
@@ -440,6 +443,21 @@ export default function EditContentPage() {
                             onCancel={() => setCropperImage(null)}
                         />
                     )}
+
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="isPinned"
+                            checked={isPinned}
+                            onChange={(e) => setIsPinned(e.target.checked)}
+                            disabled={saving}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <Label htmlFor="isPinned" className="cursor-pointer select-none">
+                            공지글로 고정
+                        </Label>
+                        <span className="text-xs text-gray-400">이 콘텐츠를 카테고리 목록 상단에 고정합니다</span>
+                    </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="isVisible">노출 여부</Label>

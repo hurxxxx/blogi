@@ -65,7 +65,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 
     const body = await req.json();
-    const { title, content, contentMarkdown, categoryId, price, imageUrl, isVisible, tagIds } = body;
+    const { title, content, contentMarkdown, categoryId, price, imageUrl, isVisible, tagIds, isPinned } = body;
 
     if (!title || !content || !categoryId) {
         return NextResponse.json({ error: "필수 항목을 입력해주세요" }, { status: 400 });
@@ -84,6 +84,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         price?: string | null;
         imageUrl?: string | null;
         isVisible: boolean;
+        isPinned: boolean;
         categoryId: string;
     } = {
         title,
@@ -91,6 +92,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         price: price || null,
         imageUrl: imageUrl || null,
         isVisible: typeof isVisible === "boolean" ? isVisible : true,
+        isPinned: typeof isPinned === "boolean" ? isPinned : false,
         categoryId: categoryRef.id,
     };
     if (typeof contentMarkdown === "string") {

@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
                 isDeleted: false,
                 ...(unauthFilters.length ? { AND: unauthFilters } : {}),
             },
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
         include: { categoryRef: true },
     });
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, content, contentMarkdown, categoryId, price, imageUrl, tagIds } = body;
+    const { title, content, contentMarkdown, categoryId, price, imageUrl, tagIds, isPinned } = body;
 
     if (!title || !content || !categoryId) {
         return NextResponse.json({ error: "필수 항목을 입력해주세요" }, { status: 400 });
@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
             categoryId: categoryRef.id,
             price: price || null,
             imageUrl: imageUrl || null,
+            isPinned: Boolean(isPinned),
         },
     });
 

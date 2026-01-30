@@ -89,3 +89,9 @@ Next.js가 `/uploads/...` 요청을 직접 처리합니다.
 ## 문서
 
 - [설치/운영 가이드](docs/install.md)
+
+---
+
+## License
+
+MIT
